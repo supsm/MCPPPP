@@ -3,5 +3,5 @@ A resource pack converter from Optifine format to newer and alternative formats.
 
 #Build
 1. Clone this using `git clone` or Download and Extract the ZIP via Github  
-2. Make sure your current folder is MCPatcherPatcher, if you cloned the repository cd `MCPatcherPatcher`.  
-3. Build the binary in whichever fashion you want, using C++17. (`-fpermissive` is required for gcc)
+2. Make sure your current folder is MCPatcherPatcher, if you cloned the repository `cd MCPPPP/MCPPPP`.  
+3. Build `Source.cpp` in whichever fashion you want, using C++17. (`-fpermissive` is required for gcc)
