@@ -189,6 +189,7 @@ int main()
 							image3.push_back(image[i]);
 						}
 					}
+					buffer.clear();
 					error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 					if (error)
 					{
@@ -315,8 +316,9 @@ int main()
 						}
 						if (option == "blend")
 						{
-							//j["properties"]["blend"]["type"] = value;
-							// blend is broken in fsb release, I will uncomment when it is fixed
+							j["properties"]["blend"]["type"] = value;
+							j["blend"] = false;
+							// ^ uncomment when new fsb releases and blend is fixed
 						}
 						if (option == "rotate")
 						{
@@ -372,6 +374,11 @@ int main()
 					{
 						j["properties"]["fade"]["startFadeOut"] = endfadeout - endfadein + startfadein;
 					}
+					if (source[0] == '.' && source[1] == '/')
+					{
+						source.erase(source.begin());
+						source = "fabricskyboxes:sky" + source;
+					}
 					j["textures"]["top"] = source + "_top.png";
 					j["textures"]["bottom"] = source + "_bottom.png";
 					j["textures"]["north"] = source + "_north.png";
@@ -409,7 +416,26 @@ int main()
 			zip.ExtractEntry("assets/", folder);
 			zip.Close();
 			// this part is just copy pasted with a few things changed (might not work, dunno)
-			for (auto& png : std::filesystem::directory_iterator(folder + "/assets/minecraft/optifine/sky/world0"))
+			bool optifine;
+			if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(folder + "/assets/fabricskyboxes/sky", std::filesystem::path::format::auto_format)).exists())
+			{
+				std::cout << "Fabricskyboxes folder found in " << entry.path().filename() << ", skipping" << std::endl;
+				continue;
+			}
+			if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(folder + "/assets/minecraft/optifine/sky", std::filesystem::path::format::auto_format)).exists())
+			{
+				optifine = true;
+			}
+			else if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(folder + "/assets/minecraft/mcpatcher/sky", std::filesystem::path::format::auto_format)).exists())
+			{
+				optifine = false;
+			}
+			else
+			{
+				std::cout << "Nothing to convert in " << entry.path().filename() << ", skipping" << std::endl;
+				continue;
+			}
+			for (auto& png : std::filesystem::directory_iterator(folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 			{
 				if (png.path().extension() == ".png")
 				{
@@ -511,6 +537,7 @@ int main()
 							image3.push_back(image[i]);
 						}
 					}
+					buffer.clear();
 					error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 					if (error)
 					{
@@ -637,8 +664,9 @@ int main()
 						}
 						if (option == "blend")
 						{
-							//j["properties"]["blend"]["type"] = value;
-							// blend is broken in fsb release, I will uncomment when it is fixed
+							j["properties"]["blend"]["type"] = value;
+							j["blend"] = false;
+							// ^ uncomment when new fsb releases and blend is fixed
 						}
 						if (option == "rotate")
 						{
@@ -693,6 +721,11 @@ int main()
 					if (startfadeout == -1)
 					{
 						j["properties"]["fade"]["startFadeOut"] = endfadeout - endfadein + startfadein;
+					}
+					if (source[0] == '.' && source[1] == '/')
+					{
+						source.erase(source.begin());
+						source = "fabricskyboxes:sky" + source;
 					}
 					j["textures"]["top"] = source + "_top.png";
 					j["textures"]["bottom"] = source + "_bottom.png";
