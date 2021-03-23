@@ -30,6 +30,11 @@ int main()
 	{
 		std::ofstream createconfig{ "mcpppp.properties" };
 		std::cerr << "Config file not found" << std::endl;
+#ifdef _WIN32
+		system("pause"); // dont exit program otherwise ppl wont see the message
+#else
+		system("read -p \"Press any key to continue . . .\"");
+#endif
 		return 0;
 	}
 	while (config.good())
@@ -52,23 +57,37 @@ int main()
 	if (!std::filesystem::is_directory(path, ec))
 	{
 		std::cerr << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
+#ifdef _WIN32
+		system("pause");
+#else
+		system("read -p \"Press any key to continue . . .\"");
+#endif
 		return -1;
 	}
 	for (auto& entry : std::filesystem::directory_iterator(path))
 	{
 		if (entry.is_directory())
 		{
+			bool optifine;
 			if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(entry.path().string() + "/assets/fabricskyboxes/sky", std::filesystem::path::format::auto_format)).exists())
 			{
 				std::cout << "Fabricskyboxes folder found in " << entry.path().filename() << ", skipping" << std::endl;
 				continue;
 			}
-			if (!std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(entry.path().string() + "/assets/minecraft/optifine/sky", std::filesystem::path::format::auto_format)).exists())
+			if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(entry.path().string() + "/assets/minecraft/optifine/sky", std::filesystem::path::format::auto_format)).exists())
+			{
+				optifine = true;
+			}
+			else if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(entry.path().string() + "/assets/minecraft/mcpatcher/sky", std::filesystem::path::format::auto_format)).exists())
+			{
+				optifine = false;
+			}
+			else
 			{
 				std::cout << "Nothing to convert in " << entry.path().filename() << ", skipping" << std::endl;
 				continue;
 			}
-			for (auto& png : std::filesystem::directory_iterator(entry.path().string() + "/assets/minecraft/optifine/sky/world0"))
+			for (auto& png : std::filesystem::directory_iterator(entry.path().string() + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 			{
 				if (png.path().extension() == ".png")
 				{
@@ -380,6 +399,8 @@ int main()
 			if (!zip.HasEntry("/assets/minecraft/optifine/sky"))
 			{
 				std::cout << "Nothing to convert in " << entry.path().filename() << ", skipping" << std::endl;
+				zip.Close();
+				continue;
 			}
 			folder = entry.path().string();
 			folder.erase(folder.end() - 4, folder.end());
