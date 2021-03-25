@@ -6,6 +6,7 @@
 *.properties
 *.vcxproj
 *.vcxproj.filters
+*.css
 
 # User-specific files
 *.rsuser
