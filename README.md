@@ -3,7 +3,7 @@ A resource pack converter from Optifine format to newer and alternative formats.
   
 [Discord](https://discord.gg/waXJDswsaR)  
 # Use
-Newly compiled binaries can be found as `linux.out` and `windows.exe`. They may not be stable, and may not contain things from the latest release. I will add releases when I feel it is stable enough.  
+Newly compiled binaries can be found as `MCPPPP-linux.out` and `MCPPPP-windows.exe`. They may not be stable, and may not contain things from the latest release. I will add releases when I feel it is stable enough.  
 Also, I'm not sure what format would be best for linux, as I don't use it very often. If you want you may suggest file types in the [discord](https://discord.gg/waXJDswsaR).  
   
 # Build
