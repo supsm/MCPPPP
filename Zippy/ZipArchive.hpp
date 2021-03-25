@@ -562,11 +562,7 @@ namespace Zippy
 
             // ===== If the entry is a directory, create the directory as a subdirectory to dest
             if (entry.IsDirectory()) {
-#ifdef _WIN32
-                _mkdir((dest + entry.Filename()).c_str());
-#else
-                mkdir((dest + entry.Filename()).c_str(), 0733);
-#endif
+                std::filesystem::create_directories((dest + entry.Filename()).c_str());
                 for (auto it = m_ZipEntries.begin(); it != m_ZipEntries.end(); it++) // recursively extract for folders (don't know why this wasn't in original)
                 {
                     std::string entry = it->GetName();
