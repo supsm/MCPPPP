@@ -423,7 +423,7 @@ int main()
 	if (config.fail())
 	{
 		std::ofstream createconfig("mcpppp.properties");
-		createconfig << "# Insert path(s) of directories to search for resource packs (newline seperated)" << std::endl;
+		createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
 		createconfig.close();
 		std::cerr << "Config file not found, look for mcpppp.properties" << std::endl;
 #ifdef _WIN32
