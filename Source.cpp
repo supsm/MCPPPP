@@ -423,9 +423,9 @@ int main()
 	if (config.fail())
 	{
 		std::ofstream createconfig("mcpppp.properties");
-		createconfig << "# Insert path(s) of directories to search for resource packs" << std::endl;
+		createconfig << "# Insert path(s) of directories to search for resource packs (newline seperated)" << std::endl;
 		createconfig.close();
-		std::cerr << "Config file not found" << std::endl;
+		std::cerr << "Config file not found, look for mcpppp.properties" << std::endl;
 #ifdef _WIN32
 		system("pause"); // dont exit program otherwise ppl wont see the message
 #else
