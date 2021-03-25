@@ -228,6 +228,10 @@ void fsb(std::string path, std::string filename, bool zip)
 						temp[i] = ' ';
 					}
 				}
+				if (temp == "")
+				{
+					continue;
+				}
 				ss.str(temp);
 				option.clear();
 				value.clear();
