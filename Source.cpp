@@ -244,7 +244,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					source = value;
 					source.erase(source.end() - 4, source.end());
 				}
-				if (option == "startFadeIn")
+				if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
 				{
 					temp = value;
 					for (int i = 0; i < temp.size(); i++)
@@ -256,53 +256,8 @@ void fsb(std::string path, std::string filename, bool zip)
 						}
 					}
 					temp += '0';
-					startfadein = (stoi(temp) + 18000) % 24000;
-					j["properties"]["fade"]["startFadeIn"] = (stoi(temp) + 18000) % 24000;
-				}
-				if (option == "startFadeOut")
-				{
-					temp = value;
-					for (int i = 0; i < temp.size(); i++)
-					{
-						if (temp[i] == ':')
-						{
-							temp.erase(temp.begin() + i);
-							i--;
-						}
-					}
-					temp += '0';
-					startfadeout = (stoi(temp) + 18000) % 24000;
-					j["properties"]["fade"]["startFadeOut"] = (stoi(temp) + 18000) % 24000;
-				}
-				if (option == "endFadeIn")
-				{
-					temp = value;
-					for (int i = 0; i < temp.size(); i++)
-					{
-						if (temp[i] == ':')
-						{
-							temp.erase(temp.begin() + i);
-							i--;
-						}
-					}
-					temp += '0';
-					endfadein = (stoi(temp) + 18000) % 24000;
-					j["properties"]["fade"]["endFadeIn"] = (stoi(temp) + 18000) % 24000;
-				}
-				if (option == "endFadeOut")
-				{
-					temp = value;
-					for (int i = 0; i < temp.size(); i++)
-					{
-						if (temp[i] == ':')
-						{
-							temp.erase(temp.begin() + i);
-							i--;
-						}
-					}
-					temp += '0';
-					endfadeout = (stoi(temp) + 18000) % 24000;
-					j["properties"]["fade"]["endFadeOut"] = (stoi(temp) + 18000) % 24000;
+					(option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : endfadein) : (option == "endFadeIn" ? endfadein : endfadeout) = (stoi(temp) + 18000) % 24000;
+					j["properties"]["fade"][option] = (stoi(temp) + 18000) % 24000;
 				}
 				if (option == "blend")
 				{
