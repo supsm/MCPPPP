@@ -215,7 +215,7 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else if (png.path().extension() == ".properties")
 		{
-			int startfadein, endfadein, startfadeout = -1, endfadeout;
+			int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 			std::string name = png.path().filename().string(), source, option, value;
 			name.erase(name.end() - 11, name.end());
 			source = name;
@@ -358,9 +358,9 @@ void fsb(std::string path, std::string filename, bool zip)
 		{
 			unsigned char ch;
 			Zippy::ZipEntryData zed;
-			std::ifstream fin(png.path().string());
+			std::ifstream fin(png.path().string(), std::ios::binary);
 			zed.clear();
-			while (fin)
+			while (fin.good())
 			{
 				fin >> std::noskipws >> ch;
 				zed.push_back(ch);
