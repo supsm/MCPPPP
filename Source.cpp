@@ -33,7 +33,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			std::cout << "Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
+		else if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
 		{
 			optifine = true;
 		}
@@ -59,7 +59,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			std::cout << "Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(path + "/assets/minecraft/optifine/sky", std::filesystem::path::format::auto_format)).exists())
+		else if (std::filesystem::directory_entry::directory_entry(std::filesystem::path::path(path + "/assets/minecraft/optifine/sky", std::filesystem::path::format::auto_format)).exists())
 		{
 			optifine = true;
 		}
@@ -97,6 +97,9 @@ void fsb(std::string path, std::string filename, bool zip)
 				std::cout << "png error: " << lodepng_error_text(error);
 			}
 			std::cout << "converting: " << png.path().filename() << std::endl;
+			image1.reserve(buffer.size() / 6);
+			image2.reserve(buffer.size() / 6);
+			image3.reserve(buffer.size() / 6);
 			for (long long i = 0; i < (w * 4) * h / 2; i++)
 			{
 				if (i % (w * 4) < (w * 4) / 3)
@@ -113,6 +116,7 @@ void fsb(std::string path, std::string filename, bool zip)
 				}
 			}
 			long long max = 0;
+			top.reserve(buffer.size() / 6);
 			for (long long i = 0; i < (w * 4) / 3; i += 4)
 			{
 				for (long long j = 0; j < h / 2; j++)
@@ -221,30 +225,34 @@ void fsb(std::string path, std::string filename, bool zip)
 			while (fin)
 			{
 				std::getline(fin, temp);
-				for (int i = 0; i < temp.size(); i++) // quick and dirty way to seperate option from value: change '=' to ' ' then use stringstream
+				option.clear();
+				value.clear();
+				bool isvalue = false;
+				for (int i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == '=')
 					{
-						temp[i] = ' ';
+						isvalue = true;
+					}
+					else if (!isvalue)
+					{
+						option += temp[i];
+					}
+					else if (isvalue)
+					{
+						value += temp[i];
 					}
 				}
 				if (temp == "")
 				{
 					continue;
 				}
-				ss.str(temp);
-				option.clear();
-				value.clear();
-				ss.clear();
-				ss >> option;
-				getline(ss, value);
-				value.erase(value.begin());
 				if (option == "source")
 				{
 					source = value;
 					source.erase(source.end() - 4, source.end());
 				}
-				if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
+				else if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
 				{
 					temp = value;
 					for (int i = 0; i < temp.size(); i++)
@@ -259,21 +267,21 @@ void fsb(std::string path, std::string filename, bool zip)
 					(option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : endfadein) : (option == "endFadeIn" ? endfadein : endfadeout) = (stoi(temp) + 18000) % 24000;
 					j["properties"]["fade"][option] = (stoi(temp) + 18000) % 24000;
 				}
-				if (option == "blend")
+				else if (option == "blend")
 				{
 					j["properties"]["blend"]["type"] = value;
 					j["blend"] = false;
 					// ^ uncomment when new fsb releases and blend is fixed
 				}
-				if (option == "rotate")
+				else if (option == "rotate")
 				{
 					j["properties"]["shouldrotate"] = (value == "true") ? true : false;
 				}
-				if (option == "speed")
+				else if (option == "speed")
 				{
 					// fsb doesn't have this yet (rotation speed)
 				}
-				if (option == "axis")
+				else if (option == "axis")
 				{
 					std::string x, y, z;
 					std::stringstream axis;
@@ -281,7 +289,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					axis >> x >> y >> z;
 					j["properties"]["rotation"]["axis"] = { stod(x), stod(y), stod(z) };
 				}
-				if (option == "weather")
+				else if (option == "weather")
 				{
 					std::string weather;
 					std::stringstream weathers;
@@ -294,7 +302,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					}
 					j["conditions"]["weather"] = weatherlist;
 				}
-				if (option == "biomes")
+				else if (option == "biomes")
 				{
 					std::string biome;
 					std::stringstream biomes;
