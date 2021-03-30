@@ -220,7 +220,8 @@ void fsb(std::string path, std::string filename, bool zip)
 			name.erase(name.end() - 11, name.end());
 			source = name;
 			std::stringstream ss;
-			nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}}} };
+			nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", false}, {"properties", {{"blend", {{"type", "add"}}}}} };
+			// change blend to true for fsb 0.5.0
 			std::ifstream fin(png.path().string());
 			while (fin)
 			{
@@ -270,7 +271,6 @@ void fsb(std::string path, std::string filename, bool zip)
 				else if (option == "blend")
 				{
 					j["properties"]["blend"]["type"] = value;
-					j["blend"] = true;
 				}
 				else if (option == "rotate")
 				{
@@ -278,7 +278,8 @@ void fsb(std::string path, std::string filename, bool zip)
 				}
 				else if (option == "speed")
 				{
-					j["properties"]["rotation"]["rotationSpeed"] = stod(value);
+					//j["properties"]["rotation"]["rotationSpeed"] = stod(value);
+					// uncomment for fsb 0.5.0
 				}
 				else if (option == "axis")
 				{
