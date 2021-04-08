@@ -141,7 +141,7 @@ void fsb(std::string path, std::string filename, bool zip)
 				std::cout << "FSB: png error: " << lodepng_error_text(error);
 			}
 			buffer.clear();
-			error = lodepng::encode(buffer, top, w / 3, h / 2, state);
+			error = lodepng::encode(buffer, top, h / 2, w / 3, state);
 			if (error)
 			{
 				std::cout << "FSB: png error: " << lodepng_error_text(error);
@@ -502,16 +502,105 @@ void vmt(std::string path, std::string filename, bool zip)
 				std::cout << "assets/minecraft/varied/textures/entity/" + name << std::endl;
 				if (!zip)
 				{
-					std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
-					fout << j.dump(1, '\t') << std::endl;
-					fout.close();
+					if (!std::filesystem::exists(path + "/assets/minecraft/varied/textures/entity/" + name + ".json"))
+					{
+						std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
+						fout << j.dump(1, '\t') << std::endl;
+						fout.close();
+					}
 				}
 				else
 				{
-					zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
+					if (!zipa.HasEntry("assets/minecraft/varied/textures/entity/" + name + ".json"))
+					{
+						zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
+					}
 				}
 				number = 1;
 				goto vmtconvert;
+			}
+		}
+		else if (png.path().filename().extension() == ".properties")
+		{
+			folderpath = png.path().string();
+			folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+			folderpath.erase(folderpath.end() - png.path().filename().string().size() - 1, folderpath.end());
+			std::string temp, option, value;
+			nlohmann::json j = { {"type", "varied-mobs:seq"} };
+			std::ifstream fin(png.path().string());
+			while (fin)
+			{
+				std::getline(fin, temp);
+				option.clear();
+				value.clear();
+				bool isvalue = false;
+				for (int i = 0; i < temp.size(); i++)
+				{
+					if (temp[i] == '=')
+					{
+						isvalue = true;
+					}
+					else if (!isvalue)
+					{
+						option += temp[i];
+					}
+					else if (isvalue)
+					{
+						value += temp[i];
+					}
+				}
+				if (temp == "")
+				{
+					continue;
+				}
+				if (option.find("textures.") == 0 || option.find("skins.") == 0)
+				{
+
+				}
+				else if (option.find("weights.") == 0)
+				{
+
+				}
+				else if (option.find("biomes.") == 0)
+				{
+
+				}
+				else if (option.find("heights.") == 0)
+				{
+
+				}
+				else if (option.find("name.") == 0)
+				{
+
+				}
+				else if (option.find("professions.") == 0)
+				{
+
+				}
+				else if (option.find("collarColors.") == 0)
+				{
+
+				}
+				else if (option.find("baby.") == 0)
+				{
+
+				}
+				else if (option.find("health.") == 0)
+				{
+
+				}
+				else if (option.find("moonPhase.") == 0)
+				{
+
+				}
+				else if (option.find("dayTime.") == 0)
+				{
+
+				}
+				else if (option.find("weather.") == 0)
+				{
+
+				}
 			}
 		}
 	}
@@ -526,13 +615,19 @@ void vmt(std::string path, std::string filename, bool zip)
 		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
 		if (!zip)
 		{
-			std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
-			fout << j.dump(1, '\t') << std::endl;
-			fout.close();
+			if (!std::filesystem::exists(path + "/assets/minecraft/varied/textures/entity/" + name + ".json"))
+			{
+				std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
+				fout << j.dump(1, '\t') << std::endl;
+				fout.close();
+			}
 		}
 		else
 		{
-			zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
+			if (!zipa.HasEntry("assets/minecraft/varied/textures/entity/" + name + ".json"))
+			{
+				zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
+			}
 		}
 		number = 1;
 	}
