@@ -18,5 +18,5 @@ If a folder already contains the output directories (such as `assets/fabricskybo
   
 # Build
 1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
-2. Make sure your current folder is MCPatcherPatcher, if you cloned the repository `cd MCPPPP`.  
+2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
 3. Build `Source.cpp` in whichever fashion you want, using C++17. (`-fpermissive` is required for g++). Turn on optimizations if possible, the conversion process will be a lot faster.  
