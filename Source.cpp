@@ -17,7 +17,7 @@
 void fsb(std::string path, std::string filename, bool zip)
 {
 	std::string temp, folder;
-	std::vector<unsigned char> buffer, image, image1, image2, image3, top; // before h/2: bottom, top (rotate 90 clockwise), south; h/2 to h: west, north, east
+	std::vector<unsigned char> buffer, image, image1, image2, image3, top, bottom; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 	// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 	unsigned int w, h;
 	lodepng::State state;
@@ -73,7 +73,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			return;
 		}
 	}
-	std::cout << "VMT: Converting " + filename << std::endl;
+	std::cout << "FSB: Converting " + filename << std::endl;
 	for (auto& png : std::filesystem::directory_iterator(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 	{
 		if (png.path().extension() == ".png")
@@ -87,6 +87,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			image2.clear();
 			image3.clear();
 			top.clear();
+			bottom.clear();
 			error = lodepng::load_file(buffer, png.path().string());
 			if (error)
 			{
@@ -118,6 +119,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			}
 			long long max = 0;
 			top.reserve(buffer.size() / 6);
+			bottom.reserve(buffer.size() / 6);
 			for (long long i = 0; i < (w * 4) / 3; i += 4)
 			{
 				for (long long j = 0; j < h / 2; j++)
@@ -126,11 +128,15 @@ void fsb(std::string path, std::string filename, bool zip)
 					top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1]);
 					top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2]);
 					top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3]);
+					bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i]);
+					bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 1]);
+					bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 2]);
+					bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 3]);
 				}
 			}
 			buffer.clear();
 			std::filesystem::create_directories(zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky" : path + "/assets/fabricskyboxes/sky");
-			error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
+			error = lodepng::encode(buffer, bottom, w / 3, h / 2, state);
 			if (error)
 			{
 				std::cout << "FSB: png error: " << lodepng_error_text(error);
@@ -388,6 +394,8 @@ void vmt(std::string path, std::string filename, bool zip)
 	bool optifine, newlocation;
 	std::string folder;
 	Zippy::ZipArchive zipa;
+	std::string curnum, name, name2, folderpath, folderpath2, curname;
+	std::vector<int> numbers;
 	if (zip)
 	{
 		zipa.Open(path);
@@ -449,16 +457,12 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 	}
 	std::cout << "VMT: Converting " + filename << std::endl;
-	int number = 1;
-	std::string curnum, name, folderpath, curname;
 	for (auto& png : std::filesystem::recursive_directory_iterator((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")))
 	{
+
 		if (png.path().filename().extension() == ".png")
 		{
 		vmtconvert:
-			folderpath = png.path().string();
-			folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-			folderpath.erase(folderpath.end() - png.path().filename().string().size() - 1, folderpath.end());
 			curnum.clear();
 			for (int i = png.path().filename().string().size() - 5; i >= 0; i--)
 			{
@@ -468,65 +472,72 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				else
 				{
-					if (number == 1)
+					if (numbers.size() == 0)
 					{
 						name = png.path().filename().string();
 						name.erase(name.begin() + i + 1, name.end());
-						name.insert(0, folderpath + "/");
+						folderpath = png.path().string();
+						folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+						folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
+						for (int i = 0; i < folderpath.size(); i++)
+						{
+							if (folderpath[i] == '\\')
+							{
+								folderpath[i] = '/';
+							}
+						}
 					}
 					curname = png.path().filename().string();
 					curname.erase(curname.begin() + i + 1, curname.end());
-					curname.insert(0, folderpath + "/");
 					break;
 				}
 			}
-			if (curnum == "")
+			if (curname == name && curnum != "")
 			{
-				curnum = "-1";
-			}
-			if (stoi(curnum) == number + 1 && curname == name)
-			{
-				number++;
+				numbers.push_back(stoi(curnum));
 				std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath);
-				std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + "/" + png.path().filename().string());
+				std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().string());
 			}
-			else if (number > 1)
+			else if (!numbers.empty())
 			{
 				std::vector<std::string> v;
-				for (int i = 2; i <= number; i++)
+				for (int i : numbers)
 				{
-					v.push_back("assets/minecraft/varied/textures/entity/" + name + std::to_string(i) + ".png");
+					v.push_back("assets/minecraft/varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
 				}
-				v.push_back("assets/minecraft/textures/entity/" + name + ".png");
+				v.push_back("assets/minecraft/textures/entity/" + folderpath + name + ".png");
 				nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
-				std::cout << "assets/minecraft/varied/textures/entity/" + name << std::endl;
-				if (!zip)
+				if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
 				{
-					if (!std::filesystem::exists(path + "/assets/minecraft/varied/textures/entity/" + name + ".json"))
-					{
-						std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
-						fout << j.dump(1, '\t') << std::endl;
-						fout.close();
-					}
+					std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json");
+					fout << j.dump(1, '\t') << std::endl;
+					fout.close();
 				}
-				else
-				{
-					if (!zipa.HasEntry("assets/minecraft/varied/textures/entity/" + name + ".json"))
-					{
-						zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
-					}
-				}
-				number = 1;
+				numbers.clear();
 				goto vmtconvert;
 			}
 		}
 		else if (png.path().filename().extension() == ".properties")
 		{
-			folderpath = png.path().string();
-			folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-			folderpath.erase(folderpath.end() - png.path().filename().string().size() - 1, folderpath.end());
-			std::string temp, option, value;
-			nlohmann::json j = { {"type", "varied-mobs:seq"} };
+			folderpath2 = png.path().string();
+			folderpath2.erase(folderpath2.begin(), folderpath2.begin() + folderpath2.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+			folderpath2.erase(folderpath2.end() - png.path().filename().string().size(), folderpath2.end());
+			for (int i = 0; i < folderpath2.size(); i++)
+			{
+				if (folderpath2[i] == '\\')
+				{
+					folderpath2[i] = '/';
+				}
+			}
+			name2 = png.path().filename().string();
+			name2.erase(name2.end() - 11, name.end());
+			std::string temp, option, value, time1;
+			nlohmann::json j, tempj;
+			std::vector<nlohmann::json> v, tempv;
+			std::vector<std::vector<int>> weights;
+			std::vector<std::vector<std::pair<std::string, std::string>>> times;
+			std::vector<std::vector<std::string>> biomes, weather, textures;
+			std::stringstream ss;
 			std::ifstream fin(png.path().string());
 			while (fin)
 			{
@@ -534,6 +545,10 @@ void vmt(std::string path, std::string filename, bool zip)
 				option.clear();
 				value.clear();
 				bool isvalue = false;
+				if (temp == "" || temp[0] == '#')
+				{
+					continue;
+				}
 				for (int i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == '=')
@@ -549,87 +564,168 @@ void vmt(std::string path, std::string filename, bool zip)
 						value += temp[i];
 					}
 				}
-				if (temp == "")
+				curnum.clear();
+				for (int i = option.size() - 1; i >= 0; i--)
+				{
+					if (option[i] >= '0' && option[i] <= '9')
+					{
+						curnum.insert(curnum.begin(), option[i]);
+					}
+					else
+					{
+						break;
+					}
+				}
+				if (curnum.empty())
 				{
 					continue;
 				}
+				if (stoi(curnum) > textures.size())
+				{
+					textures.resize(stoi(curnum));
+					weights.resize(stoi(curnum));
+					biomes.resize(stoi(curnum));
+					times.resize(stoi(curnum));
+				}
 				if (option.find("textures.") == 0 || option.find("skins.") == 0)
 				{
-
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						ss >> temp;
+						if (temp == "1")
+						{
+							textures[stoi(curnum) - 1].push_back("assets/minecraft/textures/entity/" + folderpath2 + name2);
+						}
+						else
+						{
+							textures[stoi(curnum) - 1].push_back("assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + temp);
+						}
+					}
 				}
 				else if (option.find("weights.") == 0)
 				{
-
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						ss >> temp;
+						weights[stoi(curnum) - 1].push_back(stoi(temp));
+					}
 				}
 				else if (option.find("biomes.") == 0)
 				{
-
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						ss >> temp;
+						biomes[stoi(curnum) - 1].push_back(temp);
+					}
 				}
 				else if (option.find("heights.") == 0)
 				{
-
+					// don't really know how this works (of), will find out (TODO)
 				}
 				else if (option.find("name.") == 0)
 				{
-
+					// don't really understand how this works yet
 				}
 				else if (option.find("professions.") == 0)
 				{
-
+					// not sure this is possible
 				}
 				else if (option.find("collarColors.") == 0)
 				{
-
+					// not sure this is possible
 				}
 				else if (option.find("baby.") == 0)
 				{
-
+					// TODO: find out how varied-mobs:not works
 				}
 				else if (option.find("health.") == 0)
 				{
-
+					// vmt doesn't accept health values, only %
 				}
 				else if (option.find("moonPhase.") == 0)
 				{
-
+					// not sure this is possible
 				}
 				else if (option.find("dayTime.") == 0)
 				{
-
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						ss >> temp;
+						time1.clear();
+						for (int i = 0; i < temp.size(); i++)
+						{
+							if (temp[i] == '-')
+							{
+								temp.erase(temp.begin(), temp.begin() + i);
+								break;
+							}
+							time1 += temp[i];
+						}
+						times[stoi(curnum) - 1].push_back(std::make_pair(time1, temp));
+					}
 				}
 				else if (option.find("weather.") == 0)
 				{
-
+					// not sure this is possible
 				}
 			}
+			for (int i = 0; i < textures.size(); i++) // TODO: there's probably a better way to do this
+			{
+				if (textures[i].empty())
+				{
+					continue;
+				}
+				if (weights[i].size())
+				{
+					tempj = { {"type", "varied-mobs:pick"}, {"weights", weights[i]}, {"choices", textures[i]} };
+				}
+				else
+				{
+					tempj = { {"type", "varied-mobs:pick"}, {"choices", textures[i]} };
+				}
+				if (biomes[i].size())
+				{
+					tempj = { {"type", "varied-mobs:biome"}, {"biomes", biomes[i]}, {"value", tempj} };
+				}
+				if (times[i].size())
+				{
+					for (int j = 0; j < times[i].size(); j++)
+					{
+						tempv.push_back({ {"type", "varied-mobs:time-prop"}, {"positions", nlohmann::json::object({times[i][j].first, times[i][j].second})}, {"choices", {tempj}} });
+					}
+					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
+				}
+			}
+			j = { {"type", "varied-mobs:pick"}, {"choices", {tempj}} };
+			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + ".json");
+			fout << j.dump(1, '\t') << std::endl;
+			fout.close();
 		}
 	}
-	if (number > 1)
+	if (!numbers.empty())
 	{
 		std::vector<std::string> v;
-		for (int i = 2; i <= number; i++)
+		for (int i : numbers)
 		{
-			v.push_back("assets/minecraft/varied/textures/entity/" + name + std::to_string(i) + ".png");
+			v.push_back("assets/minecraft/varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
 		}
-		v.push_back("assets/minecraft/textures/entity/" + name + ".png");
+		v.push_back("assets/minecraft/textures/entity/" + folderpath + name + ".png");
 		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
-		if (!zip)
+		if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
 		{
-			if (!std::filesystem::exists(path + "/assets/minecraft/varied/textures/entity/" + name + ".json"))
-			{
-				std::ofstream fout(path + "/assets/minecraft/varied/textures/entity/" + name + ".json");
-				fout << j.dump(1, '\t') << std::endl;
-				fout.close();
-			}
+			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json");
+			fout << j.dump(1, '\t') << std::endl;
+			fout.close();
 		}
-		else
-		{
-			if (!zipa.HasEntry("assets/minecraft/varied/textures/entity/" + name + ".json"))
-			{
-				zipa.AddEntry("assets/minecraft/varied/textures/entity/" + name + ".json", j.dump(1, '\t') + '\n');
-			}
-		}
-		number = 1;
+		numbers.clear();
 	}
 	if (zip)
 	{
@@ -641,8 +737,16 @@ void vmt(std::string path, std::string filename, bool zip)
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 			temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 			temp += '/';
+			for (int i = 0; i < temp.size(); i++)
+			{
+				if (temp[i] == '\\')
+				{
+					temp[i] = '/';
+				}
+			}
 			Zippy::ZipEntryData zed;
 			std::ifstream fin(png.path().string(), std::ios::binary);
+			fin.sync_with_stdio(false);
 			zed.clear();
 			while (fin.good())
 			{
