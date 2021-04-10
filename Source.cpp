@@ -14,6 +14,43 @@
 
 #include "Zippy.hpp"
 
+bool pauseonexit = true, dolog = false, dotimestamp = false;
+std::ofstream logfile;
+
+std::string lowercase(std::string str)
+{
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (str[i] >= 'A' && str[i] <= 'Z')
+		{
+			str[i] += 32;
+		}
+	}
+	return str;
+}
+
+std::string timestamp()
+{
+	time_t timet = time(NULL);
+	struct tm* timeinfo = localtime(&timet);
+	std::string hour = std::to_string(timeinfo->tm_hour);
+	if (hour.length() == 1)
+	{
+		hour.insert(hour.begin(), '0');
+	}
+	std::string min = std::to_string(timeinfo->tm_min);
+	if (min.length() == 1)
+	{
+		min.insert(min.begin(), '0');
+	}
+	std::string sec = std::to_string(timeinfo->tm_sec);
+	if (sec.length() == 1)
+	{
+		sec.insert(sec.begin(), '0');
+	}
+	return '[' + hour + ':' + min + ':' + sec + "] ";
+}
+
 void fsb(std::string path, std::string filename, bool zip)
 {
 	std::string temp, folder;
@@ -30,7 +67,11 @@ void fsb(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/fabricskyboxes/sky/"))
 		{
-			std::cout << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
@@ -43,20 +84,32 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		std::cout << "FSB: Extracting " << filename << std::endl;
+		std::cout << (dotimestamp ? timestamp() : "") << "FSB: Extracting " << filename << std::endl;
+		if (logfile.good())
+		{
+			logfile << timestamp() << "FSB: Extracting " << filename << std::endl;
+		}
 		zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/", "mcpppp-temp/" + folder + '/');
 	}
 	else
 	{
 		if (std::filesystem::is_directory(path + "/assets/fabricskyboxes/sky"))
 		{
-			std::cout << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/sky"))
@@ -69,11 +122,19 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 	}
-	std::cout << "FSB: Converting " + filename << std::endl;
+	std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting " + filename << std::endl;
+	if (logfile.good())
+	{
+		logfile << timestamp() << "FSB: Converting " + filename << std::endl;
+	}
 	for (auto& png : std::filesystem::directory_iterator(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 	{
 		if (png.path().extension() == ".png")
@@ -91,14 +152,26 @@ void fsb(std::string path, std::string filename, bool zip)
 			error = lodepng::load_file(buffer, png.path().string());
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::decode(image, w, h, state, buffer);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
-			std::cout << "FSB: converting: " << png.path().filename() << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
+			}
 			image1.reserve(buffer.size() / 6);
 			image2.reserve(buffer.size() / 6);
 			image3.reserve(buffer.size() / 6);
@@ -139,34 +212,58 @@ void fsb(std::string path, std::string filename, bool zip)
 			error = lodepng::encode(buffer, bottom, w / 3, h / 2, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_bottom.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			buffer.clear();
 			error = lodepng::encode(buffer, top, h / 2, w / 3, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_top.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			buffer.clear();
 			error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_south.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			image1.clear();
 			image2.clear();
@@ -190,34 +287,58 @@ void fsb(std::string path, std::string filename, bool zip)
 			error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_west.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			buffer.clear();
 			error = lodepng::encode(buffer, image2, w / 3, h / 2, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_north.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			buffer.clear();
 			error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_east.png");
 			if (error)
 			{
-				std::cout << "FSB: png error: " << lodepng_error_text(error);
+				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
+				if (logfile.good())
+				{
+					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
+				}
 			}
 		}
 		else if (png.path().extension() == ".properties")
@@ -360,19 +481,22 @@ void fsb(std::string path, std::string filename, bool zip)
 			}
 		}
 	}
+	std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
+	if (logfile.good())
+	{
+		logfile << timestamp() << "FSB: Compressing " + filename << std::endl;
+	}
 	if (zip)
 	{
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
 		{
-			unsigned char ch;
 			Zippy::ZipEntryData zed;
-			std::ifstream fin(png.path().string(), std::ios::binary);
+			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();
-			while (fin.good())
-			{
-				fin >> std::noskipws >> ch;
-				zed.push_back(ch);
-			}
+			long long filesize = png.file_size();
+			zed.resize(filesize);
+			fin.seekg(0, std::ios::beg);
+			fin.read((char*)(zed.data()), filesize);
 			fin.close();
 			zipa.AddEntry("assets/fabricskyboxes/sky/" + png.path().filename().string(), zed);
 		}
@@ -401,7 +525,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/minecraft/varied/textures/entity/"))
 		{
-			std::cout << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
@@ -420,20 +548,32 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		std::cout << "VMT: Extracting " << filename << std::endl;
+		std::cout << (dotimestamp ? timestamp() : "") << "VMT: Extracting " << filename << std::endl;
+		if (logfile.good())
+		{
+			logfile << timestamp() << "VMT: Extracting " << filename << std::endl;
+		}
 		zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"), "mcpppp-temp/" + folder + '/');
 	}
 	else
 	{
 		if (std::filesystem::is_directory(path + "/assets/minecraft/varied/textures/entity"))
 		{
-			std::cout << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/random/entity"))
@@ -452,11 +592,19 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
 			return;
 		}
 	}
-	std::cout << "VMT: Converting " + filename << std::endl;
+	std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting " + filename << std::endl;
+	if (logfile.good())
+	{
+		logfile << timestamp() << "VMT: Converting " + filename << std::endl;
+	}
 	for (auto& png : std::filesystem::recursive_directory_iterator((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")))
 	{
 
@@ -727,12 +875,15 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		numbers.clear();
 	}
+	std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
+	if (logfile.good())
+	{
+		logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
+	}
 	if (zip)
 	{
 		for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/minecraft/varied/textures/entity/"))
 		{
-			int tempint;
-			unsigned char ch;
 			std::string temp = png.path().string();
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 			temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
@@ -745,14 +896,12 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 			}
 			Zippy::ZipEntryData zed;
-			std::ifstream fin(png.path().string(), std::ios::binary);
-			fin.sync_with_stdio(false);
+			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();
-			while (fin.good())
-			{
-				fin >> std::noskipws >> ch;
-				zed.push_back(ch);
-			}
+			long long filesize = png.file_size();
+			zed.resize(filesize);
+			fin.seekg(0, std::ios::beg);
+			fin.read((char*)(zed.data()), filesize);
 			fin.close();
 			zipa.AddEntry(temp + png.path().filename().string() + (png.is_directory() ? "/" : ""), zed);
 		}
@@ -777,13 +926,64 @@ int main()
 		std::ofstream createconfig("mcpppp.properties");
 		createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
 		createconfig.close();
-		std::cerr << "Config file not found, look for mcpppp.properties" << std::endl;
+		std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
 		goto exit;
 	}
 	while (config.good())
 	{
 		getline(config, str);
-		if (str[0] != '#')
+		if (str[0] == '/' && str[1] == '/')
+		{
+			ss.clear();
+			ss.str(str);
+			ss >> temp;
+			if (temp == "//set")
+			{
+				ss >> option;
+				getline(ss, value);
+				value.erase(value.begin());
+				if (lowercase(option) == "pauseonexit")
+				{
+					if (lowercase(value) == "true")
+					{
+						pauseonexit = true;
+					}
+					else if (lowercase(value) == "false")
+					{
+						pauseonexit = false;
+					}
+					else
+					{
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
+					}
+				}
+				else if (lowercase(option) == "log")
+				{
+					dolog = true;
+					logfile.open(value);
+				}
+				else if (lowercase(option) == "timestamp")
+				{
+					if (lowercase(value) == "true")
+					{
+						dotimestamp = true;
+					}
+					else if (lowercase(value) == "false")
+					{
+						dotimestamp = false;
+					}
+					else
+					{
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
+					}
+				}
+				else
+				{
+					std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
+				}
+			}
+		}
+		else if (str[0] != '#')
 		{
 			paths.push_back(str);
 		}
@@ -791,14 +991,14 @@ int main()
 	config.close();
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
-		std::cout << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+		std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 		goto exit;
 	}
 	for (std::string path : paths)
 	{
 		if (!std::filesystem::is_directory(path, ec))
 		{
-			std::cerr << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
+			std::cerr << (dotimestamp ? timestamp() : "") << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
 		for (auto& entry : std::filesystem::directory_iterator(path))
@@ -815,12 +1015,15 @@ int main()
 			}
 		}
 	}
-	std::cout << "All Done!" << std::endl;
+	std::cout << (dotimestamp ? timestamp() : "") << "All Done!" << std::endl;
 exit:
+	if (pauseonexit)
+	{
 #ifdef _WIN32
-	system("pause");
+		system("pause");
 #else
-	std::cout << "Press enter to continue . . .";
-	getline(std::cin, str);
+		std::cout << (dotimestamp ? timestamp() : "") << "Press enter to continue . . .";
+		getline(std::cin, str);
 #endif
+	}
 }
