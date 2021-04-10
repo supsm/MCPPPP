@@ -7,6 +7,7 @@
 *.vcxproj
 *.vcxproj.filters
 *.css
+mcpppp-temp/
 
 # User-specific files
 *.rsuser

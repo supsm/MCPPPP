@@ -16,6 +16,18 @@ If a folder already contains the output directories (such as `assets/fabricskybo
 </details>
 
   
+Settings can also be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
+<details>
+  <summary>Settings</summary>
+
+  | Name           | Values/Type      | Description                                                       | Default |
+  |:--------------:|:----------------:|:-----------------------------------------------------------------:|:-------:|
+  | `pauseOnExit` | `true`, `false` | Wait for enter/key to be pressed once execution has been finished | `true` |
+  | `log`          | String           | A log file where logs will be stored                              |         |
+  | `timestamp`   | `true`, `false` | Timestamp console (Logs will always be timestamped)               | `false`|
+</details>
+
+
 ## Build
 1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
