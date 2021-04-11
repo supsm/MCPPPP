@@ -142,13 +142,11 @@ void fsb(std::string path, std::string filename, bool zip)
 			int error;
 			std::string filename = png.path().filename().string();
 			filename.erase(filename.end() - 4, filename.end());
-			buffer.clear();
-			image.clear();
-			image1.clear();
-			image2.clear();
-			image3.clear();
-			top.clear();
-			bottom.clear();
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
+			}
 			error = lodepng::load_file(buffer, png.path().string());
 			if (error)
 			{
@@ -167,7 +165,6 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
 			if (logfile.good())
 			{
 				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
@@ -218,7 +215,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_bottom.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_bottom.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -237,7 +234,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_top.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_top.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -256,7 +253,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_south.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_south.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -293,7 +290,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_west.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_west.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -312,7 +309,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_north.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_north.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -331,7 +328,7 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
-			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky/" : path + "/assets/fabricskyboxes/sky/") + filename + "_east.png");
+			error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_east.png");
 			if (error)
 			{
 				std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
@@ -340,6 +337,20 @@ void fsb(std::string path, std::string filename, bool zip)
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
 			}
+			buffer.clear();
+			buffer.shrink_to_fit();
+			image.clear();
+			image.shrink_to_fit();
+			image1.clear();
+			image1.shrink_to_fit();
+			image2.clear();
+			image2.shrink_to_fit();
+			image3.clear();
+			image3.shrink_to_fit();
+			top.clear();
+			top.shrink_to_fit();
+			bottom.clear();
+			bottom.shrink_to_fit();
 		}
 		else if (png.path().extension() == ".properties")
 		{
@@ -350,6 +361,11 @@ void fsb(std::string path, std::string filename, bool zip)
 			std::stringstream ss;
 			nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", false}, {"properties", {{"blend", {{"type", "add"}}}}} };
 			// change blend to true for fsb 0.5.0
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
+			}
 			std::ifstream fin(png.path().string());
 			while (fin)
 			{
@@ -469,16 +485,31 @@ void fsb(std::string path, std::string filename, bool zip)
 			j["textures"]["west"] = source + "_west.png";
 			j["textures"]["east"] = source + "_east.png";
 			j["conditions"]["worlds"] = { "minecraft:overworld" };
-			if (!zip)
+			temp = source; // check if png file exists
+			for (int i = 0; i < temp.size(); i++)
 			{
-				std::ofstream fout(path + "/assets/fabricskyboxes/sky/" + name + ".json");
-				fout << j.dump(1, '\t') << std::endl;
-				fout.close();
+				if (temp[i] == ':')
+				{
+					temp[i] = '/';
+				}
 			}
-			else
+			if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_top.png"))
 			{
-				zipa.AddEntry("assets/fabricskyboxes/sky/" + name + ".json", j.dump(1, '\t') + '\n');
+				image = { 0, 0, 0, 1 };
+				lodepng::encode(buffer, image, 1, 1, state);
+				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_bottom.png");
+				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_north.png");
+				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_south.png");
+				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_west.png");
+				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_east.png");
+				image.clear();
+				image.shrink_to_fit();
+				buffer.clear();
+				buffer.shrink_to_fit();
 			}
+			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + name + ".json");
+			fout << j.dump(1, '\t') << std::endl;
+			fout.close();
 		}
 	}
 	std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
@@ -488,21 +519,21 @@ void fsb(std::string path, std::string filename, bool zip)
 	}
 	if (zip)
 	{
+		Zippy::ZipEntryData zed;
+		long long filesize;
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
 		{
-			Zippy::ZipEntryData zed;
 			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();
-			long long filesize = png.file_size();
+			filesize = png.file_size();
 			zed.resize(filesize);
 			fin.seekg(0, std::ios::beg);
 			fin.read((char*)(zed.data()), filesize);
 			fin.close();
 			zipa.AddEntry("assets/fabricskyboxes/sky/" + png.path().filename().string(), zed);
 		}
-	}
-	if (zip)
-	{
+		zed.clear();
+		zed.shrink_to_fit();
 		zipa.Save();
 	}
 	zipa.Close();
@@ -612,6 +643,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		{
 		vmtconvert:
 			curnum.clear();
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: converting: " << png.path().filename() << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: converting: " << png.path().filename() << std::endl;
+			}
 			for (int i = png.path().filename().string().size() - 5; i >= 0; i--)
 			{
 				if (png.path().filename().string()[i] >= '0' && png.path().filename().string()[i] <= '9')
@@ -667,6 +703,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else if (png.path().filename().extension() == ".properties")
 		{
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: converting: " << png.path().filename() << std::endl;
+			if (logfile.good())
+			{
+				logfile << timestamp() << "VMT: converting: " << png.path().filename() << std::endl;
+			}
 			folderpath2 = png.path().string();
 			folderpath2.erase(folderpath2.begin(), folderpath2.begin() + folderpath2.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
 			folderpath2.erase(folderpath2.end() - png.path().filename().string().size(), folderpath2.end());
@@ -856,6 +897,22 @@ void vmt(std::string path, std::string filename, bool zip)
 			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + ".json");
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
+			temp.clear();
+			option.clear();
+			value.clear();
+			time1.clear();
+			j.clear();
+			tempj.clear();
+			v.clear();
+			v.shrink_to_fit();
+			tempv.clear();
+			tempv.shrink_to_fit();
+			weights.clear();
+			weights.shrink_to_fit();
+			times.clear();
+			times.shrink_to_fit();
+			textures.clear();
+			textures.shrink_to_fit();
 		}
 	}
 	if (!numbers.empty())
@@ -880,11 +937,22 @@ void vmt(std::string path, std::string filename, bool zip)
 	{
 		logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
 	}
+	curnum.clear();
+	name.clear();
+	name2.clear();
+	folderpath.clear();
+	folderpath2.clear();
+	curname.clear();
+	numbers.clear();
+	numbers.shrink_to_fit();
 	if (zip)
 	{
+		std::string temp;
+		Zippy::ZipEntryData zed;
+		long long filesize;
 		for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/minecraft/varied/textures/entity/"))
 		{
-			std::string temp = png.path().string();
+			temp = png.path().string();
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 			temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 			temp += '/';
@@ -895,19 +963,18 @@ void vmt(std::string path, std::string filename, bool zip)
 					temp[i] = '/';
 				}
 			}
-			Zippy::ZipEntryData zed;
 			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();
-			long long filesize = png.file_size();
+			filesize = png.file_size();
 			zed.resize(filesize);
 			fin.seekg(0, std::ios::beg);
 			fin.read((char*)(zed.data()), filesize);
 			fin.close();
 			zipa.AddEntry(temp + png.path().filename().string() + (png.is_directory() ? "/" : ""), zed);
 		}
-	}
-	if (zip)
-	{
+		temp.clear();
+		zed.clear();
+		zed.shrink_to_fit();
 		zipa.Save();
 	}
 	zipa.Close();
@@ -921,6 +988,7 @@ int main()
 	std::stringstream ss;
 	std::error_code ec;
 	std::ifstream config("mcpppp.properties");
+	std::cout.sync_with_stdio(false);
 	if (config.fail())
 	{
 		std::ofstream createconfig("mcpppp.properties");
