@@ -1,0 +1,14 @@
+name: Compile Mac
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: build
+      run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: artifact
+        path: MCPPPP-mac
