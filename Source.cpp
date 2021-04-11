@@ -720,12 +720,13 @@ void vmt(std::string path, std::string filename, bool zip)
 			}
 			name2 = png.path().filename().string();
 			name2.erase(name2.end() - 11, name.end());
-			std::string temp, option, value, time1;
+			std::string temp, option, value, time1, last;
 			nlohmann::json j, tempj;
 			std::vector<nlohmann::json> v, tempv;
 			std::vector<std::vector<int>> weights;
 			std::vector<std::vector<std::pair<std::string, std::string>>> times;
 			std::vector<std::vector<std::string>> biomes, weather, textures;
+			std::vector<int> baby;
 			std::stringstream ss;
 			std::ifstream fin(png.path().string());
 			while (fin)
@@ -775,6 +776,7 @@ void vmt(std::string path, std::string filename, bool zip)
 					weights.resize(stoi(curnum));
 					biomes.resize(stoi(curnum));
 					times.resize(stoi(curnum));
+					baby.resize(stoi(curnum), -1);
 				}
 				if (option.find("textures.") == 0 || option.find("skins.") == 0)
 				{
@@ -782,14 +784,18 @@ void vmt(std::string path, std::string filename, bool zip)
 					ss.str(value);
 					while (ss)
 					{
+						last = temp;
 						ss >> temp;
-						if (temp == "1")
+						if (last != temp)
 						{
-							textures[stoi(curnum) - 1].push_back("assets/minecraft/textures/entity/" + folderpath2 + name2);
-						}
-						else
-						{
-							textures[stoi(curnum) - 1].push_back("assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + temp);
+							if (temp == "1")
+							{
+								textures[stoi(curnum) - 1].push_back("assets/minecraft/textures/entity/" + folderpath2 + name2);
+							}
+							else
+							{
+								textures[stoi(curnum) - 1].push_back("assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + temp);
+							}
 						}
 					}
 				}
@@ -831,7 +837,14 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				else if (option.find("baby.") == 0)
 				{
-					// TODO: find out how varied-mobs:not works
+					if (value == "true")
+					{
+						baby[stoi(curnum) - 1] = 1;
+					}
+					else if (value == "false")
+					{
+						baby[stoi(curnum) - 1] = 0;
+					}
 				}
 				else if (option.find("health.") == 0)
 				{
@@ -884,11 +897,22 @@ void vmt(std::string path, std::string filename, bool zip)
 				{
 					tempj = { {"type", "varied-mobs:biome"}, {"biomes", biomes[i]}, {"value", tempj} };
 				}
+				if (baby[i] != -1)
+				{
+					if (baby[i])
+					{
+						tempj = { {"type", "varied-mobs:baby"}, {"value", tempj} };
+					}
+					else
+					{
+						tempj = { {"type", "varied-mobs:not"}, {"value", {{"type", "varied-mobs:seq"}, {"choices", {nlohmann::json({{"type", "varied-mobs:baby"}, {"value", ""}}), tempj}}}} };
+					}
+				}
 				if (times[i].size())
 				{
 					for (int j = 0; j < times[i].size(); j++)
 					{
-						tempv.push_back({ {"type", "varied-mobs:time-prop"}, {"positions", nlohmann::json::object({times[i][j].first, times[i][j].second})}, {"choices", {tempj}} });
+						tempv.push_back({ {"type", "varied-mobs:time-prop"}, {"positions", nlohmann::json::array({times[i][j].first, times[i][j].second})}, {"choices", {tempj}} });
 					}
 					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
 				}
