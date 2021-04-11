@@ -4,7 +4,7 @@ A resource pack converter from Optifine format to newer and alternative formats.
 [Discord](https://discord.gg/waXJDswsaR)  
 ## Use
 Newly compiled binaries for linux and windows can be found as `MCPPPP-linux` and `MCPPPP-windows.exe`. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
-Mac binaries can be found by clicking the green arrow near the commit and clicking Details next to Compile Mac / build. They are guaranteed to contain things from the latest commit, but not to immediately crash or have an obvious error.  
+Mac binaries can be found by clicking the green arrow near the commit and clicking Details next to Compile Mac / build. They are guaranteed to contain things from the latest commit, but may immediately crash or have an obvious error.  
 Note that on mac, double clicking on the file is not sufficient to run the program; it must be run through terminal.  
   
 Use should be pretty self-explanitory, run the binary and put the path of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`  
@@ -16,8 +16,6 @@ If a folder already contains the output directories (such as `assets/fabricskybo
   Variated Mob Textures: `assets/minecraft/varied/textures/entity`  
 </details>
 
-  
-  
 Settings can also be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
 <details>
   <summary>Settings</summary>
