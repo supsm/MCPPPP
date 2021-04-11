@@ -1001,6 +1001,10 @@ int main()
 			std::cerr << (dotimestamp ? timestamp() : "") << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
+		else
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "Path: " << path << std::endl;
+		}
 		for (auto& entry : std::filesystem::directory_iterator(path))
 		{
 			if (entry.is_directory())
