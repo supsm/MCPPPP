@@ -51,6 +51,19 @@ std::string timestamp()
 	return '[' + hour + ':' + min + ':' + sec + "] ";
 }
 
+std::string ununderscore(std::string str)
+{
+	std::string str2;
+	for (int i = 0; i < str.size(); i++)
+	{
+		if (str[i] != '_')
+		{
+			str2 += str[i];
+		}
+	}
+	return str2;
+}
+
 void fsb(std::string path, std::string filename, bool zip)
 {
 	std::string temp, folder;
@@ -512,13 +525,13 @@ void fsb(std::string path, std::string filename, bool zip)
 			fout.close();
 		}
 	}
-	std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
-	if (logfile.good())
-	{
-		logfile << timestamp() << "FSB: Compressing " + filename << std::endl;
-	}
 	if (zip)
 	{
+		std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
+		if (logfile.good())
+		{
+			logfile << timestamp() << "FSB: Compressing " + filename << std::endl;
+		}
 		Zippy::ZipEntryData zed;
 		long long filesize;
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
@@ -546,6 +559,7 @@ void vmt(std::string path, std::string filename, bool zip)
 	// source: assets/minecraft/optifine/random/entity/
 	// destination: assets/minecraft/varied/textures/entity/
 
+	std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 	bool optifine, newlocation;
 	std::string folder;
 	Zippy::ZipArchive zipa;
@@ -687,9 +701,9 @@ void vmt(std::string path, std::string filename, bool zip)
 				std::vector<std::string> v;
 				for (int i : numbers)
 				{
-					v.push_back("assets/minecraft/varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
+					v.push_back("minecraft:varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
 				}
-				v.push_back("assets/minecraft/textures/entity/" + folderpath + name + ".png");
+				v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 				nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
 				if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
 				{
@@ -784,17 +798,17 @@ void vmt(std::string path, std::string filename, bool zip)
 					ss.str(value);
 					while (ss)
 					{
-						last = temp;
+						temp = "";
 						ss >> temp;
-						if (last != temp)
+						if (temp != "")
 						{
 							if (temp == "1")
 							{
-								textures[stoi(curnum) - 1].push_back("assets/minecraft/textures/entity/" + folderpath2 + name2);
+								textures[stoi(curnum) - 1].push_back("minecraft:textures/entity/" + folderpath2 + name2 + ".png");
 							}
 							else
 							{
-								textures[stoi(curnum) - 1].push_back("assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + temp);
+								textures[stoi(curnum) - 1].push_back("minecraft:varied/textures/entity/" + folderpath2 + name2 + temp + ".png");
 							}
 						}
 					}
@@ -805,8 +819,12 @@ void vmt(std::string path, std::string filename, bool zip)
 					ss.str(value);
 					while (ss)
 					{
+						temp = "";
 						ss >> temp;
-						weights[stoi(curnum) - 1].push_back(stoi(temp));
+						if (temp != "")
+						{
+							weights[stoi(curnum) - 1].push_back(stoi(temp));
+						}
 					}
 				}
 				else if (option.find("biomes.") == 0)
@@ -815,8 +833,19 @@ void vmt(std::string path, std::string filename, bool zip)
 					ss.str(value);
 					while (ss)
 					{
+						temp = "";
 						ss >> temp;
-						biomes[stoi(curnum) - 1].push_back(temp);
+						if (temp != "")
+						{
+							for (int i = 0; i < biomelist.size(); i++)
+							{
+								if (ununderscore(biomelist[i]) == lowercase(temp))
+								{
+									biomes[stoi(curnum) - 1].push_back(biomelist[i]);
+									break;
+								}
+							}
+						}
 					}
 				}
 				else if (option.find("heights.") == 0)
@@ -860,18 +889,22 @@ void vmt(std::string path, std::string filename, bool zip)
 					ss.str(value);
 					while (ss)
 					{
+						temp = "";
 						ss >> temp;
-						time1.clear();
-						for (int i = 0; i < temp.size(); i++)
+						if (temp != "")
 						{
-							if (temp[i] == '-')
+							time1.clear();
+							for (int i = 0; i < temp.size(); i++)
 							{
-								temp.erase(temp.begin(), temp.begin() + i);
-								break;
+								if (temp[i] == '-')
+								{
+									temp.erase(temp.begin(), temp.begin() + i);
+									break;
+								}
+								time1 += temp[i];
 							}
-							time1 += temp[i];
+							times[stoi(curnum) - 1].push_back(std::make_pair(time1, temp));
 						}
-						times[stoi(curnum) - 1].push_back(std::make_pair(time1, temp));
 					}
 				}
 				else if (option.find("weather.") == 0)
@@ -895,7 +928,7 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				if (biomes[i].size())
 				{
-					tempj = { {"type", "varied-mobs:biome"}, {"biomes", biomes[i]}, {"value", tempj} };
+					tempj = { {"type", "varied-mobs:biome"}, {"biome", biomes[i]}, {"value", tempj} };
 				}
 				if (baby[i] != -1)
 				{
@@ -916,8 +949,9 @@ void vmt(std::string path, std::string filename, bool zip)
 					}
 					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
 				}
+				v.push_back(tempj);
 			}
-			j = { {"type", "varied-mobs:pick"}, {"choices", {tempj}} };
+			j = { {"type", "varied-mobs:pick"}, {"choices", v} };
 			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + ".json");
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
@@ -944,9 +978,9 @@ void vmt(std::string path, std::string filename, bool zip)
 		std::vector<std::string> v;
 		for (int i : numbers)
 		{
-			v.push_back("assets/minecraft/varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
+			v.push_back("minecraft:varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
 		}
-		v.push_back("assets/minecraft/textures/entity/" + folderpath + name + ".png");
+		v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
 		if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
 		{
@@ -956,11 +990,6 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		numbers.clear();
 	}
-	std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
-	if (logfile.good())
-	{
-		logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
-	}
 	curnum.clear();
 	name.clear();
 	name2.clear();
@@ -969,8 +998,15 @@ void vmt(std::string path, std::string filename, bool zip)
 	curname.clear();
 	numbers.clear();
 	numbers.shrink_to_fit();
+	biomelist.clear();
+	biomelist.shrink_to_fit();
 	if (zip)
 	{
+		std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
+		if (logfile.good())
+		{
+			logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
+		}
 		std::string temp;
 		Zippy::ZipEntryData zed;
 		long long filesize;
