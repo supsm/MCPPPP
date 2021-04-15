@@ -922,7 +922,7 @@ void vmt(std::string path, std::string filename, bool zip)
 						{
 							if (temp[i] == ':')
 							{
-								temp.erase(temp.begin(), temp.begin() + i);
+								temp.erase(temp.begin(), temp.begin() + i + 1);
 								break;
 							}
 						}
@@ -1216,11 +1216,22 @@ int main()
 				{
 					try
 					{
-
+						outputlevel = stoi(value);
 					}
 					catch (std::exception e)
 					{
-
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
+					}
+				}
+				else if (lowercase(option) == "loglevel")
+				{
+					try
+					{
+						loglevel = stoi(value);
+					}
+					catch (std::exception e)
+					{
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
 					}
 				}
 				else
