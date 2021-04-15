@@ -734,12 +734,13 @@ void vmt(std::string path, std::string filename, bool zip)
 			}
 			name2 = png.path().filename().string();
 			name2.erase(name2.end() - 11, name.end());
-			std::string temp, option, value, time1, last;
+			std::string temp, option, value, time1, last, height1;
 			nlohmann::json j, tempj;
 			std::vector<nlohmann::json> v, tempv;
 			std::vector<std::vector<int>> weights;
-			std::vector<std::vector<std::pair<std::string, std::string>>> times;
+			std::vector<std::vector<std::pair<std::string, std::string>>> times, heights;
 			std::vector<std::vector<std::string>> biomes, weather, textures;
+			std::vector<std::string> names;
 			std::vector<int> baby;
 			std::stringstream ss;
 			std::ifstream fin(png.path().string());
@@ -791,6 +792,8 @@ void vmt(std::string path, std::string filename, bool zip)
 					biomes.resize(stoi(curnum));
 					times.resize(stoi(curnum));
 					baby.resize(stoi(curnum), -1);
+					heights.resize(stoi(curnum));
+					names.resize(stoi(curnum), "");
 				}
 				if (option.find("textures.") == 0 || option.find("skins.") == 0)
 				{
@@ -850,11 +853,44 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				else if (option.find("heights.") == 0)
 				{
-					// don't really know how this works (of), will find out (TODO)
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						temp = "";
+						ss >> temp;
+						if (temp != "")
+						{
+							height1.clear();
+							for (int i = 0; i < temp.size(); i++)
+							{
+								if (temp[i] == '-')
+								{
+									temp.erase(temp.begin(), temp.begin() + i);
+									break;
+								}
+								height1 += temp[i];
+							}
+							heights[stoi(curnum) - 1].push_back(std::make_pair(height1, temp));
+						}
+					}
 				}
 				else if (option.find("name.") == 0)
 				{
-					// don't really understand how this works yet
+					// TODO: actually find out how this works
+					temp = value;
+					if (temp.find("regex") != std::string::npos || temp.find("pattern") != std::string::npos)
+					{
+						for (int i = 0; i < temp.size(); i++)
+						{
+							if (temp[i] == ':')
+							{
+								temp.erase(temp.begin(), temp.begin() + i);
+								break;
+							}
+						}
+					}
+					names[stoi(curnum) - 1] = temp;
 				}
 				else if (option.find("professions.") == 0)
 				{
@@ -949,6 +985,18 @@ void vmt(std::string path, std::string filename, bool zip)
 					}
 					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
 				}
+				if (heights[i].size())
+				{
+					for (int j = 0; j < heights[i].size(); j++)
+					{
+						tempv.push_back({ {"type", "varied-mobs:y-prop"}, {"positions", nlohmann::json::array({heights[i][j].first, heights[i][j].second})}, {"choices", {tempj}} });
+					}
+					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
+				}
+				if (names[i] != "")
+				{
+					tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
+				}
 				v.push_back(tempj);
 			}
 			j = { {"type", "varied-mobs:pick"}, {"choices", v} };
@@ -961,6 +1009,7 @@ void vmt(std::string path, std::string filename, bool zip)
 			time1.clear();
 			j.clear();
 			tempj.clear();
+			height1.clear();
 			v.clear();
 			v.shrink_to_fit();
 			tempv.clear();
@@ -969,6 +1018,8 @@ void vmt(std::string path, std::string filename, bool zip)
 			weights.shrink_to_fit();
 			times.clear();
 			times.shrink_to_fit();
+			heights.clear();
+			heights.shrink_to_fit();
 			textures.clear();
 			textures.shrink_to_fit();
 		}
