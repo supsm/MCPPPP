@@ -15,6 +15,7 @@
 #include "Zippy.hpp"
 
 bool pauseonexit = true, dolog = false, dotimestamp = false;
+int outputlevel = 3, loglevel = 2;
 std::ofstream logfile;
 
 std::string lowercase(std::string str)
@@ -80,8 +81,11 @@ void fsb(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/fabricskyboxes/sky/"))
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			}
@@ -97,8 +101,11 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
 			}
@@ -107,8 +114,11 @@ void fsb(std::string path, std::string filename, bool zip)
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		std::cout << (dotimestamp ? timestamp() : "") << "FSB: Extracting " << filename << std::endl;
-		if (logfile.good())
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Extracting " << filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
 		{
 			logfile << timestamp() << "FSB: Extracting " << filename << std::endl;
 		}
@@ -118,8 +128,11 @@ void fsb(std::string path, std::string filename, bool zip)
 	{
 		if (std::filesystem::is_directory(path + "/assets/fabricskyboxes/sky"))
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			}
@@ -135,31 +148,43 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
 			}
 			return;
 		}
-	}
-	std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting " + filename << std::endl;
-	if (logfile.good())
-	{
-		logfile << timestamp() << "FSB: Converting " + filename << std::endl;
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting Pack " << filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
+		{
+			logfile << timestamp() << "FSB: Converting Pack " << filename << std::endl;
+		}
 	}
 	for (auto& png : std::filesystem::directory_iterator(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 	{
+		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
+		{
+			if (outputlevel <= 1)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting " + png.path().filename().string() << std::endl;
+			}
+			if (logfile.good() && loglevel <= 1)
+			{
+				logfile << timestamp() << "FSB: Converting " + png.path().filename().string() << std::endl;
+			}
+		}
 		if (png.path().extension() == ".png")
 		{
 			int error;
 			std::string filename = png.path().filename().string();
 			filename.erase(filename.end() - 4, filename.end());
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
-			if (logfile.good())
-			{
-				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
-			}
 			error = lodepng::load_file(buffer, png.path().string());
 			if (error)
 			{
@@ -177,10 +202,6 @@ void fsb(std::string path, std::string filename, bool zip)
 				{
 					logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
 				}
-			}
-			if (logfile.good())
-			{
-				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
 			}
 			image1.reserve(buffer.size() / 6);
 			image2.reserve(buffer.size() / 6);
@@ -374,11 +395,6 @@ void fsb(std::string path, std::string filename, bool zip)
 			std::stringstream ss;
 			nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", false}, {"properties", {{"blend", {{"type", "add"}}}}} };
 			// change blend to true for fsb 0.5.0
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: converting: " << png.path().filename() << std::endl;
-			if (logfile.good())
-			{
-				logfile << timestamp() << "FSB: converting: " << png.path().filename() << std::endl;
-			}
 			std::ifstream fin(png.path().string());
 			while (fin)
 			{
@@ -527,8 +543,11 @@ void fsb(std::string path, std::string filename, bool zip)
 	}
 	if (zip)
 	{
-		std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
-		if (logfile.good())
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
 		{
 			logfile << timestamp() << "FSB: Compressing " + filename << std::endl;
 		}
@@ -570,8 +589,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/minecraft/varied/textures/entity/"))
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
 			}
@@ -593,8 +615,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && loglevel <= 2)
 			{
 				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			}
@@ -603,8 +628,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		std::cout << (dotimestamp ? timestamp() : "") << "VMT: Extracting " << filename << std::endl;
-		if (logfile.good())
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Extracting " << filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
 		{
 			logfile << timestamp() << "VMT: Extracting " << filename << std::endl;
 		}
@@ -614,8 +642,11 @@ void vmt(std::string path, std::string filename, bool zip)
 	{
 		if (std::filesystem::is_directory(path + "/assets/minecraft/varied/textures/entity"))
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && outputlevel <= 2)
 			{
 				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
 			}
@@ -637,31 +668,42 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			if (logfile.good())
+			if (outputlevel <= 2)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			}
+			if (logfile.good() && outputlevel <= 2)
 			{
 				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			}
 			return;
 		}
-	}
-	std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting " + filename << std::endl;
-	if (logfile.good())
-	{
-		logfile << timestamp() << "VMT: Converting " + filename << std::endl;
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting Pack " << filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
+		{
+			logfile << timestamp() << "VMT: Converting Pack " << filename << std::endl;
+		}
 	}
 	for (auto& png : std::filesystem::recursive_directory_iterator((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")))
 	{
-
+		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
+		{
+			if (outputlevel <= 1)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting " + png.path().filename().string() << std::endl;
+			}
+			if (logfile.good() && loglevel <= 1)
+			{
+				logfile << timestamp() << "VMT: Converting " + png.path().filename().string() << std::endl;
+			}
+		}
 		if (png.path().filename().extension() == ".png")
 		{
 		vmtconvert:
 			curnum.clear();
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: converting: " << png.path().filename() << std::endl;
-			if (logfile.good())
-			{
-				logfile << timestamp() << "VMT: converting: " << png.path().filename() << std::endl;
-			}
 			for (int i = png.path().filename().string().size() - 5; i >= 0; i--)
 			{
 				if (png.path().filename().string()[i] >= '0' && png.path().filename().string()[i] <= '9')
@@ -717,11 +759,6 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else if (png.path().filename().extension() == ".properties")
 		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: converting: " << png.path().filename() << std::endl;
-			if (logfile.good())
-			{
-				logfile << timestamp() << "VMT: converting: " << png.path().filename() << std::endl;
-			}
 			folderpath2 = png.path().string();
 			folderpath2.erase(folderpath2.begin(), folderpath2.begin() + folderpath2.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
 			folderpath2.erase(folderpath2.end() - png.path().filename().string().size(), folderpath2.end());
@@ -1053,8 +1090,11 @@ void vmt(std::string path, std::string filename, bool zip)
 	biomelist.shrink_to_fit();
 	if (zip)
 	{
-		std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
-		if (logfile.good())
+		if (outputlevel <= 3)
+		{
+			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
+		}
+		if (logfile.good() && loglevel <= 3)
 		{
 			logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
 		}
@@ -1094,6 +1134,7 @@ void vmt(std::string path, std::string filename, bool zip)
 
 int main()
 {
+	bool autodeletetemp = false;
 	std::vector<std::string> paths;
 	std::string str, option, value, temp;
 	std::stringstream ss;
@@ -1156,6 +1197,32 @@ int main()
 						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
 					}
 				}
+				else if (lowercase(option) == "autodeletetemp")
+				{
+					if (lowercase(value) == "true")
+					{
+						autodeletetemp = true;
+					}
+					else if (lowercase(value) == "false")
+					{
+						autodeletetemp = false;
+					}
+					else
+					{
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
+					}
+				}
+				else if (lowercase(option) == "outputlevel")
+				{
+					try
+					{
+
+					}
+					catch (std::exception e)
+					{
+
+					}
+				}
 				else
 				{
 					std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
@@ -1170,8 +1237,22 @@ int main()
 	config.close();
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
-		std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
-		goto exit;
+		if (autodeletetemp)
+		{
+			if (outputlevel <= 4)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Removing..." << std::endl;
+			}
+			std::filesystem::remove_all("mcpppp-temp");
+		}
+		else
+		{
+			if (outputlevel <= 4)
+			{
+				std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+			}
+			goto exit;
+		}
 	}
 	for (std::string path : paths)
 	{
@@ -1179,10 +1260,6 @@ int main()
 		{
 			std::cerr << (dotimestamp ? timestamp() : "") << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
-		}
-		else
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "Path: " << path << std::endl;
 		}
 		for (auto& entry : std::filesystem::directory_iterator(path))
 		{
@@ -1198,7 +1275,10 @@ int main()
 			}
 		}
 	}
-	std::cout << (dotimestamp ? timestamp() : "") << "All Done!" << std::endl;
+	if (outputlevel <= 3)
+	{
+		std::cout << (dotimestamp ? timestamp() : "") << "All Done!" << std::endl;
+	}
 exit:
 	if (pauseonexit)
 	{

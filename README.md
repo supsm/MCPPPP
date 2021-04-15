@@ -20,11 +20,14 @@ Settings can also be specified in `mcpppp.properties`. To do so, put `//set` fol
 <details>
   <summary>Settings</summary>
 
-  | Name           | Values/Type      | Description                                                       | Default |
-  |:--------------:|:----------------:|:-----------------------------------------------------------------:|:-------:|
-  | `pauseOnExit` | `true`, `false` | Wait for enter/key to be pressed once execution has been finished | `true` |
-  | `log`          | String           | A log file where logs will be stored                              |         |
-  | `timestamp`   | `true`, `false` | Timestamp console (Logs will always be timestamped)               | `false`|
+  | Name              | Values/Type      | Description                                                                                                            | Default   |
+  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:---------:|
+  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`   |
+  | `log`             | String           | A log file where logs will be stored                                                                                   | -        |
+  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`  |
+  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false` |
+  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`      |
+  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `2`     |
 </details>
 
 
