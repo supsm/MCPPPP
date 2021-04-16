@@ -4,6 +4,7 @@ on:
   push:
     paths:
     - 'MCPPPP-linux'
+  workflow_dispatch:
 
 jobs:
   build:
