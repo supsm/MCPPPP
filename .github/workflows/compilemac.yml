@@ -12,7 +12,7 @@ jobs:
     - uses: actions/checkout@v2
     - name: build
       run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac
-      uses: EndBug/add-and-commit@v7
+    - uses: EndBug/add-and-commit@v7
       with:
         add: 'MCPPPP-mac'
         message: 'add mac binary'
