@@ -1020,7 +1020,7 @@ void vmt(std::string path, std::string filename, bool zip)
 					{
 						tempv.push_back({ {"type", "varied-mobs:time-prop"}, {"positions", nlohmann::json::array({times[i][j].first, times[i][j].second})}, {"choices", {tempj}} });
 					}
-					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
+					tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };
 				}
 				if (heights[i].size())
 				{
@@ -1028,13 +1028,16 @@ void vmt(std::string path, std::string filename, bool zip)
 					{
 						tempv.push_back({ {"type", "varied-mobs:y-prop"}, {"positions", nlohmann::json::array({heights[i][j].first, heights[i][j].second})}, {"choices", {tempj}} });
 					}
-					tempj = { {"type", "varied-mobs:seq"}, {"choices", {tempv}} };
+					tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };
 				}
 				if (names[i] != "")
 				{
-					tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
+					//tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
 				}
-				v.push_back(tempj);
+				else // names do not work in vmt
+				{
+					v.push_back(tempj);
+				}
 			}
 			j = { {"type", "varied-mobs:pick"}, {"choices", v} };
 			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath2 + name2 + ".json");
@@ -1059,6 +1062,8 @@ void vmt(std::string path, std::string filename, bool zip)
 			heights.shrink_to_fit();
 			textures.clear();
 			textures.shrink_to_fit();
+			names.clear();
+			names.shrink_to_fit();
 		}
 	}
 	if (!numbers.empty())
