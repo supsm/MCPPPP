@@ -780,7 +780,8 @@ void vmt(std::string path, std::string filename, bool zip)
 			std::vector<nlohmann::json> v, tempv;
 			std::vector<std::vector<int>> weights;
 			std::vector<std::vector<std::pair<std::string, std::string>>> times, heights;
-			std::vector<std::vector<std::string>> biomes, weather, textures;
+			std::vector<std::vector<std::string>> biomes, textures;
+			std::vector<bool[4]> weather;
 			std::vector<std::string> names;
 			std::vector<int> baby;
 			std::stringstream ss;
@@ -835,6 +836,7 @@ void vmt(std::string path, std::string filename, bool zip)
 					baby.resize(stoi(curnum), -1);
 					heights.resize(stoi(curnum));
 					names.resize(stoi(curnum), "");
+					weather.resize(stoi(curnum), { false, false, false, false });
 				}
 				if (option.find("textures.") == 0 || option.find("skins.") == 0)
 				{
@@ -918,7 +920,7 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				else if (option.find("name.") == 0)
 				{
-					// TODO: actually find out how this works
+					// TODO: find out how non-regex works
 					temp = value;
 					if (temp.find("regex") != std::string::npos || temp.find("pattern") != std::string::npos)
 					{
@@ -986,7 +988,28 @@ void vmt(std::string path, std::string filename, bool zip)
 				}
 				else if (option.find("weather.") == 0)
 				{
-					// not sure this is possible
+					ss.clear();
+					ss.str(value);
+					while (ss)
+					{
+						temp = "";
+						ss >> temp;
+						if (temp == "clear")
+						{
+							weather[stoi(curnum)][1] = true;
+							weather[stoi(curnum)][0] = true;
+						}
+						if (temp == "rain")
+						{
+							weather[stoi(curnum)][2] = true;
+							weather[stoi(curnum)][0] = true;
+						}
+						if (temp == "thunder")
+						{
+							weather[stoi(curnum)][3] = true;
+							weather[stoi(curnum)][0] = true;
+						}
+					}
 				}
 			}
 			for (int i = 0; i < textures.size(); i++) // TODO: there's probably a better way to do this
@@ -1034,6 +1057,10 @@ void vmt(std::string path, std::string filename, bool zip)
 					}
 					tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };
 				}
+				if (weather[i][0])
+				{
+					tempj = { {"type", "varied-mobs:weather-prop"}, {"positions", {0, 1, 2, 2}}, {"choices", {weather[i][1] ? tempj : nlohmann::json(), weather[i][2] ? tempj : nlohmann::json(), weather[i][3] ? tempj : nlohmann::json()}} };
+				}
 				if (names[i] != "")
 				{
 					//tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
@@ -1068,6 +1095,8 @@ void vmt(std::string path, std::string filename, bool zip)
 			textures.shrink_to_fit();
 			names.clear();
 			names.shrink_to_fit();
+			weather.clear();
+			weather.shrink_to_fit();
 		}
 	}
 	if (!numbers.empty())
