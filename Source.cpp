@@ -442,8 +442,8 @@ void fsb(std::string path, std::string filename, bool zip)
 						}
 					}
 					temp += '0';
-					(option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : endfadein) : (option == "endFadeIn" ? endfadein : endfadeout) = (stoi(temp) + 18000) % 24000;
-					j["properties"]["fade"][option] = (stoi(temp) + 18000) % 24000;
+					(option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : endfadein) : (option == "endFadeIn" ? endfadein : endfadeout) = (stoi(temp) + 18000 + 24000) % 24000;
+					j["properties"]["fade"][option] = (stoi(temp) + 18000 + 24000) % 24000;
 				}
 				else if (option == "blend")
 				{
@@ -504,7 +504,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			fin.close();
 			if (startfadeout == -1)
 			{
-				j["properties"]["fade"]["startFadeOut"] = endfadeout - endfadein + startfadein;
+				j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
 			}
 			if (source[0] == '.' && source[1] == '/')
 			{
