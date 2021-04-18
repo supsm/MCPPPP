@@ -781,7 +781,7 @@ void vmt(std::string path, std::string filename, bool zip)
 			std::vector<std::vector<int>> weights;
 			std::vector<std::vector<std::pair<std::string, std::string>>> times, heights;
 			std::vector<std::vector<std::string>> biomes, textures;
-			std::vector<bool[4]> weather;
+			std::vector<std::array<bool, 4>> weather;
 			std::vector<std::string> names;
 			std::vector<int> baby;
 			std::stringstream ss;
