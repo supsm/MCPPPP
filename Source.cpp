@@ -1,3 +1,7 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
+
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -1034,7 +1038,7 @@ void vmt(std::string path, std::string filename, bool zip)
 				{
 					//tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
 				}
-				else // names do not work in vmt
+				else // names do not work in vmt until my pr gets accepted :)
 				{
 					v.push_back(tempj);
 				}
