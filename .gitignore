@@ -8,6 +8,7 @@
 *.vcxproj.filters
 *.css
 mcpppp-temp/
+compilelinux.bat
 
 # User-specific files
 *.rsuser
