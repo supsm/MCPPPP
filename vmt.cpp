@@ -575,7 +575,15 @@ void vmt(std::string path, std::string filename, bool zip)
 		temp.clear();
 		zed.clear();
 		zed.shrink_to_fit();
+		if (deletesource)
+		{
+			zipa.DeleteEntry("assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"));
+		}
 		zipa.Save();
+	}
+	else if (deletesource)
+	{
+		std::filesystem::remove_all(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");
