@@ -10,7 +10,7 @@
 
 #include "Zippy.hpp"
 
-extern bool pauseonexit = true, dolog = false, dotimestamp = false;
+extern bool pauseonexit = true, dolog = false, dotimestamp = false, deletesource = false;
 extern int outputlevel = 3, loglevel = 2;
 extern std::ofstream logfile("log.txt");
 

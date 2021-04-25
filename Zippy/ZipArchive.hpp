@@ -515,7 +515,7 @@ namespace Zippy
 
             m_ZipEntries
                     .erase(std::remove_if(m_ZipEntries.begin(), m_ZipEntries.end(), [&](const Impl::ZipEntry& entry) {
-                        return name == entry.GetName();
+                        return entry.GetName().find(name) == 0; // change to find match at beginning
                     }), m_ZipEntries.end());
         }
 
@@ -571,13 +571,7 @@ namespace Zippy
                     {
                         continue;
                     }
-                    for (int i = 0; i < name.length(); i++)
-                    {
-                        if (entry[i] != name[i])
-                        {
-                            matching = false;
-                        }
-                    }
+                    matching = entry.find(name) == 0;
                     if (matching)
                     {
                         ExtractEntry(entry, dest);

@@ -504,7 +504,15 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		zed.clear();
 		zed.shrink_to_fit();
+		if (deletesource)
+		{
+			zipa.DeleteEntry(std::string("assets/minecraft/") + (optifine ? "optifine" : "mcpatcher") + "/sky/");
+		}
 		zipa.Save();
+	}
+	else if (deletesource)
+	{
+		std::filesystem::remove_all(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky");
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

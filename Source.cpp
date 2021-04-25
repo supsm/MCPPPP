@@ -116,6 +116,21 @@ int main()
 						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
 					}
 				}
+				else if (lowercase(option) == "deletesource")
+				{
+					if (lowercase(value) == "true")
+					{
+						deletesource = true;
+					}
+					else if (lowercase(value) == "false")
+					{
+						deletesource = false;
+					}
+					else
+					{
+						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
+					}
+				}
 				else
 				{
 					std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
