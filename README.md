@@ -15,7 +15,8 @@ If a folder already contains the output directories (such as `assets/fabricskybo
   Variated Mob Textures: `assets/minecraft/varied/textures/entity`  
 </details>
 
-Settings can also be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
+Settings can be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
+Alternatively, command-line arguments may be passed for temorary settings (if you don't know what this means, you probably don't need to use this anyway). Newlines are replaced with `;`.  
 <details>
   <summary>Settings</summary>
 

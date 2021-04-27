@@ -14,9 +14,9 @@
 #include "fsb.cpp"
 #include "vmt.cpp"
 
-int main()
+int main(int argc, char* argv[])
 {
-	bool autodeletetemp = false;
+	bool issetting = false, isvalue = false, extra;
 	std::vector<std::string> paths;
 	std::string str, option, value, temp;
 	std::stringstream ss;
@@ -44,105 +44,84 @@ int main()
 				ss >> option;
 				getline(ss, value);
 				value.erase(value.begin());
-				if (lowercase(option) == "pauseonexit")
-				{
-					if (lowercase(value) == "true")
-					{
-						pauseonexit = true;
-					}
-					else if (lowercase(value) == "false")
-					{
-						pauseonexit = false;
-					}
-					else
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else if (lowercase(option) == "log")
-				{
-					dolog = true;
-					logfile.open(value);
-				}
-				else if (lowercase(option) == "timestamp")
-				{
-					if (lowercase(value) == "true")
-					{
-						dotimestamp = true;
-					}
-					else if (lowercase(value) == "false")
-					{
-						dotimestamp = false;
-					}
-					else
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else if (lowercase(option) == "autodeletetemp")
-				{
-					if (lowercase(value) == "true")
-					{
-						autodeletetemp = true;
-					}
-					else if (lowercase(value) == "false")
-					{
-						autodeletetemp = false;
-					}
-					else
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else if (lowercase(option) == "outputlevel")
-				{
-					try
-					{
-						outputlevel = stoi(value);
-					}
-					catch (std::exception e)
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else if (lowercase(option) == "loglevel")
-				{
-					try
-					{
-						loglevel = stoi(value);
-					}
-					catch (std::exception e)
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else if (lowercase(option) == "deletesource")
-				{
-					if (lowercase(value) == "true")
-					{
-						deletesource = true;
-					}
-					else if (lowercase(value) == "false")
-					{
-						deletesource = false;
-					}
-					else
-					{
-						std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-					}
-				}
-				else
-				{
-					std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
-				}
+				setting(option, value);
 			}
 		}
-		else if (str[0] != '#')
+		else if (str[0] != '#' && str != "")
 		{
 			paths.push_back(str);
 		}
 	}
 	config.close();
+	for (int i = 1; i < argc; i++)
+	{
+		if (issetting)
+		{
+			if (isvalue)
+			{
+				value = argv[i];
+				extra = false;
+				while (value[value.size() - 1] != ';' && i < argc - 1)
+				{
+					i++;
+					value += ' ' + argv[i];
+					extra = true;
+				}
+				if (extra)
+				{
+					i--;
+				}
+				value.erase(value.end() - 1);
+				issetting = false;
+				isvalue = false;
+				setting(option, value);
+			}
+			else
+			{
+				option = argv[i];
+				isvalue = true;
+			}
+		}
+		else
+		{
+			if (argv[i] == "//set")
+			{
+				issetting = true;
+			}
+			else if (argv[i][0] == '#')
+			{
+				extra = false;
+				temp = argv[i];
+				while (temp[temp.size() - 1] != ';' && i < argc - 1)
+				{
+					i++;
+					temp = argv[i];
+					extra = true;
+				}
+				if (extra)
+				{
+					i--;
+				}
+			}
+			else
+			{
+				extra = false;
+				temp = argv[i];
+				while (temp[temp.size() - 1] != ';' && i < argc - 1)
+				{
+					i++;
+					temp += ' ' + argv[i];
+					extra = true;
+				}
+				if (extra)
+				{
+					i--;
+				}
+				temp.erase(temp.end() - 1);
+				paths.push_back(temp);
+			}
+		}
+	}
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
 		if (autodeletetemp)
