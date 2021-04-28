@@ -16,7 +16,7 @@
 
 int main(int argc, char* argv[])
 {
-	bool issetting = false, isvalue = false, extra;
+	bool issetting = false, isvalue = false;
 	std::vector<std::string> paths;
 	std::string str, option, value, temp;
 	std::stringstream ss;
@@ -60,16 +60,10 @@ int main(int argc, char* argv[])
 			if (isvalue)
 			{
 				value = argv[i];
-				extra = false;
 				while (value[value.size() - 1] != ';' && i < argc - 1)
 				{
 					i++;
-					value += ' ' + argv[i];
-					extra = true;
-				}
-				if (extra)
-				{
-					i--;
+					value += " " + std::string(argv[i]);
 				}
 				value.erase(value.end() - 1);
 				issetting = false;
@@ -84,38 +78,26 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			if (argv[i] == "//set")
+			if (std::string(argv[i]) == "//set")
 			{
 				issetting = true;
 			}
 			else if (argv[i][0] == '#')
 			{
-				extra = false;
 				temp = argv[i];
 				while (temp[temp.size() - 1] != ';' && i < argc - 1)
 				{
 					i++;
 					temp = argv[i];
-					extra = true;
-				}
-				if (extra)
-				{
-					i--;
 				}
 			}
 			else
 			{
-				extra = false;
 				temp = argv[i];
 				while (temp[temp.size() - 1] != ';' && i < argc - 1)
 				{
 					i++;
-					temp += ' ' + argv[i];
-					extra = true;
-				}
-				if (extra)
-				{
-					i--;
+					temp += " " + std::string(argv[i]);
 				}
 				temp.erase(temp.end() - 1);
 				paths.push_back(temp);
