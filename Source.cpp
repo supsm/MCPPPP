@@ -13,6 +13,7 @@
 
 #include "fsb.cpp"
 #include "vmt.cpp"
+#include "cim.cpp"
 
 int main(int argc, char* argv[])
 {
@@ -136,11 +137,13 @@ int main(int argc, char* argv[])
 			{
 				fsb(entry.path().string(), entry.path().filename().string(), false);
 				vmt(entry.path().string(), entry.path().filename().string(), false);
+				cim(entry.path().string(), entry.path().filename().string(), false);
 			}
 			else if (entry.path().extension() == ".zip")
 			{
 				fsb(entry.path().string(), entry.path().filename().string(), true);
 				vmt(entry.path().string(), entry.path().filename().string(), true);
+				cim(entry.path().string(), entry.path().filename().string(), true);
 			}
 		}
 	}
