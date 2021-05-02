@@ -20,20 +20,12 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	error = lodepng::load_file(buffer, png.path().string());
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::decode(image, w, h, state, buffer);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	image1.reserve(buffer.size() / 6);
 	image2.reserve(buffer.size() / 6);
@@ -75,58 +67,34 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	error = lodepng::encode(buffer, bottom, w / 3, h / 2, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_bottom.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, top, h / 2, w / 3, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_top.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_south.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	image1.clear();
 	image2.clear();
@@ -150,58 +118,34 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_west.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image2, w / 3, h / 2, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_north.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + filename + "_east.png");
 	if (error)
 	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "FSB: png error: " << lodepng_error_text(error);
-		if (logfile.good())
-		{
-			logfile << timestamp() << "FSB: png error: " << lodepng_error_text(error);
-		}
+		out(5) << "FSB: png error: " << lodepng_error_text(error);
 	}
 }
 
@@ -371,14 +315,7 @@ void fsb(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/fabricskyboxes/sky/"))
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
@@ -391,41 +328,20 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Extracting " << filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "FSB: Extracting " << filename << std::endl;
-		}
+		out(3) << "FSB: Extracting " << filename << std::endl;
 		zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/", "mcpppp-temp/" + folder + '/');
 	}
 	else
 	{
 		if (std::filesystem::is_directory(path + "/assets/fabricskyboxes/sky"))
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/sky"))
@@ -438,37 +354,16 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting Pack " << filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "FSB: Converting Pack " << filename << std::endl;
-		}
+		out(3) << "FSB: Converting Pack " << filename << std::endl;
 	}
 	for (auto& png : std::filesystem::directory_iterator(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0"))
 	{
 		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 		{
-			if (outputlevel <= 1)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "FSB: Converting " + png.path().filename().string() << std::endl;
-			}
-			if (logfile.good() && loglevel <= 1)
-			{
-				logfile << timestamp() << "FSB: Converting " + png.path().filename().string() << std::endl;
-			}
+			out(1) << "FSB: Converting " + png.path().filename().string() << std::endl;
 		}
 		if (png.path().extension() == ".png")
 		{
@@ -481,14 +376,7 @@ void fsb(std::string path, std::string filename, bool zip)
 	}
 	if (zip)
 	{
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "FSB: Compressing " + filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "FSB: Compressing " + filename << std::endl;
-		}
+		out(3) << "FSB: Compressing " + filename << std::endl;
 		Zippy::ZipEntryData zed;
 		long long filesize;
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))

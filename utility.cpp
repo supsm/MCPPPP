@@ -155,3 +155,95 @@ void setting(std::string option, std::string value)
 		std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
 	}
 }
+
+bool c, file;
+
+class outstream
+{
+public:
+	bool first = false;
+	template<typename T>
+	outstream operator<<(T& value)
+	{
+		if (c)
+		{
+			if (first)
+			{
+				std::cout << (dotimestamp ? timestamp() : "");
+			}
+			std::cout << value;
+		}
+		if (file && logfile.good())
+		{
+			if (first)
+			{
+				logfile << timestamp();
+			}
+			logfile << value;
+		}
+		return outstream();
+	}
+	outstream operator<<(std::string str)
+	{
+		if (c)
+		{
+			if (first)
+			{
+				std::cout << (dotimestamp ? timestamp() : "");
+			}
+			std::cout << str;
+		}
+		if (file && logfile.good())
+		{
+			if (first)
+			{
+				logfile << timestamp();
+			}
+			logfile << str;
+		}
+		return outstream();
+	}
+	outstream operator<<(std::ostream& (*f)(std::ostream&))
+	{
+		if (c)
+		{
+			if (first)
+			{
+				std::cout << (dotimestamp ? timestamp() : "");
+			}
+			std::cout << f;
+		}
+		if (file && logfile.good())
+		{
+			if (first)
+			{
+				logfile << timestamp();
+			}
+			logfile << f;
+		}
+		return outstream();
+	}
+};
+
+outstream out(int level)
+{
+	outstream o;
+	o.first = true;
+	if (level >= outputlevel)
+	{
+		c = true;
+	}
+	else
+	{
+		c = false;
+	}
+	if (level >= loglevel)
+	{
+		file = true;
+	}
+	else
+	{
+		file = false;
+	}
+	return o;
+}
