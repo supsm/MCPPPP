@@ -397,14 +397,7 @@ void vmt(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/minecraft/varied/textures/entity/"))
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
@@ -423,41 +416,20 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && loglevel <= 2)
-			{
-				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Extracting " << filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "VMT: Extracting " << filename << std::endl;
-		}
+		out(3) << "VMT: Extracting " << filename << std::endl;
 		zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"), "mcpppp-temp/" + folder + '/');
 	}
 	else
 	{
 		if (std::filesystem::is_directory(path + "/assets/minecraft/varied/textures/entity"))
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && outputlevel <= 2)
-			{
-				logfile << timestamp() << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/random/entity"))
@@ -476,37 +448,16 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		else
 		{
-			if (outputlevel <= 2)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
-			if (logfile.good() && outputlevel <= 2)
-			{
-				logfile << timestamp() << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			}
+			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting Pack " << filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "VMT: Converting Pack " << filename << std::endl;
-		}
+		out(3) << "VMT: Converting Pack " << filename << std::endl;
 	}
 	for (auto& png : std::filesystem::recursive_directory_iterator((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")))
 	{
 		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 		{
-			if (outputlevel <= 1)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "VMT: Converting " + png.path().filename().string() << std::endl;
-			}
-			if (logfile.good() && loglevel <= 1)
-			{
-				logfile << timestamp() << "VMT: Converting " + png.path().filename().string() << std::endl;
-			}
+			out(1) << "VMT: Converting " + png.path().filename().string() << std::endl;
 		}
 		if (png.path().filename().extension() == ".png")
 		{
@@ -539,14 +490,7 @@ void vmt(std::string path, std::string filename, bool zip)
 	numbers.shrink_to_fit();
 	if (zip)
 	{
-		if (outputlevel <= 3)
-		{
-			std::cout << (dotimestamp ? timestamp() : "") << "VMT: Compressing " + filename << std::endl;
-		}
-		if (logfile.good() && loglevel <= 3)
-		{
-			logfile << timestamp() << "VMT: Compressing " + filename << std::endl;
-		}
+		out(3) << "VMT: Compressing " + filename << std::endl;
 		std::string temp;
 		Zippy::ZipEntryData zed;
 		long long filesize;

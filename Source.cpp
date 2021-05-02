@@ -109,18 +109,12 @@ int main(int argc, char* argv[])
 	{
 		if (autodeletetemp)
 		{
-			if (outputlevel <= 4)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Removing..." << std::endl;
-			}
+			out(4) << "Folder named \"mcpppp-temp\" found. Removing..." << std::endl;
 			std::filesystem::remove_all("mcpppp-temp");
 		}
 		else
 		{
-			if (outputlevel <= 4)
-			{
-				std::cout << (dotimestamp ? timestamp() : "") << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
-			}
+			out(4) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 			goto exit;
 		}
 	}
@@ -128,7 +122,7 @@ int main(int argc, char* argv[])
 	{
 		if (!std::filesystem::is_directory(path, ec))
 		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
+			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
 		for (auto& entry : std::filesystem::directory_iterator(path))
@@ -147,17 +141,14 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
-	if (outputlevel <= 3)
-	{
-		std::cout << (dotimestamp ? timestamp() : "") << "All Done!" << std::endl;
-	}
+	out(3) << "All Done!" << std::endl;
 exit:
 	if (pauseonexit)
 	{
 #ifdef _WIN32
 		system("pause");
 #else
-		std::cout << (dotimestamp ? timestamp() : "") << "Press enter to continue . . .";
+		std::cout << "Press enter to continue . . .";
 		getline(std::cin, str);
 #endif
 	}
