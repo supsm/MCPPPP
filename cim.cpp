@@ -2,6 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#include <filesystem>
+#include <stack>
+#include <string>
+#include <vector>
+
 void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
 {
 	// png location (textures): assets/mcpppp/textures/item
@@ -45,6 +50,8 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	std::string temp, option, value, type = "item", texture, model, hand = "either", first;
 	std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 	std::vector<nlohmann::json> nbts;
+	std::stack<std::string> nbt;
+	nlohmann::json tempj;
 	std::ifstream fin(png.path().string());
 	while (fin)
 	{
@@ -100,7 +107,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				texture = "mcpppp:item/" + texture;
 			}
 		}
-		else if (option.find("texture") == 0)
+		else if (option.find("texture.") == 0)
 		{
 			// TODO: texture.name (idk what this means)
 		}
@@ -265,11 +272,45 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				hand = value;
 			}
 		}
-		else if (option.find("nbt") == 0)
+		else if (option.find("nbt.") == 0)
 		{
-			// TODO
+			for (int i = 0; i < option.size(); i++)
+			{
+				if (option[i] == '.')
+				{
+					nbt.push(temp);
+					temp.clear();
+				}
+				else
+				{
+					temp += option[i];
+				}
+			}
+			nbt.push(temp);
+			temp = value;
+			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
+			{
+				for (int i = 0; i < temp.size(); i++)
+				{
+					if (temp[i] == ':')
+					{
+						temp.erase(temp.begin(), temp.begin() + i + 1);
+						break;
+					}
+				}
+				temp = '/' + temp + '/';
+			}
+			tempj = { {nbt.top(), temp} };
+			nbt.pop();
+			while (!nbt.empty())
+			{
+				tempj = { {nbt.top(), tempj} };
+				nbt.pop();
+			}
+			nbts.push_back(tempj);
 		}
 	}
+
 }
 
 void cim(std::string path, std::string filename, bool zip)
