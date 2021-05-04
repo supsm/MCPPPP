@@ -228,7 +228,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		{
 			// TODO: find out how non-regex works
 			temp = value;
-			if (temp.find("regex") != std::string::npos || temp.find("pattern") != std::string::npos)
+			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
 			{
 				for (int i = 0; i < temp.size(); i++)
 				{
