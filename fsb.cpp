@@ -160,8 +160,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	name.erase(name.end() - 11, name.end());
 	source = name;
 	std::stringstream ss;
-	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", false}, {"properties", {{"blend", {{"type", "add"}}}}} };
-	// change blend to true for fsb 0.5.0
+	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}}} };
 	std::ifstream fin(png.path().string());
 	while (fin)
 	{
@@ -218,8 +217,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		}
 		else if (option == "speed")
 		{
-			//j["properties"]["rotation"]["rotationSpeed"] = stod(value);
-			// uncomment for fsb 0.5.0
+			j["properties"]["rotation"]["rotationSpeed"] = stod(value);
 		}
 		else if (option == "axis")
 		{
@@ -227,8 +225,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			std::stringstream axis;
 			axis.str(value);
 			axis >> x >> y >> z;
-			j["properties"]["rotation"]["axis"] = { stod(x), stod(y), stod(z) };
-			// multiply everything by 360 for fsb 0.5.0
+			j["properties"]["rotation"]["axis"] = { stod(x) * 360, stod(y) * 360, stod(z) * 360 };
 		}
 		else if (option == "weather")
 		{
@@ -254,10 +251,29 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				biomes >> biome;
 				biomelist.push_back(biome);
 			}
+			j["conditions"]["biomes"] = biomelist;
 		}
 		if (option == "heights")
 		{
-			// dunno how this works lol
+			std::string height, minheight;
+			std::stringstream heights;
+			std::vector<nlohmann::json> heightlist;
+			heights.str(value);
+			while (heights)
+			{
+				heights >> height;
+				for (int i = 0; i < height.size(); i++)
+				{
+					if (height[i] == '-')
+					{
+						minheight = height;
+						minheight.erase(minheight.begin() + i, minheight.end());
+						height.erase(height.begin(), height.begin() + i);
+						heightlist.push_back({ {"min", stod(minheight)}, {"max", stod(height)} });
+					}
+				}
+			}
+			j["conditions"]["heights"] = heightlist;
 		}
 		if (option == "transition")
 		{
