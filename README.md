@@ -8,6 +8,7 @@ Note that on mac, double clicking on the file is not sufficient to run the progr
   
 Use should be pretty self-explanitory, run the binary and put the path of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`  
 If a folder already contains the output directories (such as `assets/fabricskyboxes`), it will be skipped. If you want to re-convert this pack, delete the directory.  
+More detailed instructions below  
 <details>
   <summary>Output Directories</summary>
 
@@ -20,16 +21,50 @@ Alternatively, command-line arguments may be passed for temorary settings (if yo
 <details>
   <summary>Settings</summary>
 
-  | Name              | Values/Type      | Description                                                                                                            | Default   |
-  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:---------:|
-  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`   |
-  | `log`             | String           | A log file where logs will be stored                                                                                   | -        |
-  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`  |
-  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false` |
-  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`      |
-  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `2`      |
-  | `deleteSource`   | `true`, `false` | Delete source (optifine/mcpatcher) files when done converting. The pack will no longer be able to re-convert           | `false`  |
+  | Name              | Values/Type      | Description                                                                                                            | Default    |
+  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:----------:|
+  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`    |
+  | `log`             | String           | A log file where logs will be stored                                                                                   | `log.txt` |
+  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`   |
+  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`  |
+  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`       |
+  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `2`       |
+  | `deleteSource`   | `true`, `false` | Delete source (optifine/mcpatcher) files when done converting. The pack will no longer be able to re-convert           | `false`   |
 </details>
+
+#### Windows
+Download `MCPPPP-windows.exe` from releases or preview version  
+Navigate to where you downloaded the file and run it (double click)  
+Open `MCPPPP-windows.properties` (may not have file extension)  
+Go to your resourcepacks folder in file explorer (by default, the path is `%appdata%\.minecraft\resourcepacks`, type that in the large bar on the left and press enter)  
+Right click the large bar and click `Copy Address`  
+Paste into `MCPPPP-windows.properties` (you should've opened this earlier)  
+Save (`Ctrl+S`) and close  
+Run `MCPPPP-windows` again and wait for it to finish  
+Packs should be modified to work with the mod(s)  
+
+#### Mac
+Download `MCPPPP-mac` from releases or preview version  
+Open a terminal window  
+`cd` to the path of where you downloaded the file  
+Run `./MCPPPP-mac`  
+Open a finder window and go to where `MCPPPP-mac` is located (do not close terminal)  
+Open `MCPPPP.properties` in a text editor  
+Add the path of where your resourcepacks folder is  
+Save and close  
+Back in terminal, run `./MCPPPP-mac` again and wait for it to finish  
+Packs should be modified to work with the mod(s)  
+
+I don't have a mac to do any testing with, so some steps may be a bit vague. If you need further assistance there should be people on the discord server who can help you.  
+
+#### Linux/Other
+See the **Build** section below (or download `MCPPPP-linux` on linux)  
+Run the binary (most likely this will be through a terminal, if so `cd` first)  
+Open `MCPPPP.properties` in the same directory  
+Add the path of where your resourcepacks folder is  
+Save and close
+Run the binary again and wait for it to finish  
+Packs should be modified to work with the mod(s)  
 
 
 ## Build
