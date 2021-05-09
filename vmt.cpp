@@ -24,8 +24,6 @@ vmtconvert:
 				name = png.path().filename().string();
 				name.erase(name.begin() + i + 1, name.end());
 				folderpath = png.path().string();
-				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-				folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
 				for (int i = 0; i < folderpath.size(); i++)
 				{
 					if (folderpath[i] == '\\')
@@ -33,6 +31,8 @@ vmtconvert:
 						folderpath[i] = '/';
 					}
 				}
+				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+				folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
 			}
 			curname = png.path().filename().string();
 			curname.erase(curname.begin() + i + 1, curname.end());
@@ -70,8 +70,6 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 	std::string name, folderpath, curnum;
 	std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 	folderpath = png.path().string();
-	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-	folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
 	for (int i = 0; i < folderpath.size(); i++)
 	{
 		if (folderpath[i] == '\\')
@@ -79,6 +77,8 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 			folderpath[i] = '/';
 		}
 	}
+	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+	folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
 	name = png.path().filename().string();
 	name.erase(name.end() - 11, name.end());
 	std::string temp, option, value, time1, last, height1;
