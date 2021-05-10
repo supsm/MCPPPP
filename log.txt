@@ -1,7 +1,154 @@
-[10:16:53] FSB: Converting Pack SimpleShadersV2
-[10:17:15] VMT: Nothing to convert in SimpleShadersV2, skipping
-[10:17:15] CIM: Nothing to convert in SimpleShadersV2, skipping
-[10:17:15] FSB: Fabricskyboxes folder found in SimpleShadersV2.zip, skipping
-[10:17:15] VMT: Nothing to convert in SimpleShadersV2.zip, skipping
-[10:17:15] CIM: Nothing to convert in SimpleShadersV2.zip, skipping
-[10:17:15] All Done!
+[11:37:51] FSB: Fabricskyboxes folder found in Awesome-Skies, skipping
+[11:37:51] VMT: Nothing to convert in Awesome-Skies, skipping
+[11:37:51] CIM: Nothing to convert in Awesome-Skies, skipping
+[11:37:51] FSB: Nothing to convert in Axolotl+Buckets, skipping
+[11:37:51] VMT: Nothing to convert in Axolotl+Buckets, skipping
+[11:37:51] CIM: Chime folder found in Axolotl+Buckets, skipping
+[11:37:51] FSB: Nothing to convert in Break Block Progress, skipping
+[11:37:51] VMT: Nothing to convert in Break Block Progress, skipping
+[11:37:51] CIM: Nothing to convert in Break Block Progress, skipping
+[11:37:51] FSB: Fabricskyboxes folder found in bRed_Nebula_Sky_Overlay_1.14.zip, skipping
+[11:37:51] VMT: Nothing to convert in bRed_Nebula_Sky_Overlay_1.14.zip, skipping
+[11:37:51] CIM: Nothing to convert in bRed_Nebula_Sky_Overlay_1.14.zip, skipping
+[11:37:51] FSB: Nothing to convert in CBT.Glass.Pane.Fix.zip, skipping
+[11:37:51] VMT: Nothing to convert in CBT.Glass.Pane.Fix.zip, skipping
+[11:37:51] CIM: Nothing to convert in CBT.Glass.Pane.Fix.zip, skipping
+[11:37:51] FSB: Nothing to convert in Creature Variety 1.9.2, skipping
+[11:37:51] VMT: Variated Mob Textures folder found in Creature Variety 1.9.2, skipping
+[11:37:51] CIM: Nothing to convert in Creature Variety 1.9.2, skipping
+[11:37:51] FSB: Converting Pack DEBB Skyback Original
+[11:37:57] VMT: Nothing to convert in DEBB Skyback Original, skipping
+[11:37:57] CIM: Nothing to convert in DEBB Skyback Original, skipping
+[11:37:57] FSB: Fabricskyboxes folder found in deos.zip, skipping
+[11:37:57] VMT: Nothing to convert in deos.zip, skipping
+[11:37:57] CIM: Nothing to convert in deos.zip, skipping
+[11:37:57] FSB: Fabricskyboxes folder found in DragonEggBedrockBreaking Skypakc, skipping
+[11:37:57] VMT: Nothing to convert in DragonEggBedrockBreaking Skypakc, skipping
+[11:37:57] CIM: Nothing to convert in DragonEggBedrockBreaking Skypakc, skipping
+[11:37:57] FSB: Fabricskyboxes folder found in Dramatic+Sky+for+1.16++(1), skipping
+[11:37:57] VMT: Nothing to convert in Dramatic+Sky+for+1.16++(1), skipping
+[11:37:57] CIM: Nothing to convert in Dramatic+Sky+for+1.16++(1), skipping
+[11:37:57] FSB: Nothing to convert in example pack, skipping
+[11:37:57] VMT: Variated Mob Textures folder found in example pack, skipping
+[11:37:57] CIM: Nothing to convert in example pack, skipping
+[11:37:57] FSB: Nothing to convert in FreshCITv1.3, skipping
+[11:37:57] VMT: Variated Mob Textures folder found in FreshCITv1.3, skipping
+[11:37:57] CIM: Chime folder found in FreshCITv1.3, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-0bd40412dafb3f9ca75bffbfa5bc9c75cf504d20, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-0bd40412dafb3f9ca75bffbfa5bc9c75cf504d20, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-0bd40412dafb3f9ca75bffbfa5bc9c75cf504d20, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-21447123401b73576243adc3aa2c11ca348ed4c8, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-21447123401b73576243adc3aa2c11ca348ed4c8, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-21447123401b73576243adc3aa2c11ca348ed4c8, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-38505223daf0b8f265ea31f4df2e6e71d146cd80, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-38505223daf0b8f265ea31f4df2e6e71d146cd80, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-38505223daf0b8f265ea31f4df2e6e71d146cd80, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-5f406641f9b46490e0075c809559a3618fa13f8d, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-5f406641f9b46490e0075c809559a3618fa13f8d, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-5f406641f9b46490e0075c809559a3618fa13f8d, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-95b0edf2117ca8f74edb02edc2d74a09b20e8c02, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-95b0edf2117ca8f74edb02edc2d74a09b20e8c02, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-95b0edf2117ca8f74edb02edc2d74a09b20e8c02, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-b6bbb0aae033deff32d475443343152ea28af325, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-b6bbb0aae033deff32d475443343152ea28af325, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-b6bbb0aae033deff32d475443343152ea28af325, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-d3270a70ef1c66c04315753ad74e2ace76697ebb, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-d3270a70ef1c66c04315753ad74e2ace76697ebb, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-d3270a70ef1c66c04315753ad74e2ace76697ebb, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-e24a3cd1e9e79e981d3381893453692fcd4c9668, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-e24a3cd1e9e79e981d3381893453692fcd4c9668, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-e24a3cd1e9e79e981d3381893453692fcd4c9668, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-pbr-v0.2, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-pbr-v0.2, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-pbr-v0.2, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-pbr-v0.2.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-pbr-v0.2.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-pbr-v0.2.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-pbr-v0.3.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-pbr-v0.3.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-pbr-v0.3.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-pipeline, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-pipeline, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-pipeline, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-pipeline-deferred-shading, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-pipeline-deferred-shading, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-pipeline-deferred-shading, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-respackopts-v0.5.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-respackopts-v0.5.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-respackopts-v0.5.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-v0.10.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-v0.10.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-v0.10.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-v0.20.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-v0.20.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-v0.20.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-v0.22.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-v0.22.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-v0.22.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-v0.7.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-v0.7.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-v0.7.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-v0.8.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-v0.8.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-v0.8.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLights-wip, skipping
+[11:37:57] VMT: Nothing to convert in LumiLights-wip, skipping
+[11:37:57] CIM: Nothing to convert in LumiLights-wip, skipping
+[11:37:57] FSB: Nothing to convert in LumiLightsPBR-pbr, skipping
+[11:37:57] VMT: Nothing to convert in LumiLightsPBR-pbr, skipping
+[11:37:57] CIM: Nothing to convert in LumiLightsPBR-pbr, skipping
+[11:37:57] FSB: Nothing to convert in LumiPBRExt-pipeline-deferred-shading, skipping
+[11:37:57] VMT: Nothing to convert in LumiPBRExt-pipeline-deferred-shading, skipping
+[11:37:57] CIM: Nothing to convert in LumiPBRExt-pipeline-deferred-shading, skipping
+[11:37:57] FSB: Nothing to convert in LumiPBRExt-v0.2.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiPBRExt-v0.2.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiPBRExt-v0.2.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiPBRExt-v0.3.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiPBRExt-v0.3.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiPBRExt-v0.3.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiPBRExt-v0.5.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiPBRExt-v0.5.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiPBRExt-v0.5.zip, skipping
+[11:37:57] FSB: Nothing to convert in LumiPBRExt-v0.7.zip, skipping
+[11:37:57] VMT: Nothing to convert in LumiPBRExt-v0.7.zip, skipping
+[11:37:57] CIM: Nothing to convert in LumiPBRExt-v0.7.zip, skipping
+[11:37:57] FSB: Fabricskyboxes folder found in Pixel_Reality_Atmosphere_1.16.2.zip, skipping
+[11:37:57] VMT: Nothing to convert in Pixel_Reality_Atmosphere_1.16.2.zip, skipping
+[11:37:57] CIM: Nothing to convert in Pixel_Reality_Atmosphere_1.16.2.zip, skipping
+[11:37:57] FSB: Nothing to convert in pumpkin overlay, skipping
+[11:37:57] VMT: Nothing to convert in pumpkin overlay, skipping
+[11:37:57] CIM: Nothing to convert in pumpkin overlay, skipping
+[11:37:57] FSB: Fabricskyboxes folder found in SimpleShadersV2.zip, skipping
+[11:37:57] VMT: Nothing to convert in SimpleShadersV2.zip, skipping
+[11:37:57] CIM: Nothing to convert in SimpleShadersV2.zip, skipping
+[11:37:57] FSB: Nothing to convert in supsm texture pack.zip, skipping
+[11:37:57] VMT: Nothing to convert in supsm texture pack.zip, skipping
+[11:37:57] CIM: Nothing to convert in supsm texture pack.zip, skipping
+[11:37:57] FSB: Nothing to convert in Vanilla-Normals-Renewed, skipping
+[11:37:57] VMT: Nothing to convert in Vanilla-Normals-Renewed, skipping
+[11:37:57] CIM: Nothing to convert in Vanilla-Normals-Renewed, skipping
+[11:37:57] FSB: Nothing to convert in Vanilla-Normals-Renewed.zip, skipping
+[11:37:57] VMT: Nothing to convert in Vanilla-Normals-Renewed.zip, skipping
+[11:37:57] CIM: Nothing to convert in Vanilla-Normals-Renewed.zip, skipping
+[11:37:57] FSB: Nothing to convert in Vanilla-PBR-1-1-0, skipping
+[11:37:57] VMT: Nothing to convert in Vanilla-PBR-1-1-0, skipping
+[11:37:57] CIM: Nothing to convert in Vanilla-PBR-1-1-0, skipping
+[11:37:57] FSB: Nothing to convert in Vanilla-PBR-1-1-0 (2).zip, skipping
+[11:37:57] VMT: Nothing to convert in Vanilla-PBR-1-1-0 (2).zip, skipping
+[11:37:58] CIM: Nothing to convert in Vanilla-PBR-1-1-0 (2).zip, skipping
+[11:37:58] FSB: Nothing to convert in Vanilla-PBR-1-1-0.zip, skipping
+[11:37:58] VMT: Nothing to convert in Vanilla-PBR-1-1-0.zip, skipping
+[11:37:58] CIM: Nothing to convert in Vanilla-PBR-1-1-0.zip, skipping
+[11:37:58] FSB: Nothing to convert in VanillaTweaks_r519909, skipping
+[11:37:58] VMT: Nothing to convert in VanillaTweaks_r519909, skipping
+[11:37:58] CIM: Nothing to convert in VanillaTweaks_r519909, skipping
+[11:37:58] FSB: Nothing to convert in VanillaTweaks_r519909.zip, skipping
+[11:37:58] VMT: Nothing to convert in VanillaTweaks_r519909.zip, skipping
+[11:37:58] CIM: Nothing to convert in VanillaTweaks_r519909.zip, skipping
+[11:37:58] FSB: Nothing to convert in VanillaTweaks_r678816, skipping
+[11:37:58] VMT: Nothing to convert in VanillaTweaks_r678816, skipping
+[11:37:58] CIM: Chime folder found in VanillaTweaks_r678816, skipping
+[11:37:58] All Done!
