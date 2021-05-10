@@ -393,7 +393,7 @@ void fsb(std::string path, std::string filename, bool zip)
 		{
 			if (png.is_directory())
 			{
-				return;
+				continue;
 			}
 			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();

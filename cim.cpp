@@ -585,7 +585,7 @@ void cim(std::string path, std::string filename, bool zip)
 			{
 				if (png.is_directory())
 				{
-					return;
+					continue;
 				}
 				temp = png.path().string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
@@ -614,7 +614,7 @@ void cim(std::string path, std::string filename, bool zip)
 			{
 				if (png.is_directory())
 				{
-					return;
+					continue;
 				}
 				temp = png.path().string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
