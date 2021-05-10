@@ -10,7 +10,7 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 {
 	int error;
 	unsigned int w, h;
-	std::vector<unsigned char> buffer, image, image1, image2, image3, top, bottom; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
+	std::vector<unsigned char> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 	// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 	std::string filename = png.path().filename().string();
 	lodepng::State state;
@@ -47,7 +47,6 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	}
 	long long max = 0;
 	top.reserve(buffer.size() / 6);
-	bottom.reserve(buffer.size() / 6);
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
 		for (long long j = 0; j < h / 2; j++)
@@ -56,15 +55,11 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1]);
 			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2]);
 			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3]);
-			bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i]);
-			bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 1]);
-			bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 2]);
-			bottom.push_back(image1[(w * 4) / 3 * (j + 1) - i + 3]);
 		}
 	}
 	buffer.clear();
 	std::filesystem::create_directories(zip ? "mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky" : path + "/assets/fabricskyboxes/sky");
-	error = lodepng::encode(buffer, bottom, w / 3, h / 2, state);
+	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 	if (error)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error);
