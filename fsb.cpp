@@ -160,7 +160,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	name.erase(name.end() - 11, name.end());
 	source = name;
 	std::stringstream ss;
-	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {{"minecraft:overworld"}}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"sunSkyTint", false}}} };
+	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {"minecraft:overworld"}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"sunSkyTint", false}}} };
 	std::ifstream fin(png.path().string());
 	while (fin)
 	{
