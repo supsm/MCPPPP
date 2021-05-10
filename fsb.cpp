@@ -391,6 +391,10 @@ void fsb(std::string path, std::string filename, bool zip)
 		long long filesize;
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
 		{
+			if (png.is_directory())
+			{
+				return;
+			}
 			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
 			zed.clear();
 			filesize = png.file_size();

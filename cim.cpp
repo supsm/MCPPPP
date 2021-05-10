@@ -583,6 +583,10 @@ void cim(std::string path, std::string filename, bool zip)
 		{
 			for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/minecraft/overrides/"))
 			{
+				if (png.is_directory())
+				{
+					return;
+				}
 				temp = png.path().string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 				temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
@@ -608,6 +612,10 @@ void cim(std::string path, std::string filename, bool zip)
 		{
 			for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/mcpppp/"))
 			{
+				if (png.is_directory())
+				{
+					return;
+				}
 				temp = png.path().string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 				temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
