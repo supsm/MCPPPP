@@ -204,7 +204,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				}
 			}
 			temp += '0';
-			(option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : endfadein) : (option == "endFadeIn" ? endfadein : endfadeout) = (stoi(temp) + 18000 + 24000) % 24000;
+			((option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : startfadeout) : (option == "endFadeIn" ? endfadein : endfadeout)) = (stoi(temp) + 18000 + 24000) % 24000;
 			j["properties"]["fade"][option] = (stoi(temp) + 18000 + 24000) % 24000;
 		}
 		else if (option == "blend")
