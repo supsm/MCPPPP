@@ -496,6 +496,10 @@ void vmt(std::string path, std::string filename, bool zip)
 		long long filesize;
 		for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/minecraft/varied/textures/entity/"))
 		{
+			if (png.is_directory())
+			{
+				return;
+			}
 			temp = png.path().string();
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 			temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
