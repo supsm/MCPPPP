@@ -51,10 +51,10 @@ Packs should be modified to work with the mod(s)
 Download `MCPPPP-mac.tar.gz` from releases or preview version  
 Navigate to where you downloaded the file and unzip it (double click)  
 Run (double click) the extracted file (`MCPPPP-mac`)  
-Open `MCPPPP.properties` in a text editor  
+Open another window in finder, click on `Home` and open `MCPPPP.properties` in a text editor  
 Add the path of where your resourcepacks folder is  
-Save and close  
-Run `MCPPPP-mac` again  
+Save and close the text file (also close the finder window)  
+Run `MCPPPP-mac` again (from the first finder window)  
 Packs should be modified to work with the mod(s)  
 
 I don't have a mac to do any testing with, so some steps may be a bit vague. If you need further assistance there should be people on the discord server who can help you.  
