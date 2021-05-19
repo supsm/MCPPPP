@@ -12,9 +12,9 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: build
-      run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac
+      run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac && chmod +x MCPPPP-mac && tar -cvzf MCPPPP-mac.tar.gz
     - uses: EndBug/add-and-commit@v7
       with:
-        add: 'MCPPPP-mac'
+        add: 'MCPPPP-mac.tar.gz'
         message: 'add mac binary'
         push: true

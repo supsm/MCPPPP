@@ -7,8 +7,8 @@ A resource pack converter from Optifine format to newer and alternative formats.
 Some websites have been stealing this project (you'll know what I mean if you search "MCPPPP"). If you are not on github, please refer to the [official page](https://github.com/supsm/MCPPPP) instead. Most other websites are outdated, and some might contain unwanted programs. If there is another official website where I distribute binaries, it will be linked on the github.  
 
 ## Use
-Newly compiled binaries for linux, windows, and mac can be found as `MCPPPP-linux`, `MCPPPP-windows.exe`, and `MCPPPP-mac` respectively. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
-Note that on mac, double clicking on the file is not sufficient to run the program; it must be run through terminal.  
+Newly compiled binaries for linux, windows, and mac can be found as `MCPPPP-linux`, `MCPPPP-windows.exe`, and `MCPPPP-mac.tar.gz` respectively. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
+Note that on mac, you must first unzip  
   
 Use should be pretty self-explanitory, run the binary and put the path of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`  
 If a folder already contains the output directories (such as `assets/fabricskyboxes`), it will be skipped. If you want to re-convert this pack, delete the directory.  
@@ -48,15 +48,13 @@ Run `MCPPPP-windows` again and wait for it to finish
 Packs should be modified to work with the mod(s)  
 
 #### Mac
-Download `MCPPPP-mac` from releases or preview version  
-Open a terminal window  
-`cd` to the path of where you downloaded the file  
-Run `./MCPPPP-mac`  
-Open a finder window and go to where `MCPPPP-mac` is located (do not close terminal)  
+Download `MCPPPP-mac.tar.gz` from releases or preview version  
+Navigate to where you downloaded the file and unzip it (double click)  
+Run (double click) the extracted file (`MCPPPP-mac`)  
 Open `MCPPPP.properties` in a text editor  
 Add the path of where your resourcepacks folder is  
 Save and close  
-Back in terminal, run `./MCPPPP-mac` again and wait for it to finish  
+Run `MCPPPP-mac` again  
 Packs should be modified to work with the mod(s)  
 
 I don't have a mac to do any testing with, so some steps may be a bit vague. If you need further assistance there should be people on the discord server who can help you.  
