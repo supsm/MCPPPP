@@ -12,7 +12,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: build
-      run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac && chmod +x MCPPPP-mac && tar -cvzf MCPPPP-mac.tar.gz
+      run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac && chmod +x MCPPPP-mac && tar -cvzf MCPPPP-mac.tar.gz MCPPPP-mac
     - uses: EndBug/add-and-commit@v7
       with:
         add: 'MCPPPP-mac.tar.gz'
