@@ -2,6 +2,8 @@ name: Compile Mac
 
 on:
   push:
+    branches:
+    - master
     paths:
     - 'MCPPPP-linux'
   workflow_dispatch:
