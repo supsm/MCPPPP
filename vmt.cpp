@@ -11,19 +11,19 @@ void vmtpng(std::string& name, std::string& folder, std::string& path, bool& new
 	std::string folderpath, curname, curnum;
 vmtconvert:
 	curnum.clear();
-	for (int i = png.path().filename().string().size() - 5; i >= 0; i--)
+	for (int i = png.path().filename().u8string().size() - 5; i >= 0; i--)
 	{
-		if (png.path().filename().string()[i] >= '0' && png.path().filename().string()[i] <= '9')
+		if (png.path().filename().u8string()[i] >= '0' && png.path().filename().u8string()[i] <= '9')
 		{
-			curnum.insert(curnum.begin(), png.path().filename().string()[i]);
+			curnum.insert(curnum.begin(), png.path().filename().u8string()[i]);
 		}
 		else
 		{
 			if (numbers.size() == 0)
 			{
-				name = png.path().filename().string();
+				name = png.path().filename().u8string();
 				name.erase(name.begin() + i + 1, name.end());
-				folderpath = png.path().string();
+				folderpath = png.path().u8string();
 				for (int i = 0; i < folderpath.size(); i++)
 				{
 					if (folderpath[i] == '\\')
@@ -32,9 +32,9 @@ vmtconvert:
 					}
 				}
 				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-				folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
+				folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
 			}
-			curname = png.path().filename().string();
+			curname = png.path().filename().u8string();
 			curname.erase(curname.begin() + i + 1, curname.end());
 			break;
 		}
@@ -42,8 +42,8 @@ vmtconvert:
 	if (curname == name && curnum != "")
 	{
 		numbers.push_back(stoi(curnum));
-		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath);
-		std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().string());
+		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath));
+		supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
 	}
 	else if (!numbers.empty())
 	{
@@ -54,9 +54,9 @@ vmtconvert:
 		}
 		v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
-		if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
+		if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 		{
-			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json");
+			std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
 		}
@@ -69,7 +69,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 {
 	std::string name, folderpath, curnum;
 	std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
-	folderpath = png.path().string();
+	folderpath = png.path().u8string();
 	for (int i = 0; i < folderpath.size(); i++)
 	{
 		if (folderpath[i] == '\\')
@@ -78,8 +78,8 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-	folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
-	name = png.path().filename().string();
+	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
+	name = png.path().filename().u8string();
 	name.erase(name.end() - 11, name.end());
 	std::string temp, option, value, time1, last, height1;
 	nlohmann::json j, tempj;
@@ -91,7 +91,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 	std::vector<std::string> names;
 	std::vector<int> baby;
 	std::stringstream ss;
-	std::ifstream fin(png.path().string());
+	std::ifstream fin(png.path());
 	while (fin)
 	{
 		std::getline(fin, temp);
@@ -377,7 +377,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		}
 	}
 	j = { {"type", "varied-mobs:pick"}, {"choices", v} };
-	std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json");
+	std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 	fout << j.dump(1, '\t') << std::endl;
 }
 
@@ -427,22 +427,22 @@ void vmt(std::string path, std::string filename, bool zip)
 	}
 	else
 	{
-		if (std::filesystem::is_directory(path + "/assets/minecraft/varied/textures/entity"))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
 		{
 			out(2) << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/random/entity"))
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
 		{
 			optifine = true;
 			newlocation = true;
 		}
-		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/mob"))
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/mob")))
 		{
 			optifine = true;
 			newlocation = false;
 		}
-		else if (std::filesystem::is_directory(path + "/assets/minecraft/mcpatcher/mob"))
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/mob")))
 		{
 			optifine = false;
 		}
@@ -453,11 +453,11 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		out(3) << "VMT: Converting Pack " << filename << std::endl;
 	}
-	for (auto& png : std::filesystem::recursive_directory_iterator((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")))
+	for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 	{
 		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 		{
-			out(1) << "VMT: Converting " + png.path().filename().string() << std::endl;
+			out(1) << "VMT: Converting " + png.path().filename().u8string() << std::endl;
 		}
 		if (png.path().filename().extension() == ".png")
 		{
@@ -477,9 +477,9 @@ void vmt(std::string path, std::string filename, bool zip)
 		}
 		v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
-		if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"))
+		if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 		{
-			std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json");
+			std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
 		}
@@ -500,9 +500,9 @@ void vmt(std::string path, std::string filename, bool zip)
 			{
 				continue;
 			}
-			temp = png.path().string();
+			temp = png.path().u8string();
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
-			temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
+			temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 			temp += '/';
 			for (int i = 0; i < temp.size(); i++)
 			{
@@ -511,14 +511,14 @@ void vmt(std::string path, std::string filename, bool zip)
 					temp[i] = '/';
 				}
 			}
-			std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
+			std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
 			zed.clear();
 			filesize = png.file_size();
 			zed.resize(filesize);
 			fin.seekg(0, std::ios::beg);
 			fin.read((char*)(zed.data()), filesize);
 			fin.close();
-			zipa.AddEntry(temp + png.path().filename().string() + (png.is_directory() ? "/" : ""), zed);
+			zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
 		}
 		temp.clear();
 		zed.clear();
@@ -531,7 +531,7 @@ void vmt(std::string path, std::string filename, bool zip)
 	}
 	else if (deletesource)
 	{
-		std::filesystem::remove_all(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"));
+		std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

@@ -4520,7 +4520,7 @@ extern "C" {
 #if defined(_MSC_VER) || defined(__MINGW64__)
 static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
-    FILE *pFile = fopen(pFilename, pMode);
+    FILE *pFile = _wfopen(mbtow(pFilename).c_str(), mbtow(pMode).c_str());
     return pFile;
 }
 static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)

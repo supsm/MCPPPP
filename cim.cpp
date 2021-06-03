@@ -13,7 +13,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 	// json location (models): assets/mcpppp/models/item
 	// mcpppp:item/
 
-	std::string folderpath = png.path().string();
+	std::string folderpath = png.path().u8string();
 	for (int i = 0; i < folderpath.size(); i++)
 	{
 		if (folderpath[i] == '\\')
@@ -22,15 +22,15 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
-	folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
+	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
 	if (png.path().extension() == ".png")
 	{
-		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath);
-		std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath + png.path().filename().string());
+		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath));
+		copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath + png.path().filename().u8string()));
 	}
 	else
 	{
-		std::ifstream fin(png.path().string());
+		std::ifstream fin(png.path());
 		nlohmann::json j;
 		std::string temp;
 		fin >> j;
@@ -75,8 +75,8 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 				j["textures"]["layer0"] = first;
 			}
 		}
-		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath);
-		std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath + png.path().filename().string());
+		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath));
+		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath + png.path().filename().u8string()));
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
 	}
@@ -84,7 +84,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 
 void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
 {
-	std::string folderpath = png.path().string();
+	std::string folderpath = png.path().u8string();
 	for (int i = 0; i < folderpath.size(); i++)
 	{
 		if (folderpath[i] == '\\')
@@ -93,13 +93,13 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
-	folderpath.erase(folderpath.end() - png.path().filename().string().size(), folderpath.end());
+	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
 	std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name = "";
 	std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 	std::vector<nlohmann::json> nbts, predicates, tempp;
 	std::stack<std::string> nbt;
 	nlohmann::json tempj;
-	std::ifstream fin(png.path().string());
+	std::ifstream fin(png.path());
 	while (fin)
 	{
 		getline(fin, temp);
@@ -151,8 +151,8 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				// assets/mcpppp/textures/extra
 				// mcpppp:extra/
 				// if paths are specified, copy to extra folder
-				std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/");
-				std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + texture + ".png");
+				std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/"));
+				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + texture + ".png"));
 				texture = "mcpppp:extra/" + texture;
 			}
 			else if (texture[0] == '.')
@@ -181,8 +181,8 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				// assets/mcpppp/models/extra
 				// mcpppp:extra/
 				// if paths are specified, copy to extra folder
-				std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/");
-				std::filesystem::copy(png.path().string(), (zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/" + model + ".png");
+				std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/"));
+				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/" + model + ".png"));
 				model = "mcpppp:extra/" + model;
 			}
 			else if (model[0] == '.')
@@ -481,9 +481,9 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
 	for (int i = 0; i < items.size(); i++)
 	{
-		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/");
+		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/"));
 		tempj = j;
-		std::ifstream fin((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json");
+		std::ifstream fin(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json"));
 		if (fin.good())
 		{
 			fin >> tempj;
@@ -495,7 +495,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			tempj["overrides"] = tempv;
 		}
 		fin.close();
-		std::ofstream fout((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json");
+		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json"));
 		fout << tempj.dump(1, '\t') << std::endl;
 		fout.close();
 	}
@@ -538,16 +538,16 @@ void cim(std::string path, std::string filename, bool zip)
 	}
 	else
 	{
-		if (std::filesystem::is_directory(path + "/assets/minecraft/overrides"))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/overrides")))
 		{
 			out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		else if (std::filesystem::is_directory(path + "/assets/minecraft/optifine/cit"))
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/cit")))
 		{
 			optifine = true;
 		}
-		else if (std::filesystem::is_directory(path + "/assets/minecraft/mcpatcher/cit"))
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/cit")))
 		{
 			optifine = false;
 		}
@@ -558,11 +558,11 @@ void cim(std::string path, std::string filename, bool zip)
 		}
 		out(3) << "CIM: Converting Pack " << filename << std::endl;
 	}
-	for (auto& png : std::filesystem::recursive_directory_iterator(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit"))
+	for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit")))
 	{
 		if (png.path().extension() == ".png" || png.path().extension() == ".properties" || png.path().extension() == ".json")
 		{
-			out(1) << "CIM: Converting " + png.path().filename().string() << std::endl;
+			out(1) << "CIM: Converting " + png.path().filename().u8string() << std::endl;
 		}
 		if (png.path().extension() == ".json" || png.path().extension() == ".png")
 		{
@@ -587,9 +587,9 @@ void cim(std::string path, std::string filename, bool zip)
 				{
 					continue;
 				}
-				temp = png.path().string();
+				temp = png.path().u8string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
-				temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
+				temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 				temp += '/';
 				for (int i = 0; i < temp.size(); i++)
 				{
@@ -598,14 +598,14 @@ void cim(std::string path, std::string filename, bool zip)
 						temp[i] = '/';
 					}
 				}
-				std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
+				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
 				zed.clear();
 				filesize = png.file_size();
 				zed.resize(filesize);
 				fin.seekg(0, std::ios::beg);
 				fin.read((char*)(zed.data()), filesize);
 				fin.close();
-				zipa.AddEntry(temp + png.path().filename().string() + (png.is_directory() ? "/" : ""), zed);
+				zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
 			}
 		}
 		if (std::filesystem::exists("mcpppp-temp/" + folder + "/assets/mcpppp/"))
@@ -616,9 +616,9 @@ void cim(std::string path, std::string filename, bool zip)
 				{
 					continue;
 				}
-				temp = png.path().string();
+				temp = png.path().u8string();
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
-				temp.erase(temp.end() - png.path().filename().string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
+				temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 				temp += '/';
 				for (int i = 0; i < temp.size(); i++)
 				{
@@ -627,14 +627,14 @@ void cim(std::string path, std::string filename, bool zip)
 						temp[i] = '/';
 					}
 				}
-				std::ifstream fin(png.path().string(), std::ios::binary | std::ios::ate);
+				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
 				zed.clear();
 				filesize = png.file_size();
 				zed.resize(filesize);
 				fin.seekg(0, std::ios::beg);
 				fin.read((char*)(zed.data()), filesize);
 				fin.close();
-				zipa.AddEntry(temp + png.path().filename().string() + (png.is_directory() ? "/" : ""), zed);
+				zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
 			}
 		}
 		temp.clear();
@@ -648,7 +648,7 @@ void cim(std::string path, std::string filename, bool zip)
 	}
 	else if (deletesource)
 	{
-		std::filesystem::remove_all(path + "/assets/minecraft/" + (optifine ? "optifine/" : "mcpatcher/") + "cit/");
+		std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine/" : "mcpatcher/") + "cit/"));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

@@ -120,24 +120,24 @@ int main(int argc, char* argv[])
 	}
 	for (std::string path : paths)
 	{
-		if (!std::filesystem::is_directory(path, ec))
+		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
 			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
-		for (auto& entry : std::filesystem::directory_iterator(path))
+		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
 			if (entry.is_directory())
 			{
-				fsb(entry.path().string(), entry.path().filename().string(), false);
-				vmt(entry.path().string(), entry.path().filename().string(), false);
-				cim(entry.path().string(), entry.path().filename().string(), false);
+				fsb(entry.path().u8string(), entry.path().filename().u8string(), false);
+				vmt(entry.path().u8string(), entry.path().filename().u8string(), false);
+				cim(entry.path().u8string(), entry.path().filename().u8string(), false);
 			}
 			else if (entry.path().extension() == ".zip")
 			{
-				fsb(entry.path().string(), entry.path().filename().string(), true);
-				vmt(entry.path().string(), entry.path().filename().string(), true);
-				cim(entry.path().string(), entry.path().filename().string(), true);
+				fsb(entry.path().u8string(), entry.path().filename().u8string(), true);
+				vmt(entry.path().u8string(), entry.path().filename().u8string(), true);
+				cim(entry.path().u8string(), entry.path().filename().u8string(), true);
 			}
 		}
 	}
