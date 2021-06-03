@@ -61,6 +61,22 @@ std::string ununderscore(std::string str)
 	return str2;
 }
 
+namespace supsm
+{
+	void copy(std::filesystem::path from, std::filesystem::path to)
+	{
+		if (std::filesystem::is_directory(to))
+		{
+			return;
+		}
+		if (std::filesystem::exists(to))
+		{
+			std::filesystem::remove(to);
+		}
+		std::filesystem::copy(from, to);
+	}
+}
+
 void setting(std::string option, std::string value)
 {
 	if (lowercase(option) == "pauseonexit")

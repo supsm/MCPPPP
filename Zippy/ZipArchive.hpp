@@ -462,7 +462,7 @@ namespace Zippy
             for (auto& file : m_ZipEntries) {
                 if (file.IsDirectory()) continue; //TODO: Ensure this is the right thing to do (Excel issue)
                 if (!file.IsModified()) {
-                    if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_Archive, file.Index()))
+                     if (!mz_zip_writer_add_from_zip_reader(&tempArchive, &m_Archive, file.Index()))
                         throw ZipRuntimeError(mz_zip_get_error_string(m_Archive.m_last_error));
                 }
 
@@ -488,8 +488,8 @@ namespace Zippy
 
             // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
             Close();
-            std::remove(filename.c_str());
-            std::rename(tempPath.c_str(), filename.c_str());
+            std::filesystem::remove(std::filesystem::u8path(filename.c_str()));
+            std::filesystem::rename(tempPath.c_str(), std::filesystem::u8path(filename.c_str()));
             Open(filename);
 
         }
