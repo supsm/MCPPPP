@@ -299,7 +299,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			temp[i] = '/';
 		}
 	}
-	if (!std::filesystem::exists((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_top.png"))
+	if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_top.png")))
 	{
 		lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
 		lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_top.png");
