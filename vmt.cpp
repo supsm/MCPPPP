@@ -42,7 +42,6 @@ vmtconvert:
 	if (curname == name && curnum != "")
 	{
 		numbers.push_back(stoi(curnum));
-		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath));
 		supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
 	}
 	else if (!numbers.empty())

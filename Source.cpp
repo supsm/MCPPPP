@@ -2,6 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+//#define GUI
+
+#define NOMINMAX
+
 #include <iostream>
 #include <filesystem>
 #include <fstream>
@@ -11,54 +15,80 @@
 
 #include "utility.cpp"
 
+#ifndef GUI
 #include "fsb.cpp"
 #include "vmt.cpp"
 #include "cim.cpp"
+#elif defined _WIN32
+#include <Windows.h> // SetProcessDPIAware
+#endif
 
 int main(int argc, char* argv[])
 {
+#if defined _WIN32 && defined GUI
+	SetProcessDPIAware(); // fix blurriness
+#endif
 	bool issetting = false, isvalue = false;
-	std::vector<std::string> paths;
 	std::string str, option, value, temp;
 	std::stringstream ss;
 	std::error_code ec;
-	std::ifstream config("mcpppp.properties");
-	std::cout.sync_with_stdio(false);
-	if (config.fail())
+#ifdef GUI
+	ui->show();
+	Fl::wait();
+#endif
+	if (argc < 2) // skip file settings if there are command line settings
 	{
-		std::ofstream createconfig("mcpppp.properties");
-		createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
-		createconfig.close();
-		std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
-		goto exit;
-	}
-	while (config.good())
-	{
-		getline(config, str);
-		if (str[0] == '/' && str[1] == '/')
+		std::ifstream config("mcpppp.properties");
+		if (config.fail() && argc < 2)
 		{
-			ss.clear();
-			ss.str(str);
-			ss >> temp;
-			if (temp == "//set")
+			std::ofstream createconfig("mcpppp.properties");
+			createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
+			createconfig.close();
+#ifndef GUI
+			std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
+			goto exit;
+#endif
+		}
+		while (config.good()) // config file (mcpppp.properties)
+		{
+			getline(config, str);
+			if (str.back() == '\r')
 			{
-				ss >> option;
-				getline(ss, value);
-				value.erase(value.begin());
-				setting(option, value);
+				str.erase(str.end() - 1);
+			}
+			if (str[0] == '/' && str[1] == '/')
+			{
+				ss.clear();
+				ss.str(str);
+				ss >> temp;
+				if (temp == "//set")
+				{
+					ss >> option;
+					getline(ss, value);
+					value.erase(value.begin());
+					setting(option, value);
+				}
+			}
+			else if (str[0] != '#' && str != "")
+			{
+				paths.insert(str);
+			}
+			else if (str.size() > 2)
+			{
+				if (str[1] == '!')
+				{
+					str.erase(str.begin(), str.begin() + 2);
+					paths.erase(str);
+				}
 			}
 		}
-		else if (str[0] != '#' && str != "")
-		{
-			paths.push_back(str);
-		}
+		config.close();
 	}
-	config.close();
-	for (int i = 1; i < argc; i++)
+	for (int i = 1; i < argc; i++) // function arguments
 	{
-		if (issetting)
+		if (issetting) // if current argument is part of setting
 		{
-			if (isvalue)
+			if (isvalue) // if arg is value of setting
 			{
 				value = argv[i];
 				while (value[value.size() - 1] != ';' && i < argc - 1)
@@ -71,7 +101,7 @@ int main(int argc, char* argv[])
 				isvalue = false;
 				setting(option, value);
 			}
-			else
+			else // if arg is setting/option name
 			{
 				option = argv[i];
 				isvalue = true;
@@ -79,12 +109,14 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			if (std::string(argv[i]) == "//set")
+			if (std::string(argv[i]) == "//set") // setting
 			{
 				issetting = true;
 			}
-			else if (argv[i][0] == '#')
+			else if (argv[i][0] == '#') // comment
 			{
+				// not gonna be implementing #!path since it isn't necessary
+				// in file it's necessary since gui has to remove certain paths
 				temp = argv[i];
 				while (temp[temp.size() - 1] != ';' && i < argc - 1)
 				{
@@ -92,7 +124,7 @@ int main(int argc, char* argv[])
 					temp = argv[i];
 				}
 			}
-			else
+			else // path
 			{
 				temp = argv[i];
 				while (temp[temp.size() - 1] != ';' && i < argc - 1)
@@ -101,7 +133,7 @@ int main(int argc, char* argv[])
 					temp += " " + std::string(argv[i]);
 				}
 				temp.erase(temp.end() - 1);
-				paths.push_back(temp);
+				paths.insert(temp);
 			}
 		}
 	}
@@ -118,6 +150,10 @@ int main(int argc, char* argv[])
 			goto exit;
 		}
 	}
+#ifdef GUI
+	addpaths();
+	updatepaths();
+#endif
 	for (std::string path : paths)
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
@@ -127,6 +163,15 @@ int main(int argc, char* argv[])
 		}
 		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
+#ifdef GUI
+			if (entry.is_directory() || entry.path().extension() == ".zip")
+			{
+				entries.push_back(std::make_pair(true, entry));
+				addpack(entry.path().filename().u8string());
+				std::cout << entry.path().filename().u8string() << std::endl;
+				Fl::wait();
+			}
+#else
 			if (entry.is_directory())
 			{
 				fsb(entry.path().u8string(), entry.path().filename().u8string(), false);
@@ -139,10 +184,15 @@ int main(int argc, char* argv[])
 				vmt(entry.path().u8string(), entry.path().filename().u8string(), true);
 				cim(entry.path().u8string(), entry.path().filename().u8string(), true);
 			}
+#endif
 		}
 	}
+#ifdef GUI
+	Fl::run();
+#endif
 	out(3) << "All Done!" << std::endl;
-exit:
+exit:;
+#ifndef GUI
 	if (pauseonexit)
 	{
 #ifdef _WIN32
@@ -151,5 +201,6 @@ exit:
 		std::cout << "Press enter to continue . . .";
 		getline(std::cin, str);
 #endif
-	}
+}
+#endif
 }

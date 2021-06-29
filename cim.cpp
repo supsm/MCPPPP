@@ -151,7 +151,6 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				// assets/mcpppp/textures/extra
 				// mcpppp:extra/
 				// if paths are specified, copy to extra folder
-				std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/"));
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + texture + ".png"));
 				texture = "mcpppp:extra/" + texture;
 			}
@@ -181,7 +180,6 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				// assets/mcpppp/models/extra
 				// mcpppp:extra/
 				// if paths are specified, copy to extra folder
-				std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/"));
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/" + model + ".png"));
 				model = "mcpppp:extra/" + model;
 			}
