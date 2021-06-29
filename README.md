@@ -6,11 +6,17 @@ A resource pack converter from Optifine format to newer and alternative formats.
 #### Important Note
 Some websites have been stealing this project (you'll know what I mean if you search "MCPPPP"). If you are not on github, please refer to the [official page](https://github.com/supsm/MCPPPP) instead. Most other websites are outdated, and some might contain unwanted programs. If there is another official website where I distribute binaries, it will be linked on the github.  
 
+## TLDR
+On Windows, download `MCPPPP-windows.exe` from releases and double click on it.  
+On Mac, download `MCPPPP-mac.tar.gz` from releases and double click on it. A file named `MCPPPP-mac` should appear in the same location. Double click on it.  
+If you are on linux, you can read the section below :P
+
 ## Use
 Newly compiled binaries for linux, windows, and mac can be found as `MCPPPP-linux`, `MCPPPP-windows.exe`, and `MCPPPP-mac.tar.gz` respectively. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
 Note that on mac, you must first unzip  
+`MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux-gui` will contain a gui.
+`MCPPPP-linux`, `MCPPPP-windows-cli`, and `MCPPPP-mac-cli` do not contain a gui. There is additional information below (Section **CLI**)  
   
-Use should be pretty self-explanitory, run the binary and put the path of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`  
 If a folder already contains the output directories (such as `assets/fabricskyboxes`), it will be skipped. If you want to re-convert this pack, delete the directory.  
 More detailed instructions below  
 <details>
@@ -18,8 +24,12 @@ More detailed instructions below
 
   Fabricskyboxes: `assets/fabricskyboxes/sky`  
   Variated Mob Textures: `assets/minecraft/varied/textures/entity`  
+  Chime: `assets/mcpppp`, `assets/minecraft/overrides`
 </details>
 
+
+#### CLI
+In the CLI versrion of MCPPPP, you will need to add paths and settings yourself. To do this, add paths of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`.  
 Settings can be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
 Alternatively, command-line arguments may be passed for temorary settings (if you don't know what this means, you probably don't need to use this anyway). Newlines are replaced with `;`.  
 <details>
@@ -36,40 +46,24 @@ Alternatively, command-line arguments may be passed for temorary settings (if yo
   | `deleteSource`   | `true`, `false` | Delete source (optifine/mcpatcher) files when done converting. The pack will no longer be able to re-convert           | `false`   |
 </details>
 
-#### Windows
-Download `MCPPPP-windows.exe` from releases or preview version  
-Navigate to where you downloaded the file and run it (double click)  
-Open `MCPPPP-windows.properties` (may not have file extension)  
-Go to your resourcepacks folder in file explorer (by default, the path is `%appdata%\.minecraft\resourcepacks`, type that in the large bar on the left and press enter)  
-Right click the large bar and click `Copy Address`  
-Paste into `MCPPPP-windows.properties` (you should've opened this earlier)  
-Save (`Ctrl+S`) and close  
-Run `MCPPPP-windows` again and wait for it to finish  
-Packs should be modified to work with the mod(s)  
-
-#### Mac
-Download `MCPPPP-mac.tar.gz` from releases or preview version  
-Navigate to where you downloaded the file and unzip it (double click)  
-Run (double click) the extracted file (`MCPPPP-mac`)  
-Open another window in finder, click on `Home` and open `MCPPPP.properties` in a text editor  
-Add the path of where your resourcepacks folder is  
-Save and close the text file (also close the finder window)  
-Run `MCPPPP-mac` again (from the first finder window)  
-Packs should be modified to work with the mod(s)  
-
-I don't have a mac to do any testing with, so some steps may be a bit vague. If you need further assistance there should be people on the discord server who can help you.  
-
-#### Linux/Other
-See the **Build** section below (or download `MCPPPP-linux` on linux)  
-Run the binary (most likely this will be through a terminal, if so `cd` first)  
-Open `MCPPPP.properties` in the same directory  
-Add the path of where your resourcepacks folder is  
-Save and close
-Run the binary again and wait for it to finish  
-Packs should be modified to work with the mod(s)  
-
+#### GUI
+In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  
 
 ## Build
 1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
 3. Build `Source.cpp` in whichever fashion you want, using C++17. (`-fpermissive` is required for g++). Turn on optimizations if possible, the conversion process will be a lot faster.  
+
+#### GUI (Windows)
+Uncomment `#define GUI` at top of `Source.cpp`  
+Add `./` as include path  
+Add `fltk.lib` as a library  
+
+#### GUI (Other)
+Uncomeent `#define GUI` at top of `Source.cpp`
+Add `./` as include path  
+Download [fltk 1.3.6](https://github.com/fltk/fltk/releases/tag/release-1.3.6)  
+Extract, follow instructions (e.g. `README.OSX.txt` for mac) and build  
+Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary  
+Run `fltk-config` in `build`  
+
