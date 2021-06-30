@@ -341,6 +341,7 @@ outstream out(int level)
 
 void addpack(std::string);
 void addpath(std::string);
+void addpaths();
 void updatepaths();
 
 // callback for run button
@@ -506,13 +507,41 @@ void deleterespath(Fl_Button* o, void* v)
 	{
 		return;
 	}
-	ui->paths->remove(selectedwidget);
-	delete selectedwidget;
 	paths.erase(selectedwidget->label());
 	deletedpaths.insert(selectedwidget->label());
+	delete selectedwidget;
+	addpaths();
 	updatepaths();
 	ui->paths->hide();
 	ui->paths->show();
+	std::string temp;
+	std::vector<std::string> lines;
+	std::ifstream config("mcpppp.properties");
+	while (config)
+	{
+		getline(config, temp);
+		lines.push_back(temp);
+		if (temp.find("# GUI") == 0)
+		{
+			break;
+		}
+	}
+	config.close();
+	if (!lines.back().find("# GUI") == 0)
+	{
+		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
+	}
+	lines.insert(lines.end(), paths.begin(), paths.end());
+	std::ofstream fout("mcpppp.properties");
+	for (std::string str : lines)
+	{
+		fout << str << std::endl;
+	}
+	for (std::string str : deletedpaths)
+	{
+		fout << "#!" << str << std::endl;
+	}
+	fout.close();
 }
 
 // callback for paths buttons in "Edit Paths"
@@ -558,8 +587,8 @@ void updatepaths()
 void addpaths()
 {
 	int i = 0, dx, dy, w, h;
-	ui->scroll->clear();
-	ui->scroll->begin();
+	ui->paths->clear();
+	ui->paths->begin();
 	for (std::string str : paths)
 	{
 		Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, 250, 15);
@@ -569,7 +598,7 @@ void addpaths()
 		o->resize(10, 15 + 15 * i, std::max(w + 30, 250), 15);
 		i++;
 	}
-	ui->scroll->end();
+	ui->paths->end();
 }
 
 // add path to "Edit Paths" and paths
