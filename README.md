@@ -63,7 +63,7 @@ Add `fltk.lib` as a library
 
 #### GUI (Other)
 Uncomeent `#define GUI` at top of `Source.cpp`  
-Note: You can use my build scripts instead of using `fltk-config`. `libfltk.a` is a library I build for linux (may not work on mac).  
+Note: You can use my build scripts instead of using `fltk-config`. `libfltk.a` is for linux, `libfltk-mac.a` is for mac  
 Download [fltk 1.3.6](https://github.com/fltk/fltk/releases/tag/release-1.3.6)  
 Extract, follow instructions (e.g. `README.OSX.txt` for mac) and build  
 Note: On linux, make sure you have `autoconf`, `libx11-dev`, `libglu1-mesa-dev`, `libxft-dev`, and `libxext-dev` (or the equivalent)  
