@@ -414,8 +414,8 @@ void conversion(Fl_Check_Button* o, void* v)
 // callback for resourcepack checkboxes
 void resourcepack(Fl_Check_Button* o, void* v)
 {
-	entries[int(v)].first = o->value();
-	std::cout << o->label() << " " << int(v) << " " << int(o->value()) << std::endl;
+	entries[uintptr_t(v)].first = o->value();
+	std::cout << o->label() << " " << uintptr_t(v) << " " << int(o->value()) << std::endl;
 }
 
 // callback for browse button
