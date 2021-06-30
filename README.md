@@ -13,7 +13,7 @@ If you are on linux, you can read the section below :P
 
 ## Use
 Newly compiled binaries for linux, windows, and mac can be found as `MCPPPP-linux`, `MCPPPP-windows.exe`, and `MCPPPP-mac.tar.gz` respectively. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
-Note that on mac, you must first unzip  
+Note: `MCPPPP-mac` is built by a nice person, not github workflows. For this reason, it may be outdated  
 `MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux-gui` will contain a gui.
 `MCPPPP-linux`, `MCPPPP-windows-cli`, and `MCPPPP-mac-cli` do not contain a gui. There is additional information below (Section **CLI**)  
   
@@ -71,5 +71,5 @@ Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary
 Run `fltk-config` in `build`  
 
 My linux build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -fpermissive -std=c++17 -o MCPPPP-linux-gui`  
-My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lpthread -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
+My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
 
