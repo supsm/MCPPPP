@@ -54,16 +54,22 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
 3. Build `Source.cpp` in whichever fashion you want, using C++17. (`-fpermissive` is required for g++). Turn on optimizations if possible, the conversion process will be a lot faster.  
 
+My build script: `g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-linux`  
+
 #### GUI (Windows)
 Uncomment `#define GUI` at top of `Source.cpp`  
 Add `./` as include path  
 Add `fltk.lib` as a library  
 
 #### GUI (Other)
-Uncomeent `#define GUI` at top of `Source.cpp`
-Add `./` as include path  
+Uncomeent `#define GUI` at top of `Source.cpp`  
+Note: You can use my build scripts instead of using `fltk-config`. `libfltk.a` is a library I build for linux (may not work on mac).  
 Download [fltk 1.3.6](https://github.com/fltk/fltk/releases/tag/release-1.3.6)  
 Extract, follow instructions (e.g. `README.OSX.txt` for mac) and build  
+Note: On linux, make sure you have `autoconf`, `libx11-dev`, `libglu1-mesa-dev`, `libxft-dev`, and `libxext-dev` (or the equivalent)  
 Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary  
 Run `fltk-config` in `build`  
+
+My linux build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -fpermissive -std=c++17 -o MCPPPP-linux-gui`  
+My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lpthread -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
 

@@ -79,6 +79,9 @@ int main(int argc, char* argv[])
 				{
 					str.erase(str.begin(), str.begin() + 2);
 					paths.erase(str);
+#ifdef GUI
+					deletedpaths.insert(str);
+#endif
 				}
 			}
 		}
