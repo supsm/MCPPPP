@@ -21,4 +21,4 @@ jobs:
       with:
         add: '["MCPPPP-mac-cli.tar.gz", "MCPPPP-mac.tar.gz"]'
         message: 'add mac binary'
-        push: false
+        push: true
