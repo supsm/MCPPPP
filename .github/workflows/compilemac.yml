@@ -15,8 +15,8 @@ jobs:
     - uses: actions/checkout@v2
     - name: cli
       run: g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-mac-cli && chmod +x MCPPPP-mac-cli && tar -cvzf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli
-    #- name: gui
-    #  run: g++ -I./ -DGUI -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -fpermissive -O3 -std=c++17 -o MCPPPP-mac && chmod +x MCPPPP-mac && tar -cvzf MCPPPP-mac.tar.gz MCPPPP-mac
+    - name: gui
+      run: g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -fpermissive -O3 -std=c++17 -o MCPPPP-mac
     - uses: EndBug/add-and-commit@v7
       with:
         add: '["MCPPPP-mac-cli.tar.gz", "MCPPPP-mac.tar.gz"]'

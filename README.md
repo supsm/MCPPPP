@@ -71,5 +71,5 @@ Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary
 Run `fltk-config` in `build`  
 
 My linux build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -fpermissive -std=c++17 -o MCPPPP-linux-gui`  
-My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
+My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
 
