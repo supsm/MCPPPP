@@ -1,0 +1,16 @@
+name: Sync Binaries
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'MCPPPP-mac.tar.gz'
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: BetaHunn/repo-file-sync-action@v1

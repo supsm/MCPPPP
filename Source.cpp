@@ -87,6 +87,7 @@ int main(int argc, char* argv[])
 		}
 		config.close();
 	}
+#ifndef GUI // gui doenst need command line options
 	for (int i = 1; i < argc; i++) // function arguments
 	{
 		if (issetting) // if current argument is part of setting
@@ -140,6 +141,7 @@ int main(int argc, char* argv[])
 			}
 		}
 	}
+#endif
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
 		if (autodeletetemp)
