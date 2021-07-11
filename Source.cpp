@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
 	std::stringstream ss;
 	std::error_code ec;
 #ifdef GUI
+	Fl::get_system_colors();
 	ui->show();
 	Fl::wait();
 #endif
@@ -44,7 +45,9 @@ int main(int argc, char* argv[])
 			std::ofstream createconfig("mcpppp.properties");
 			createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
 			createconfig.close();
-#ifndef GUI
+#ifdef GUI
+			openhelp(nullptr, nullptr);
+#else
 			std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
 			goto exit;
 #endif
@@ -174,7 +177,6 @@ int main(int argc, char* argv[])
 				entries.push_back(std::make_pair(true, entry));
 				addpack(entry.path().filename().u8string());
 				std::cout << entry.path().filename().u8string() << std::endl;
-				Fl::wait();
 			}
 #else
 			if (entry.is_directory())
@@ -193,6 +195,7 @@ int main(int argc, char* argv[])
 		}
 	}
 #ifdef GUI
+	ui->scroll->redraw();
 	Fl::run();
 #endif
 	out(3) << "All Done!" << std::endl;

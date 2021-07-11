@@ -6,6 +6,8 @@
 #include <string>
 #include <vector>
 
+#define VMT "varied-mobs" // digifox said they might change it
+
 void vmtpng(std::string& name, std::string& folder, std::string& path, bool& newlocation, bool& zip, std::vector<int> numbers, std::filesystem::directory_entry png)
 {
 	std::string folderpath, curname, curnum;

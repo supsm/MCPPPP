@@ -30,7 +30,7 @@ More detailed instructions below
 #### CLI
 In the CLI versrion of MCPPPP, you will need to add paths and settings yourself. To do this, add paths of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`.  
 Settings can be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
-Alternatively, command-line arguments may be passed for temorary settings (if you don't know what this means, you probably don't need to use this anyway). Newlines are replaced with `;`.  
+Alternatively, command-line arguments may be passed for temorary settings (if you don't know what this means, you probably don't need to use this anyway). Newlines are replaced with `;`. **IMPORTANT:** a `;` is needed at the end of the command line argemunts, or mcpppp will get confused  
 <details>
   <summary>Settings</summary>
 
@@ -51,14 +51,17 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 ## Build
 1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
-3. Build `Source.cpp` in whichever fashion you want, using C++17. (`-fpermissive` is required for g++). Turn on optimizations if possible, the conversion process will be a lot faster.  
+3. Build `Source.cpp` in whichever fashion you want, using C++17. Turn on optimizations if possible, the conversion process will be a lot faster.  
 
-My build script: `g++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-linux`  
+My build script: `clang++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-linux`  
 
 #### GUI (Windows)
 Uncomment `#define GUI` at top of `Source.cpp`  
 Add `./` as include path  
 Add `fltk.lib` as a library  
+Note: `User32.lib`, `Gdi32.lib`, `Comdlg32.lib`, `Advapi32.lib`, `Shell32.lib`, and `Ole32.lib` are also required. If you are using an ide, these may already be linked.  
+
+My clang build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -fpermissive -O3 -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
 
 #### GUI (Other)
 Uncomeent `#define GUI` at top of `Source.cpp`  
@@ -69,6 +72,6 @@ Note: On linux, make sure you have `autoconf`, `libx11-dev`, `libglu1-mesa-dev`,
 Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary  
 Run `fltk-config` in `build`  
 
-My linux build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -fpermissive -std=c++17 -o MCPPPP-linux-gui`  
-My mac build script: `g++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -fpermissive -O3 -std=c++17 -o MCPPPP-mac`  
+My linux build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -std=c++17 -o MCPPPP-linux-gui`  
+My mac build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -O3 -std=c++17 -o MCPPPP-mac`  
 

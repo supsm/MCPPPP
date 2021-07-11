@@ -39,6 +39,7 @@ extern bool autodeletetemp = false, pauseonexit = true, dolog = false, dotimesta
 extern int outputlevel = 3, loglevel = 2;
 extern std::ofstream logfile("log.txt");
 extern std::set<std::string> paths = {};
+std::string logfilename;
 #ifdef GUI
 bool dofsb = true, dovmt = true, docim = true, running = false;
 int numbuttons = 0;
@@ -133,8 +134,18 @@ void setting(std::string option, std::string value)
 	}
 	else if (lowercase(option) == "log")
 	{
-		dolog = true;
-		logfile.open(value);
+		if (value == "")
+		{
+			dolog = true;
+			logfilename = value;
+			logfile.open(value);
+		}
+		else if (dolog)
+		{
+			dolog = false;
+			logfilename.clear();
+			logfile.close();
+		}
 	}
 	else if (lowercase(option) == "timestamp")
 	{
@@ -455,7 +466,15 @@ void reload(Fl_Button* o, void* v)
 // callback for path_input
 void editpath(Fl_Input* o, void* v)
 {
-	// TODO: parse the inputted path
+	paths.clear();
+	std::string str = o->value();
+	while (str.find(" // ") != std::string::npos)
+	{
+		int i = str.find(" // ");
+		paths.insert(std::string(str.begin(), str.begin() + i));
+		str.erase(str.begin(), str.begin() + i + 4);
+	}
+	paths.insert(str);
 }
 
 // callback for "Add" button in "Edit Paths"
@@ -550,20 +569,72 @@ void selectpath(Fl_Radio_Button* o, void* v)
 	selectedwidget = o;
 }
 
+// callback for settings button
+void opensettings(Fl_Button* o, void* v)
+{
+	ui->savewarning->hide();
+	ui->settings->show();
+	ui->box1->redraw(); // the outlining boxes disappear for some reason
+	ui->box2->redraw();
+}
+
+// callback for help button
+void openhelp(Fl_Button* o, void* v)
+{
+	ui->help->show();
+	ui->box1->redraw();
+	ui->box2->redraw();
+}
+
+// callback for save button in setings
+void savesettings(Fl_Button* o, void* v)
+{
+	logfilename = ui->log->value();
+	if (dolog)
+	{
+		logfile.close();
+		if (logfilename != "")
+		{
+			logfile.open(logfilename);
+		}
+		else
+		{
+			dolog = false;
+		}
+	}
+	else
+	{
+		if (logfilename != "")
+		{
+			logfile.open(logfilename);
+			dolog = true;
+		}
+	}
+	dotimestamp = ui->timestamptrue->value();
+	outputlevel = ui->outputlevel->value();
+	loglevel = ui->loglevel->value();
+	deletesource = ui->deletesourcetrue->value();
+}
+
+// callback for edited settings
+void settingchanged(Fl_Widget* o, void* v)
+{
+	ui->savewarning->show();
+}
+
 // add resourcepack to checklist
 void addpack(std::string name)
 {
 	int w, h, dx, dy;
 	ui->scroll->begin();
-	Fl_Check_Button* o = new Fl_Check_Button(445, 60 + 15 * numbuttons, 512, 15);
+	fl_text_extents(name.c_str(), dx, dy, w, h);
+	Fl_Check_Button* o = new Fl_Check_Button(445, 60 + 15 * numbuttons, w + 30, 15);
 	o->copy_label(name.c_str());
 	o->down_box(FL_DOWN_BOX);
 	o->value(1);
 	o->user_data((void*)(numbuttons));
 	o->callback((Fl_Callback*)(resourcepack));
 	o->when(FL_WHEN_CHANGED);
-	fl_text_extents(name.c_str(), dx, dy, w, h);
-	o->resize(445, 60 + 15 * numbuttons, w + 30, 15);
 	ui->scroll->end();
 	numbuttons++;
 }
@@ -583,6 +654,27 @@ void updatepaths()
 	ui->path_input->value(pstr.c_str());
 }
 
+// update settings in "Settings"
+void updatesettings()
+{
+	if (dolog)
+	{
+		ui->log->value(logfilename.c_str());
+	}
+	ui->timestamptrue->value(dotimestamp);
+	ui->timestampfalse->value(!dotimestamp);
+	ui->outputlevel->value(outputlevel);
+	ui->loglevel->value(loglevel);
+	ui->deletesourcetrue->value(deletesource);
+	ui->deletesourcefalse->value(!deletesource);
+}
+
+// update config file to include paths
+void updatepathconfig()
+{
+	// TODO: add this to editpath as well
+}
+
 // add paths to "Edit Paths" from paths
 void addpaths()
 {
@@ -591,11 +683,11 @@ void addpaths()
 	ui->paths->begin();
 	for (std::string str : paths)
 	{
-		Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, 250, 15);
+		fl_text_extents(str.c_str(), dx, dy, w, h);
+		Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, std::max(w + 30, 250), 15);
 		o->copy_label(str.c_str());
 		o->callback((Fl_Callback*)(selectpath));
-		fl_text_extents(str.c_str(), dx, dy, w, h);
-		o->resize(10, 15 + 15 * i, std::max(w + 30, 250), 15);
+		
 		i++;
 	}
 	ui->paths->end();
@@ -608,16 +700,13 @@ void addpath(std::string name)
 	{
 		return;
 	}
-#ifdef GUI
 	int w, h, dx, dy;
 	ui->paths->begin();
-	Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * paths.size(), 250, 15);
+	fl_text_extents(name.c_str(), dx, dy, w, h);
+	Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * paths.size(), std::max(w + 30, 250), 15);
 	o->copy_label(name.c_str());
 	o->callback((Fl_Callback*)(selectpath));
-	fl_text_extents(name.c_str(), dx, dy, w, h);
-	o->resize(10, 15 + 15 * paths.size(), std::max(w + 30, 250), 15);
 	ui->scroll->end();
-#endif
 	paths.insert(name);
 }
 
