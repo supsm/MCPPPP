@@ -5,6 +5,7 @@
 *.css
 mcpppp-temp/
 \!compilelinux.bat
+\!compileclang.bat
 \!pull.bat
 log.txt
 
