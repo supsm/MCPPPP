@@ -4,7 +4,11 @@
 # against bad commits.
 
 name: build
-on: [pull_request, push]
+on:
+  push:
+    paths:
+    - 'src/main/java`
+    - 'src/main/resources/MCPPPP-mac-cli'
 
 jobs:
   build:
@@ -30,7 +34,7 @@ jobs:
         if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
       - name: build
-        run: ./gradlew build
+        run: ./gradlew clean build
       - name: capture build artifacts
         if: ${{ runner.os == 'Linux' && matrix.java == '16' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v2
