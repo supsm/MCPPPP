@@ -13,4 +13,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: BetaHunn/repo-file-sync-action@v1
+    - uses: BetaHuhn/repo-file-sync-action@v1
