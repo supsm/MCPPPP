@@ -19,4 +19,4 @@ jobs:
       uses: BetaHuhn/repo-file-sync-action@v1
       with:
         GH_PAT: ${{ secrets.GH_PAT }}
-        BRANCH_PREFIX: ""
+        SKIP_PR: true
