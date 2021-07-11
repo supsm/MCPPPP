@@ -14,3 +14,5 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - uses: BetaHuhn/repo-file-sync-action@v1
+    - with:
+        GH_PAT: ${{ secrets.GH_PAT }}
