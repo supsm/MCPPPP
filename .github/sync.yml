@@ -1,6 +1,6 @@
-supsm/mcpppp@mod:
+supsm/MCPPPP@mod:
   - source: MCPPPP-windows.cli.exe
-    dest: src/main/resources/MCPPPP-windows.cli.exe
+    dest: src/main/resources/MCPPPP-windows-cli.exe
   - source: MCPPPP-linux
     dest: src/main/resources/MCPPPP-linux
   - source: MCPPPP-mac-cli
