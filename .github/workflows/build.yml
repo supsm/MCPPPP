@@ -41,8 +41,9 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: add and commit
+      - name: copy files
         run: cp -a ./build/libs/. ./
+      - name: add and commit
         uses: EndBug/add-and-commit@v7
         with:
           add: '--all'
