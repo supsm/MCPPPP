@@ -41,3 +41,10 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
+      - name: add and commit
+        run: cp -a ./build/libs/. ./
+        uses: EndBug/add-and-commit@v7
+        with:
+          add: '--all'
+          message: 'add jar files'
+          push: true
