@@ -9,6 +9,7 @@ on:
     paths:
     - 'src/main/java'
     - 'src/main/resources/MCPPPP-mac-cli'
+  workflow_dispatch:
 
 jobs:
   build:
