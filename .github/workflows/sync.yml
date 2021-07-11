@@ -13,6 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: BetaHuhn/repo-file-sync-action@v1
-    - with:
+    - name: Sync
+      uses: BetaHuhn/repo-file-sync-action@v1
+      with:
         GH_PAT: ${{ secrets.GH_PAT }}
