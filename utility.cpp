@@ -35,11 +35,11 @@
 
 #endif
 
-extern bool autodeletetemp = false, pauseonexit = true, dolog = false, dotimestamp = false, deletesource = false;
+extern bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, deletesource = false;
 extern int outputlevel = 3, loglevel = 2;
 extern std::ofstream logfile("log.txt");
 extern std::set<std::string> paths = {};
-std::string logfilename;
+std::string logfilename = "log.txt";
 #ifdef GUI
 bool dofsb = true, dovmt = true, docim = true, running = false;
 int numbuttons = 0;
@@ -614,6 +614,7 @@ void savesettings(Fl_Button* o, void* v)
 	outputlevel = ui->outputlevel->value();
 	loglevel = ui->loglevel->value();
 	deletesource = ui->deletesourcetrue->value();
+	// TODO: output to file
 }
 
 // callback for edited settings
