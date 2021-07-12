@@ -200,7 +200,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (ss)
 			{
 				ss >> temp;
-				if (!temp.find('-') != std::string::npos)
+				if (temp.find('-') == std::string::npos)
 				{
 					damages.push_back("[" + temp + ", " + temp + "]");
 				}
@@ -241,7 +241,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (ss)
 			{
 				ss >> temp;
-				if (!temp.find('-') != std::string::npos)
+				if (temp.find('-') == std::string::npos)
 				{
 					stacksizes.push_back("[" + temp + ", " + temp + "]");
 				}
@@ -278,7 +278,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (ss)
 			{
 				ss >> temp;
-				if (!temp.find(':') != std::string::npos)
+				if (temp.find(':') == std::string::npos)
 				{
 					temp = "minecraft:" + temp;
 				}
@@ -292,7 +292,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (ss)
 			{
 				ss >> temp;
-				if (!temp.find('-') != std::string::npos)
+				if (temp.find('-') == std::string::npos)
 				{
 					enchantmentlevels.push_back("[" + temp + ", " + temp + "]");
 				}
