@@ -4,6 +4,7 @@
 #include <set>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "json.hpp"
@@ -354,15 +355,10 @@ void addpack(std::string);
 void addpath(std::string);
 void addpaths();
 void updatepaths();
+void updatepathconfig();
 
-// callback for run button
-void run(Fl_Button* o, void* v)
+void guirun()
 {
-	if (running)
-	{
-		return;
-	}
-	running = true;
 	for (int i = 0; i < entries.size(); i++)
 	{
 		if (entries[i].first)
@@ -401,7 +397,18 @@ void run(Fl_Button* o, void* v)
 	}
 	running = false;
 	out(3) << "All Done!" << std::endl;
-	std::cout << "run\n";
+}
+
+// callback for run button
+void run(Fl_Button* o, void* v)
+{
+	if (running)
+	{
+		return;
+	}
+	running = true;
+	std::thread t(guirun);
+	t.detach();
 }
 
 // callback for "CIM", "VMT", "FSB" checkboxes
@@ -466,15 +473,23 @@ void reload(Fl_Button* o, void* v)
 // callback for path_input
 void editpath(Fl_Input* o, void* v)
 {
+	deletedpaths.insert(paths.begin(), paths.end());
 	paths.clear();
 	std::string str = o->value();
 	while (str.find(" // ") != std::string::npos)
 	{
 		int i = str.find(" // ");
 		paths.insert(std::string(str.begin(), str.begin() + i));
+		deletedpaths.erase(std::string(str.begin(), str.begin() + i));
 		str.erase(str.begin(), str.begin() + i + 4);
 	}
-	paths.insert(str);
+	if (str != "")
+	{
+		paths.insert(str);
+		deletedpaths.erase(str);
+	}
+	addpaths();
+	updatepathconfig();
 }
 
 // callback for "Add" button in "Edit Paths"
@@ -488,34 +503,7 @@ void addrespath(Fl_Button* o, void* v)
 		deletedpaths.erase(chooser->filename());
 	}
 	updatepaths();
-	std::string temp;
-	std::vector<std::string> lines;
-	std::ifstream config("mcpppp.properties");
-	while (config)
-	{
-		getline(config, temp);
-		lines.push_back(temp);
-		if (temp.find("# GUI") == 0)
-		{
-			break;
-		}
-	}
-	config.close();
-	if (!lines.back().find("# GUI") == 0)
-	{
-		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
-	}
-	lines.insert(lines.end(), paths.begin(), paths.end());
-	std::ofstream fout("mcpppp.properties");
-	for (std::string str : lines)
-	{
-		fout << str << std::endl;
-	}
-	for (std::string str : deletedpaths)
-	{
-		fout << "#!" << str << std::endl;
-	}
-	fout.close();
+	updatepathconfig();
 	std::cout << chooser->filename() << std::endl;
 }
 
@@ -533,34 +521,7 @@ void deleterespath(Fl_Button* o, void* v)
 	updatepaths();
 	ui->paths->hide();
 	ui->paths->show();
-	std::string temp;
-	std::vector<std::string> lines;
-	std::ifstream config("mcpppp.properties");
-	while (config)
-	{
-		getline(config, temp);
-		lines.push_back(temp);
-		if (temp.find("# GUI") == 0)
-		{
-			break;
-		}
-	}
-	config.close();
-	if (!lines.back().find("# GUI") == 0)
-	{
-		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
-	}
-	lines.insert(lines.end(), paths.begin(), paths.end());
-	std::ofstream fout("mcpppp.properties");
-	for (std::string str : lines)
-	{
-		fout << str << std::endl;
-	}
-	for (std::string str : deletedpaths)
-	{
-		fout << "#!" << str << std::endl;
-	}
-	fout.close();
+	updatepathconfig();
 }
 
 // callback for paths buttons in "Edit Paths"
@@ -640,7 +601,7 @@ void addpack(std::string name)
 	numbuttons++;
 }
 
-// update paths in "Edit Paths"
+// update paths from "Edit Paths" to path_input
 void updatepaths()
 {
 	std::string pstr;
@@ -673,7 +634,60 @@ void updatesettings()
 // update config file to include paths
 void updatepathconfig()
 {
-	// TODO: add this to editpath as well
+	// input stuff from file
+	std::string temp;
+	std::vector<std::string> lines;
+	std::ifstream config("mcpppp.properties");
+	while (config)
+	{
+		getline(config, temp);
+		lines.push_back(temp);
+		if (temp.find("# GUI") == 0)
+		{
+			break;
+		}
+	}
+	config.close();
+
+	// remove excess deleted paths
+	std::set<std::string> s(lines.begin(), lines.end());
+	std::vector<std::string> toremove;
+	for (auto it = deletedpaths.begin(); it != deletedpaths.end(); it++)
+	{
+		if (s.find(*it) == s.end()) // we don't need to delete paths which are after # GUI (we can override)
+		{
+			toremove.push_back(*it);
+		}
+	}
+	for (std::string str : toremove)
+	{
+		deletedpaths.erase(str);
+	}
+
+	// remove excess paths
+	if (lines.back().find("# GUI") != 0)
+	{
+		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
+	}
+	for (std::string str : paths)
+	{
+		if (s.find(str) == s.end()) // we only need to add paths which haven't already been added (before # GUI)
+		{
+			lines.push_back(str);
+		}
+	}
+
+	// add added paths and output
+	std::ofstream fout("mcpppp.properties");
+	for (std::string str : lines)
+	{
+		fout << str << std::endl;
+	}
+	for (std::string str : deletedpaths)
+	{
+		fout << "#!" << str << std::endl;
+	}
+	fout.close();
 }
 
 // add paths to "Edit Paths" from paths
@@ -688,7 +702,7 @@ void addpaths()
 		Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, std::max(w + 30, 250), 15);
 		o->copy_label(str.c_str());
 		o->callback((Fl_Callback*)(selectpath));
-		
+
 		i++;
 	}
 	ui->paths->end();
