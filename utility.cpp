@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <codecvt>
 #include <filesystem>
 #include <fstream>
 #include <set>
@@ -36,20 +37,20 @@
 
 #endif
 
-extern bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, deletesource = false;
-extern int outputlevel = 3, loglevel = 2;
-extern std::ofstream logfile("log.txt");
-extern std::set<std::string> paths = {};
+inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, deletesource = false;
+inline int outputlevel = 3, loglevel = 2;
+inline std::ofstream logfile("log.txt");
+inline std::set<std::string> paths = {};
 std::string logfilename = "log.txt";
 #ifdef GUI
 bool dofsb = true, dovmt = true, docim = true, running = false;
-int numbuttons = 0;
+long long numbuttons = 0;
 std::stringstream ss;
-extern std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
+inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 std::set<std::string> deletedpaths;
 Fl_Text_Buffer textbuffer;
 Fl_Widget* selectedwidget;
-extern UI* ui = new UI();
+inline UI* ui = new UI();
 #endif
 
 std::string lowercase(std::string str)
@@ -114,6 +115,12 @@ namespace supsm
 		std::filesystem::create_directories(to.parent_path());
 		std::filesystem::copy(from, to);
 	}
+}
+
+std::string wtomb(std::wstring str)
+{
+	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
+	return converter.to_bytes(str);
 }
 
 void setting(std::string option, std::string value)
@@ -356,6 +363,7 @@ void addpath(std::string);
 void addpaths();
 void updatepaths();
 void updatepathconfig();
+std::string winfilebrowser();
 
 void guirun()
 {
@@ -414,15 +422,15 @@ void run(Fl_Button* o, void* v)
 // callback for "CIM", "VMT", "FSB" checkboxes
 void conversion(Fl_Check_Button* o, void* v)
 {
-	if (o->label() == "FSB")
+	if (!strcmp(o->label(), "FSB"))
 	{
 		dofsb = o->value();
 	}
-	if (o->label() == "VMT")
+	if (!strcmp(o->label(), "VMT"))
 	{
 		dovmt = o->value();
 	}
-	if (o->label() == "CIM")
+	if (!strcmp(o->label(), "CIM"))
 	{
 		docim = o->value();
 	}
@@ -457,13 +465,16 @@ void reload(Fl_Button* o, void* v)
 	ui->scroll->end();
 	for (std::string path : paths)
 	{
-		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path)))
 		{
-			if (entry.is_directory() || entry.path().extension() == ".zip")
+			for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 			{
-				entries.push_back(std::make_pair(true, entry));
-				addpack(entry.path().filename().u8string());
-				std::cout << entry.path().filename().u8string() << std::endl;
+				if (entry.is_directory() || entry.path().extension() == ".zip")
+				{
+					entries.push_back(std::make_pair(true, entry));
+					addpack(entry.path().filename().u8string());
+					std::cout << entry.path().filename().u8string() << std::endl;
+				}
 			}
 		}
 	}
@@ -495,16 +506,21 @@ void editpath(Fl_Input* o, void* v)
 // callback for "Add" button in "Edit Paths"
 void addrespath(Fl_Button* o, void* v)
 {
+	std::string str;
+#ifdef _WIN32
+	str = winfilebrowser();
+#else
 	Fl_Native_File_Chooser* chooser = new Fl_Native_File_Chooser(1); // browse directory
-	chooser->show();
-	if (chooser->filename() != "")
+	str = chooser->show();
+#endif
+	if (str != "" && paths.find(str) == paths.end())
 	{
-		addpath(chooser->filename());
-		deletedpaths.erase(chooser->filename());
+		addpath(str);
+		deletedpaths.erase(str);
+		updatepaths();
+		updatepathconfig();
+		std::cout << str << std::endl;
 	}
-	updatepaths();
-	updatepathconfig();
-	std::cout << chooser->filename() << std::endl;
 }
 
 // callback for "Delete" button in "Edit Paths"
@@ -725,4 +741,33 @@ void addpath(std::string name)
 	paths.insert(name);
 }
 
+#ifdef _WIN32
+std::string winfilebrowser()
+{
+	LPWSTR path;
+	std::wstring str;
+	IFileDialog* pfd;
+	if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
+	{
+		DWORD dwOptions;
+		if (SUCCEEDED(pfd->GetOptions(&dwOptions)))
+		{
+			pfd->SetOptions(dwOptions | FOS_PICKFOLDERS);
+		}
+		if (SUCCEEDED(pfd->Show(NULL)))
+		{
+			IShellItem* psi;
+			if (SUCCEEDED(pfd->GetResult(&psi)))
+			{
+				psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &path);
+				psi->Release();
+				str = path;
+				CoTaskMemFree(path);
+			}
+		}
+		pfd->Release();
+	}
+	return wtomb(str);
+}
+#endif
 #endif

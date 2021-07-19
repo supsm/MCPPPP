@@ -45,7 +45,6 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 			image3.push_back(image[i]);
 		}
 	}
-	long long max = 0;
 	top.reserve(buffer.size() / 6);
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
@@ -298,6 +297,10 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		{
 			temp[i] = '/';
 		}
+	}
+	if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/")))
+	{
+		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky");
 	}
 	if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + temp + "_top.png")))
 	{

@@ -51,7 +51,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 			std::string first = "";
 			for (auto it : j["textures"].items())
 			{
-				if (it.value().type_name() == "string")
+				if (it.value().type() == nlohmann::json::value_t::string)
 				{
 					if (it.key() == "layer0")
 					{
@@ -431,7 +431,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			for (int j = 0; j < enchantmentlevels.size(); j++)
 			{
 				tempj = predicates[i];
-				if (tempj["predicate"]["nbt"]["Enchantments"].type_name() == "array")
+				if (tempj["predicate"]["nbt"]["Enchantments"].type() == nlohmann::json::value_t::array)
 				{
 					for (int k = 0; k < tempj["predicate"]["nbt"]["Enchantments"].size(); k++)
 					{

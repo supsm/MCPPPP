@@ -61,7 +61,7 @@ Add `./` as include path
 Add `fltk.lib` as a library  
 Note: `User32.lib`, `Gdi32.lib`, `Comdlg32.lib`, `Advapi32.lib`, `Shell32.lib`, and `Ole32.lib` are also required. If you are using an ide, these may already be linked.  
 
-My clang build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -fpermissive -O3 -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
+My clang build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -fpermissive -Ofast -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
 
 #### GUI (Other)
 Uncomeent `#define GUI` at top of `Source.cpp`  
@@ -72,6 +72,6 @@ Note: On linux, make sure you have `autoconf`, `libx11-dev`, `libglu1-mesa-dev`,
 Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary  
 Run `fltk-config` in `build`  
 
-My linux build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -std=c++17 -o MCPPPP-linux-gui`  
-My mac build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -O3 -std=c++17 -o MCPPPP-mac`  
+My linux build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -Ofast -std=c++17 -o MCPPPP-linux-gui`  
+My mac build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -Ofast -std=c++17 -o MCPPPP-mac`  
 
