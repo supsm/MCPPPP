@@ -51,7 +51,7 @@ jobs:
           name: Artifacts
           path: build/libs/
       - name: copy files
-        run: cp -a ./build/libs/. ./
+        run: rm *.jar; cp -a ./build/libs/. ./
       - name: add and commit
         uses: EndBug/add-and-commit@v7
         with:
