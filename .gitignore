@@ -4,9 +4,7 @@
 *.vcxproj.user
 *.css
 mcpppp-temp/
-\!compilelinux.bat
-\!compileclang.bat
-\!pull.bat
+*.bat
 log.txt
 
 Debug/

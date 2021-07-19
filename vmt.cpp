@@ -2,13 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#include <climits>
 #include <filesystem>
 #include <string>
 #include <vector>
 
-#define VMT "varied-mobs" // digifox said they might change it
+#define VMT std::string("reselect") // will happen soon
 
-void vmtpng(std::string& name, std::string& folder, std::string& path, bool& newlocation, bool& zip, std::vector<int> numbers, std::filesystem::directory_entry png)
+void vmtpng(std::string& name, std::string& folder, std::string& path, bool& newlocation, bool& zip, std::vector<int>& numbers, std::filesystem::directory_entry png)
 {
 	std::string folderpath, curname, curnum;
 vmtconvert:
@@ -43,20 +44,30 @@ vmtconvert:
 	}
 	if (curname == name && curnum != "")
 	{
+		folderpath = png.path().u8string();
+		for (int i = 0; i < folderpath.size(); i++)
+		{
+			if (folderpath[i] == '\\')
+			{
+				folderpath[i] = '/';
+			}
+		}
+		folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+		folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
 		numbers.push_back(stoi(curnum));
 		supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
 	}
-	else if (!numbers.empty())
+	else if (!numbers.empty()) // TODO: what am i even doing wtf
 	{
-		std::vector<std::string> v;
-		for (int i : numbers)
+		std::vector<nlohmann::json> v;
+		for (int i = 0; i < numbers.size(); i++)
 		{
-			v.push_back("minecraft:varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
+			v.push_back({ {"below", i + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers[i]) + ".png"}}} });
 		}
-		v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
-		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
+		nlohmann::json j = { {"version", 1}, {"root", {{"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
 		if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 		{
+			std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath));
 			std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
@@ -68,7 +79,8 @@ vmtconvert:
 
 void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zip, std::filesystem::directory_entry png)
 {
-	std::string name, folderpath, curnum;
+	int curnum;
+	std::string name, folderpath;
 	std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 	folderpath = png.path().u8string();
 	for (int i = 0; i < folderpath.size(); i++)
@@ -82,15 +94,15 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
 	name = png.path().filename().u8string();
 	name.erase(name.end() - 11, name.end());
-	std::string temp, option, value, time1, last, height1;
+	std::string temp, option, value, time1, last, height1, tempnum;
 	nlohmann::json j, tempj;
 	std::vector<nlohmann::json> v, tempv;
 	std::vector<std::vector<int>> weights;
 	std::vector<std::vector<std::pair<std::string, std::string>>> times, heights;
 	std::vector<std::vector<std::string>> biomes, textures;
 	std::vector<std::array<bool, 4>> weather;
-	std::vector<std::string> names;
-	std::vector<int> baby;
+	std::vector<std::pair<std::string, signed char>> names; // -1 = normal string, 0 = regex, 1 = iregex
+	std::vector<int> baby, minheight, maxheight;
 	std::stringstream ss;
 	std::ifstream fin(png.path());
 	while (fin)
@@ -118,32 +130,35 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				value += temp[i];
 			}
 		}
-		curnum.clear();
+		tempnum.clear();
 		for (int i = option.size() - 1; i >= 0; i--)
 		{
 			if (option[i] >= '0' && option[i] <= '9')
 			{
-				curnum.insert(curnum.begin(), option[i]);
+				tempnum.insert(tempnum.begin(), option[i]);
 			}
 			else
 			{
 				break;
 			}
 		}
-		if (curnum.empty())
+		if (tempnum == "")
 		{
 			continue;
 		}
-		if (stoi(curnum) > textures.size())
+		curnum = stoi(tempnum);
+		if (curnum > textures.size())
 		{
-			textures.resize(stoi(curnum));
-			weights.resize(stoi(curnum));
-			biomes.resize(stoi(curnum));
-			times.resize(stoi(curnum));
-			baby.resize(stoi(curnum), -1);
-			heights.resize(stoi(curnum));
-			names.resize(stoi(curnum), "");
-			weather.resize(stoi(curnum), { false, false, false, false });
+			textures.resize(curnum);
+			weights.resize(curnum);
+			biomes.resize(curnum);
+			times.resize(curnum);
+			baby.resize(curnum, -1);
+			heights.resize(curnum);
+			names.resize(curnum, std::make_pair("", -1));
+			weather.resize(curnum, { false, false, false, false });
+			minheight.resize(curnum, INT_MIN);
+			maxheight.resize(curnum, INT_MIN);
 		}
 		if (option.find("textures.") == 0 || option.find("skins.") == 0)
 		{
@@ -157,11 +172,11 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				{
 					if (temp == "1")
 					{
-						textures[stoi(curnum) - 1].push_back("minecraft:textures/entity/" + folderpath + name + ".png");
+						textures[curnum - 1].push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 					}
 					else
 					{
-						textures[stoi(curnum) - 1].push_back("minecraft:varied/textures/entity/" + folderpath + name + temp + ".png");
+						textures[curnum - 1].push_back("minecraft:varied/textures/entity/" + folderpath + name + temp + ".png");
 					}
 				}
 			}
@@ -176,7 +191,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				ss >> temp;
 				if (temp != "")
 				{
-					weights[stoi(curnum) - 1].push_back(stoi(temp));
+					weights[curnum - 1].push_back(stoi(temp));
 				}
 			}
 		}
@@ -190,13 +205,20 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				ss >> temp;
 				if (temp != "")
 				{
-					for (int i = 0; i < biomelist.size(); i++)
+					if (temp.find(":") == std::string::npos) // does not contain a namespace
 					{
-						if (ununderscore(biomelist[i]) == lowercase(temp))
+						for (int i = 0; i < biomelist.size(); i++)
 						{
-							biomes[stoi(curnum) - 1].push_back(biomelist[i]);
-							break;
+							if (ununderscore(biomelist[i]) == lowercase(temp))
+							{
+								biomes[curnum - 1].push_back("minecraft:" + biomelist[i]);
+								break;
+							}
 						}
+					}
+					else // contains a namespace
+					{
+						biomes[curnum - 1].push_back(temp);
 					}
 				}
 			}
@@ -221,14 +243,24 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 						}
 						height1 += temp[i];
 					}
-					heights[stoi(curnum) - 1].push_back(std::make_pair(height1, temp));
+					heights[curnum - 1].push_back(std::make_pair(height1, temp));
 				}
 			}
+		}
+		else if (option.find("minHeight") == 0)
+		{
+			minheight[curnum - 1] = stoi(value);
+		}
+		else if (option.find("maxHeight") == 0)
+		{
+			maxheight[curnum - 1] = stoi(value);
 		}
 		else if (option.find("name.") == 0)
 		{
 			// TODO: find out how non-regex works
+			// pattern/ipattern to regex/iregex conversion
 			temp = value;
+			bool insensitive;
 			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
 			{
 				for (int i = 0; i < temp.size(); i++)
@@ -239,8 +271,16 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 						break;
 					}
 				}
+				if (temp.find("iregex:") != std::string::npos || temp.find("ipattern:") != std::string::npos)
+				{
+					insensitive = true;
+				}
+				else
+				{
+					insensitive = false;
+				}
 			}
-			names[stoi(curnum) - 1] = temp;
+			names[curnum - 1] = std::make_pair(temp, insensitive);
 		}
 		else if (option.find("professions.") == 0)
 		{
@@ -254,16 +294,16 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		{
 			if (value == "true")
 			{
-				baby[stoi(curnum) - 1] = 1;
+				baby[curnum - 1] = 1;
 			}
 			else if (value == "false")
 			{
-				baby[stoi(curnum) - 1] = 0;
+				baby[curnum - 1] = 0;
 			}
 		}
 		else if (option.find("health.") == 0)
 		{
-			// vmt doesn't accept health values, only %
+			// TODO
 		}
 		else if (option.find("moonPhase.") == 0)
 		{
@@ -289,7 +329,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 						}
 						time1 += temp[i];
 					}
-					times[stoi(curnum) - 1].push_back(std::make_pair(time1, temp));
+					times[curnum - 1].push_back(std::make_pair(time1, temp));
 				}
 			}
 		}
@@ -303,18 +343,18 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				ss >> temp;
 				if (temp == "clear")
 				{
-					weather[stoi(curnum)][1] = true;
-					weather[stoi(curnum)][0] = true;
+					weather[curnum][1] = true;
+					weather[curnum][0] = true;
 				}
 				if (temp == "rain")
 				{
-					weather[stoi(curnum)][2] = true;
-					weather[stoi(curnum)][0] = true;
+					weather[curnum][2] = true;
+					weather[curnum][0] = true;
 				}
 				if (temp == "thunder")
 				{
-					weather[stoi(curnum)][3] = true;
-					weather[stoi(curnum)][0] = true;
+					weather[curnum][3] = true;
+					weather[curnum][0] = true;
 				}
 			}
 		}
@@ -327,57 +367,101 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		}
 		if (weights[i].size())
 		{
-			tempj = { {"type", "varied-mobs:pick"}, {"weights", weights[i]}, {"choices", textures[i]} };
+			int weightsum = 0;
+			tempv.clear();
+			for (int j = 0; j < textures[i].size(); j++)
+			{
+				weightsum += weights[i][j];
+				tempv.push_back({ {"below", weightsum}, {"then", {{"type", VMT + ":constant"}, {"identifier", textures[i][j]}}} });
+			}
+			tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", weightsum}}}, {"options", tempv} };
 		}
 		else
 		{
-			tempj = { {"type", "varied-mobs:pick"}, {"choices", textures[i]} };
+			tempv.clear();
+			for (int j = 0; j < textures[i].size(); j++)
+			{
+				tempv.push_back({ {"below", j + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", textures[i][j]}}} });
+			}
+			tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", textures[i].size()}}}, {"options", tempv} };
 		}
 		if (biomes[i].size())
 		{
-			tempj = { {"type", "varied-mobs:biome"}, {"biome", biomes[i]}, {"value", tempj} };
+			tempj = { {"type", VMT + ":string"}, {"when", {{"type", VMT + ":entity_biome"}}}, {"options", {{{"match", biomes[i]}, {"then", tempj}}}} };
 		}
 		if (baby[i] != -1)
 		{
-			if (baby[i])
+			// TODO: no baby prop??
+			/*if (baby[i])
 			{
 				tempj = { {"type", "varied-mobs:baby"}, {"value", tempj} };
 			}
 			else
 			{
 				tempj = { {"type", "varied-mobs:not"}, {"value", {{"type", "varied-mobs:seq"}, {"choices", {nlohmann::json({{"type", "varied-mobs:baby"}, {"value", ""}}), tempj}}}} };
-			}
+			}*/
 		}
 		if (times[i].size())
 		{
-			for (int j = 0; j < times[i].size(); j++)
+			// TODO: no daytime prop?
+			/*for (int j = 0; j < times[i].size(); j++)
 			{
 				tempv.push_back({ {"type", "varied-mobs:time-prop"}, {"positions", nlohmann::json::array({times[i][j].first, times[i][j].second})}, {"choices", {tempj}} });
 			}
-			tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };
+			tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };*/
 		}
 		if (heights[i].size())
 		{
+			tempv.clear();
 			for (int j = 0; j < heights[i].size(); j++)
 			{
-				tempv.push_back({ {"type", "varied-mobs:y-prop"}, {"positions", nlohmann::json::array({heights[i][j].first, heights[i][j].second})}, {"choices", {tempj}} });
+				tempv.push_back({ {"above", heights[i][j].first}, {"below", heights[i][j].second}, {"then", tempj} });
 			}
-			tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };
+			tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":entity_y"}}}, {"options", tempv} };
+		}
+		if (minheight[i] != INT_MIN)
+		{
+			if (maxheight[i] == INT_MIN)
+			{
+				tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":entity_y"}}}, {"options", { {"above", minheight[i]}, {"then", tempj} }} };
+			}
+			else
+			{
+				tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":entity_y"}}}, {"options", { {"above", minheight[i]}, {"below", maxheight[i]}, {"then", tempj} }} };
+			}
+		}
+		else if (maxheight[i] != INT_MIN)
+		{
+			tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":entity_y"}}}, {"options", {{"below", maxheight[i]}, {"then", tempj} }} };
 		}
 		if (weather[i][0])
 		{
-			tempj = { {"type", "varied-mobs:weather-prop"}, {"positions", {0, 1, 2, 2}}, {"choices", {weather[i][1] ? tempj : nlohmann::json(), weather[i][2] ? tempj : nlohmann::json(), weather[i][3] ? tempj : nlohmann::json()}} };
+			// TODO: no weather prop?
+			/*tempj = {{"type", "varied-mobs:weather-prop"}, {"positions", {0, 1, 2, 2}}, {"choices", {weather[i][1] ? tempj : nlohmann::json(), weather[i][2] ? tempj : nlohmann::json(), weather[i][3] ? tempj : nlohmann::json()}}};*/
 		}
-		if (names[i] != "")
+		if (names[i].first != "")
 		{
-			//tempj = { {"type", "varied-mobs:name"}, {"regex", names[i]}, {"value", tempj} };
+			std::string type;
+			switch (names[i].second)
+			{
+			case -1:
+				type = "match"; // normal string
+			case 0:
+				type = "matchPattern"; // regex
+			case 1:
+				type = "iMatchPattern"; // iregex
+			}
+			tempj = { {"type", VMT + ":string"}, {"use", {{"type", VMT + ":entity_name"}}}, {"options", {{{type, names[i].first}, {"then", tempj}}}} };
 		}
-		else // names do not work in vmt until my pr gets accepted :)
-		{
-			v.push_back(tempj);
-		}
+		v.push_back(tempj);
 	}
-	j = { {"type", "varied-mobs:pick"}, {"choices", v} };
+	tempv.clear();
+	for (int i = 0; i < v.size(); i++)
+	{
+		tempv.push_back({ {"below", i + 1}, {"then", v[i]} });
+	}
+	j = { {"version", 1}, {"root", {{"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", tempv}}} };
+	std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath);
 	std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 	fout << j.dump(1, '\t') << std::endl;
 }
@@ -471,13 +555,13 @@ void vmt(std::string path, std::string filename, bool zip)
 	}
 	if (!numbers.empty())
 	{
-		std::vector<std::string> v;
-		for (int i : numbers)
+		std::vector<nlohmann::json> v;
+		for (int i = 0; i < numbers.size(); i++)
 		{
-			v.push_back("minecraft:varied/textures/entity/" + folderpath + name + std::to_string(i) + ".png");
+			v.push_back({ {"below", i + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers[i]) + ".png"}}} });
 		}
-		v.push_back("minecraft:textures/entity/" + folderpath + name + ".png");
-		nlohmann::json j = { {"type", "varied-mobs:pick"}, {"choices", v} };
+		nlohmann::json j = { {"version", 1}, {"root", {{"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
+
 		if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 		{
 			std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
