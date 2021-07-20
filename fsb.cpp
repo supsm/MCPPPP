@@ -340,7 +340,7 @@ void fsb(std::string path, std::string filename, bool zip)
 				return;
 			}
 		}
-		else if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
+		if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
 		{
 			optifine = true;
 		}
@@ -374,7 +374,7 @@ void fsb(std::string path, std::string filename, bool zip)
 				return;
 			}
 		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
 		{
 			optifine = true;
 		}

@@ -61,15 +61,15 @@ private:
   inline void cb_loglevel_i(Fl_Counter*, void*);
   static void cb_loglevel(Fl_Counter*, void*);
 public:
-  Fl_Button *deletesourcetrue;
+  Fl_Button *autoreconverttrue;
 private:
-  inline void cb_deletesourcetrue_i(Fl_Button*, void*);
-  static void cb_deletesourcetrue(Fl_Button*, void*);
+  inline void cb_autoreconverttrue_i(Fl_Button*, void*);
+  static void cb_autoreconverttrue(Fl_Button*, void*);
 public:
-  Fl_Button *deletesourcefalse;
+  Fl_Button *autoreconvertfalse;
 private:
-  inline void cb_deletesourcefalse_i(Fl_Button*, void*);
-  static void cb_deletesourcefalse(Fl_Button*, void*);
+  inline void cb_autoreconvertfalse_i(Fl_Button*, void*);
+  static void cb_autoreconvertfalse(Fl_Button*, void*);
 public:
   Fl_Box *savewarning;
   Fl_Window *help;
