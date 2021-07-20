@@ -329,8 +329,16 @@ void fsb(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/fabricskyboxes/sky/"))
 		{
-			out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "FSB: Reconverting " << filename << std::endl;
+				zipa.DeleteEntry("assets/fabricskyboxes/");
+			}
+			else
+			{
+				out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
 		{
@@ -355,8 +363,16 @@ void fsb(std::string path, std::string filename, bool zip)
 	{
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky")))
 		{
-			out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "FSB: Reconverting " << filename << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/fabricskyboxes"));
+			}
+			else
+			{
+				out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
 		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
 		{
@@ -410,15 +426,7 @@ void fsb(std::string path, std::string filename, bool zip)
 		}
 		zed.clear();
 		zed.shrink_to_fit();
-		if (deletesource)
-		{
-			zipa.DeleteEntry(std::string("assets/minecraft/") + (optifine ? "optifine" : "mcpatcher") + "/sky/");
-		}
 		zipa.Save();
-	}
-	else if (deletesource)
-	{
-		std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky"));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

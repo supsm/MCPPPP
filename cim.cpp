@@ -510,10 +510,19 @@ void cim(std::string path, std::string filename, bool zip)
 	if (zip)
 	{
 		zipa.Open(path);
-		if (zipa.HasEntry("assets/minecraft/overrides"))
+		if (zipa.HasEntry("assets/minecraft/overrides/"))
 		{
-			out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "CIM: Reconverting " << filename << std::endl;
+				zipa.DeleteEntry("assets/mcpppp/");
+				zipa.DeleteEntry("assets/minecraft/overrides/");
+			}
+			else
+			{
+				out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/cit/"))
 		{
@@ -538,10 +547,19 @@ void cim(std::string path, std::string filename, bool zip)
 	{
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/overrides")))
 		{
-			out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "CIM: Reconverting " << filename << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/mcpppp"));
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/overrides"));
+			}
+			else
+			{
+				out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/cit")))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/cit")))
 		{
 			optifine = true;
 		}
@@ -638,15 +656,7 @@ void cim(std::string path, std::string filename, bool zip)
 		temp.clear();
 		zed.clear();
 		zed.shrink_to_fit();
-		if (deletesource)
-		{
-			zipa.DeleteEntry(std::string("assets/minecraft/") + (optifine ? "optifine/" : "mcpatcher/") + "cit/");
-		}
 		zipa.Save();
-	}
-	else if (deletesource)
-	{
-		std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine/" : "mcpatcher/") + "cit/"));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

@@ -482,8 +482,16 @@ void vmt(std::string path, std::string filename, bool zip)
 		zipa.Open(path);
 		if (zipa.HasEntry("assets/minecraft/varied/textures/entity/"))
 		{
-			out(2) << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "VMT: Reconverting " << filename << std::endl;
+				zipa.DeleteEntry("assets/minecraft/varied/");
+			}
+			else
+			{
+				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
 		else if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
 		{
@@ -514,8 +522,16 @@ void vmt(std::string path, std::string filename, bool zip)
 	{
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
 		{
-			out(2) << "VMT: Variated Mob Textures folder found in " << filename << ", skipping" << std::endl;
-			return;
+			if (autoreconvert)
+			{
+				out(3) << "VMT: Reconverting " << filename << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
+			}
+			else
+			{
+				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
+				return;
+			}
 		}
 		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
 		{
