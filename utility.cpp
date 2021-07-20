@@ -37,8 +37,8 @@
 
 #endif
 
-inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, deletesource = false;
-inline int outputlevel = 3, loglevel = 2;
+inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false;
+inline int outputlevel = 3, loglevel = 1;
 inline std::ofstream logfile("log.txt");
 inline std::set<std::string> paths = {};
 std::string logfilename = "log.txt";
@@ -207,15 +207,15 @@ void setting(std::string option, std::string value)
 			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected integer, 1-5" << std::endl;
 		}
 	}
-	else if (lowercase(option) == "deletesource")
+	else if (lowercase(option) == "autoreconvert")
 	{
 		if (lowercase(value) == "true")
 		{
-			deletesource = true;
+			autoreconvert = true;
 		}
 		else if (lowercase(value) == "false")
 		{
-			deletesource = false;
+			autoreconvert = false;
 		}
 		else
 		{

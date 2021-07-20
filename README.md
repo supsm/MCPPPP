@@ -22,7 +22,7 @@ More detailed instructions below
   <summary>Output Directories</summary>
 
   Fabricskyboxes: `assets/fabricskyboxes/sky`  
-  Variated Mob Textures: `assets/minecraft/varied/textures/entity`  
+  Varied Mob Textures: `assets/minecraft/varied/textures/entity`  
   Chime: `assets/mcpppp`, `assets/minecraft/overrides`
 </details>
 
@@ -41,8 +41,8 @@ Alternatively, command-line arguments may be passed for temorary settings (if yo
   | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`   |
   | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`  |
   | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`       |
-  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `2`       |
-  | `deleteSource`   | `true`, `false` | Delete source (optifine/mcpatcher) files when done converting. The pack will no longer be able to re-convert           | `false`   |
+  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `1`       |
+  | `autoReconvert`   | `true`, `false` | Automatically reconvert resourcepacks instead of skipping. **Could lose data** if a pack isn't converted with MCPPPP  | `false`   |
 </details>
 
 #### GUI
