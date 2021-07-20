@@ -156,7 +156,7 @@ int main(int argc, char* argv[])
 #endif
 		<< std::endl << std::endl;
 	out(5) << "pauseOnExit     " << (pauseonexit ? "true" : "false") << std::endl;
-	out(5) << "log             " << logfile << std::endl;
+	out(5) << "log             " << logfilename << std::endl;
 	out(5) << "timestamp       " << (dotimestamp ? "true" : "false") << std::endl;
 	out(5) << "autoDeleteTemp  " << (dotimestamp ? "true" : "false") << std::endl;
 	out(5) << "outputLevel     " << outputlevel << std::endl;

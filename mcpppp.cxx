@@ -37,18 +37,18 @@ void UI::cb_loglevel(Fl_Counter* o, void* v) {
   ((UI*)(o->parent()->user_data()))->cb_loglevel_i(o,v);
 }
 
-void UI::cb_deletesourcetrue_i(Fl_Button* o, void* v) {
+void UI::cb_autoreconverttrue_i(Fl_Button* o, void* v) {
   settingchanged(o, v);
 }
-void UI::cb_deletesourcetrue(Fl_Button* o, void* v) {
-  ((UI*)(o->parent()->parent()->user_data()))->cb_deletesourcetrue_i(o,v);
+void UI::cb_autoreconverttrue(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_autoreconverttrue_i(o,v);
 }
 
-void UI::cb_deletesourcefalse_i(Fl_Button* o, void* v) {
+void UI::cb_autoreconvertfalse_i(Fl_Button* o, void* v) {
   settingchanged(o, v);
 }
-void UI::cb_deletesourcefalse(Fl_Button* o, void* v) {
-  ((UI*)(o->parent()->parent()->user_data()))->cb_deletesourcefalse_i(o,v);
+void UI::cb_autoreconvertfalse(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_autoreconvertfalse_i(o,v);
 }
 
 UI::UI() {
@@ -191,8 +191,9 @@ g\\n5 Error");
       o->tooltip("Same as outputLevel, but for logs");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(20, 135, 100, 20, "deleteSource");
-      o->tooltip("Delete source (of/mcp) files when done converting. Cannot re-convert");
+    { Fl_Box* o = new Fl_Box(20, 135, 100, 20, "autoReconvert");
+      o->tooltip("Automatically reconvert resourcepacks instead of skipping. Could lose data if\
+ a pack isn\'t converted with MCPPPP");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
     { log = new Fl_Input(130, 15, 150, 20);
@@ -240,23 +241,23 @@ g\\n5 Error");
       loglevel->callback((Fl_Callback*)cb_loglevel);
     } // Fl_Counter* loglevel
     { Fl_Group* o = new Fl_Group(130, 135, 150, 20);
-      { deletesourcetrue = new Fl_Button(130, 135, 75, 20, "True");
-        deletesourcetrue->type(102);
-        deletesourcetrue->box(FL_FLAT_BOX);
-        deletesourcetrue->down_box(FL_BORDER_BOX);
-        deletesourcetrue->color(FL_DARK2);
-        deletesourcetrue->selection_color((Fl_Color)43);
-        deletesourcetrue->callback((Fl_Callback*)cb_deletesourcetrue);
-      } // Fl_Button* deletesourcetrue
-      { deletesourcefalse = new Fl_Button(205, 135, 75, 20, "False");
-        deletesourcefalse->type(102);
-        deletesourcefalse->box(FL_FLAT_BOX);
-        deletesourcefalse->down_box(FL_BORDER_BOX);
-        deletesourcefalse->value(1);
-        deletesourcefalse->color(FL_DARK2);
-        deletesourcefalse->selection_color((Fl_Color)43);
-        deletesourcefalse->callback((Fl_Callback*)cb_deletesourcefalse);
-      } // Fl_Button* deletesourcefalse
+      { autoreconverttrue = new Fl_Button(130, 135, 75, 20, "True");
+        autoreconverttrue->type(102);
+        autoreconverttrue->box(FL_FLAT_BOX);
+        autoreconverttrue->down_box(FL_BORDER_BOX);
+        autoreconverttrue->color(FL_DARK2);
+        autoreconverttrue->selection_color((Fl_Color)43);
+        autoreconverttrue->callback((Fl_Callback*)cb_autoreconverttrue);
+      } // Fl_Button* autoreconverttrue
+      { autoreconvertfalse = new Fl_Button(205, 135, 75, 20, "False");
+        autoreconvertfalse->type(102);
+        autoreconvertfalse->box(FL_FLAT_BOX);
+        autoreconvertfalse->down_box(FL_BORDER_BOX);
+        autoreconvertfalse->value(1);
+        autoreconvertfalse->color(FL_DARK2);
+        autoreconvertfalse->selection_color((Fl_Color)43);
+        autoreconvertfalse->callback((Fl_Callback*)cb_autoreconvertfalse);
+      } // Fl_Button* autoreconvertfalse
       o->end();
     } // Fl_Group* o
     { Fl_Button* o = new Fl_Button(20, 185, 260, 25, "Save");

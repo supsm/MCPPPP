@@ -590,7 +590,7 @@ void savesettings(Fl_Button* o, void* v)
 	dotimestamp = ui->timestamptrue->value();
 	outputlevel = ui->outputlevel->value();
 	loglevel = ui->loglevel->value();
-	deletesource = ui->deletesourcetrue->value();
+	autoreconvert = ui->autoreconverttrue->value();
 	// TODO: output to file
 }
 
@@ -643,8 +643,8 @@ void updatesettings()
 	ui->timestampfalse->value(!dotimestamp);
 	ui->outputlevel->value(outputlevel);
 	ui->loglevel->value(loglevel);
-	ui->deletesourcetrue->value(deletesource);
-	ui->deletesourcefalse->value(!deletesource);
+	ui->autoreconverttrue->value(autoreconvert);
+	ui->autoreconvertfalse->value(!autoreconvert);
 }
 
 // update config file to include paths

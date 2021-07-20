@@ -493,7 +493,7 @@ void vmt(std::string path, std::string filename, bool zip)
 				return;
 			}
 		}
-		else if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
+		if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
 		{
 			optifine = true;
 			newlocation = true;
@@ -533,7 +533,7 @@ void vmt(std::string path, std::string filename, bool zip)
 				return;
 			}
 		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
 		{
 			optifine = true;
 			newlocation = true;
@@ -624,15 +624,7 @@ void vmt(std::string path, std::string filename, bool zip)
 		temp.clear();
 		zed.clear();
 		zed.shrink_to_fit();
-		if (deletesource)
-		{
-			zipa.DeleteEntry("assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"));
-		}
 		zipa.Save();
-	}
-	else if (deletesource)
-	{
-		std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/")));
 	}
 	zipa.Close();
 	std::filesystem::remove_all("mcpppp-temp");

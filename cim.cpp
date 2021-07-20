@@ -524,7 +524,7 @@ void cim(std::string path, std::string filename, bool zip)
 				return;
 			}
 		}
-		else if (zipa.HasEntry("assets/minecraft/optifine/cit/"))
+		if (zipa.HasEntry("assets/minecraft/optifine/cit/"))
 		{
 			optifine = true;
 		}
