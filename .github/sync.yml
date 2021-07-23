@@ -1,4 +1,6 @@
 supsm/MCPPPP@mod:
+  - source: gradle.properties
+    dest: gradle.properties
   - source: MCPPPP-windows-cli.exe
     dest: src/main/resources/MCPPPP-windows-cli.exe
   - source: MCPPPP-linux

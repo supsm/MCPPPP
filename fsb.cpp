@@ -2,9 +2,117 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#include <algorithm>
+#include <cmath>
 #include <filesystem>
 #include <string>
 #include <vector>
+
+void rgb2hsv(double& first, double& second, double& third)
+{
+	double r = first * 20 / 51; // convert 0-255 to 0-100
+	double g = second * 20 / 51;
+	double b = third * 20 / 51;
+
+	double max = std::max(std::max(r, g), b);
+	double d = max - std::min(std::min(r, g), b);
+
+	// hue
+	if (max == r)
+	{
+		first = std::fmod((60 * ((g - b) / d) + 360), 360);
+	}
+	else if (max == g)
+	{
+		first = std::fmod((60 * ((b - r) / d) + 120), 360);
+	}
+	else if (max == b)
+	{
+		first = std::fmod((60 * ((r - g) / d) + 240), 360);
+	}
+
+	// saturation
+	if (max == 0)
+	{
+		second = 0;
+	}
+	else
+	{
+		second = (d / max) * 100;
+	}
+
+	third = max; // value
+}
+
+void hsv2rgb(double& first, double& second, double& third)
+{
+	double c = second * third / 10000;
+	double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
+	double m = third / 100 - c;
+
+	if (first < 60)
+	{
+		first = (c + m) * 255; // r
+		second = (x + m) * 255; // g
+		third = m * 255; // b
+	}
+	else if (first < 120)
+	{
+		first = (x + m) * 255;
+		second = (c + m) * 255;
+		third = m * 255;
+	}
+	else if (first < 180)
+	{
+		first = m * 255;
+		second = (c + m) * 255;
+		third = (x + m) * 255;
+	}
+	else if (first < 240)
+	{
+		first = m * 255;
+		second = (x + m) * 255;
+		third = (c + m) * 255;
+	}
+	else if (first < 300)
+	{
+		first = (x + m) * 255;
+		second = m * 255;
+		third = (c + m) * 255;
+	}
+	else
+	{
+		first = (c + m) * 255;
+		second = m * 255;
+		third = (x + m) * 255;
+	}
+}
+
+// convert black to transparent
+void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h)
+{
+	for (long long i = 0; i < (w * 4) / 3; i += 4)
+	{
+		for (long long j = 0; j < h / 2; j++)
+		{
+			if (image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3] != 0)
+			{
+				double first = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i];
+				double second = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1];
+				double third = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2];
+				double alpha;
+				rgb2hsv(first, second, third);
+				alpha = third * 51 / 20; // convert 0-100 to 0-255
+				third = 100;
+				hsv2rgb(first, second, third);
+				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i] = first;
+				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1] = second;
+				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2] = third;
+				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3] = alpha;
+			}
+		}
+	}
+}
 
 void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
 {
@@ -45,6 +153,11 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 			image3.push_back(image[i]);
 		}
 	}
+
+	convert(image1, w, h);
+	convert(image2, w, h);
+	convert(image3, w, h);
+
 	top.reserve(buffer.size() / 6);
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
@@ -108,6 +221,11 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 			image3.push_back(image[i]);
 		}
 	}
+
+	convert(image1, w, h);
+	convert(image2, w, h);
+	convert(image3, w, h);
+
 	buffer.clear();
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 	if (error)
@@ -219,7 +337,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			std::stringstream axis;
 			axis.str(value);
 			axis >> x >> y >> z;
-			j["properties"]["rotation"]["axis"] = { stod(x) * 360, stod(y) * 360, stod(z) * 360 };
+			j["properties"]["rotation"]["static"] = { stod(x) * 360, stod(y) * 360, stod(z) * 360 };
 		}
 		else if (option == "weather")
 		{
