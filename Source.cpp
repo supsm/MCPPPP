@@ -161,8 +161,7 @@ int main(int argc, char* argv[])
 	out(5) << "autoDeleteTemp  " << (dotimestamp ? "true" : "false") << std::endl;
 	out(5) << "outputLevel     " << outputlevel << std::endl;
 	out(5) << "logLevel        " << loglevel << std::endl;
-	out(5) << "autoReconvert   " << autoreconvert << std::endl;
-	out(5) << std::endl << std::endl;
+	out(5) << "autoReconvert   " << autoreconvert << std::endl << std::endl << std::endl;
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{

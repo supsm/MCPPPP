@@ -66,6 +66,7 @@ UI::UI() {
     { // Output in place of stdout
       text_display = new Fl_Text_Display(25, 40, 395, 275);
       text_display->box(FL_BORDER_BOX);
+      text_display->textfont(4);
     } // Fl_Text_Display* text_display
     { Fl_Check_Button* o = new Fl_Check_Button(25, 375, 56, 16, "FSB");
       o->tooltip("FabricSkyboxes");
@@ -279,7 +280,7 @@ g\\n5 Error");
     help->user_data((void*)(this));
     { Fl_Help_View* o = new Fl_Help_View(0, 0, 400, 320);
       o->box(FL_FLAT_BOX);
-      o->value("<html><body><p>Hi there, welcome to MCPPPP.</p><p>To begin, click the Browse button to browse for a path. Click the Add button and locate your Minecraft resourceapcks folder.<br>At the bottom, select which conversions you want to do, and select which resourcepacks to convert at the right (you may need to reload first).<br>When you are done with that, you may press the Run button to start the conversion process.</p><p>For additional support, please check out <a href=\"https://github.com/supsm/MCPPPP/blob/master/GUI.md\">https://github.com/supsm/MCPPPP/blob/master/GUI.md</a></p></body></html>");
+      o->value("<html><body><p>Hi there, welcome to MCPPPP.</p><p>To begin, click the Browse button to browse for a path. Click the Add button and locate your Minecraft resourceapcks folder.<br><strong>IMPORTANT: </strong>This should be .minecraft/resourcepacks, not the resourcepack itself.<br>At the bottom, select which conversions you want to do, and select which resourcepacks to convert at the right (you may need to reload first).<br>When you are done with that, you may press the Run button to start the conversion process.</p><p>For additional support, please check out <a href=\"https://github.com/supsm/MCPPPP/blob/master/GUI.md\">https://github.com/supsm/MCPPPP/blob/master/GUI.md</a></p></body></html>");
       o->textsize(16);
     } // Fl_Help_View* o
     help->end();

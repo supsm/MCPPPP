@@ -5,6 +5,8 @@
 *.css
 mcpppp-temp/
 *.bat
+\!filesize.exe
+files.txt
 log.txt
 
 Debug/
