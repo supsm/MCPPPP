@@ -18,7 +18,13 @@ void rgb2hsv(double& first, double& second, double& third)
 	double d = max - std::min(std::min(r, g), b);
 
 	// hue
-	if (max == r)
+	if (d == 0)
+	{
+		// if r, g, and b are equal, set the hue to 0
+		// to prevent dividing by 0
+		first = 0;
+	}
+	else if (max == r)
 	{
 		first = std::fmod((60 * ((g - b) / d) + 360), 360);
 	}
@@ -26,7 +32,7 @@ void rgb2hsv(double& first, double& second, double& third)
 	{
 		first = std::fmod((60 * ((b - r) / d) + 120), 360);
 	}
-	else if (max == b)
+	else
 	{
 		first = std::fmod((60 * ((r - g) / d) + 240), 360);
 	}
@@ -272,7 +278,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	name.erase(name.end() - 11, name.end());
 	source = name;
 	std::stringstream ss;
-	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {"minecraft:overworld"}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"sunSkyTint", false}}} };
+	nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {"minecraft:overworld"}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"rotation", {{"axis", {0.0, 180.0, 0.0}}}}, {"sunSkyTint", false}} } };
 	std::ifstream fin(png.path());
 	while (fin)
 	{
@@ -337,7 +343,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			std::stringstream axis;
 			axis.str(value);
 			axis >> x >> y >> z;
-			j["properties"]["rotation"]["static"] = { stod(x) * 360, stod(y) * 360, stod(z) * 360 };
+			j["properties"]["rotation"]["axis"] = { stod(x) * 180, stod(y) * 180, stod(z) * 180 };
 		}
 		else if (option == "weather")
 		{
