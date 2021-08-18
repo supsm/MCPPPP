@@ -1,4 +1,4 @@
-*.properties
+mcpppp.properties
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
