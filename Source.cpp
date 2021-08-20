@@ -6,7 +6,7 @@
 
 #define NOMINMAX
 
-#define VERSION "0.4.1" // MCPPPP version
+#define VERSION "0.4.2" // MCPPPP version
 
 #include <iostream>
 #include <filesystem>

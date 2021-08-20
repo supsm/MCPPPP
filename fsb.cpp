@@ -111,7 +111,7 @@ void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h)
 				alpha = third * 51 / 20; // convert 0-100 to 0-255
 				third = 100;
 				hsv2rgb(first, second, third);
-				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i] = first;
+				image[((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)] = first;
 				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1] = second;
 				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2] = third;
 				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3] = alpha;
@@ -141,9 +141,9 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
-	image1.reserve(buffer.size() / 6);
-	image2.reserve(buffer.size() / 6);
-	image3.reserve(buffer.size() / 6);
+	image1.reserve(image.size() / 6);
+	image2.reserve(image.size() / 6);
+	image3.reserve(image.size() / 6);
 	for (long long i = 0; i < (w * 4) * h / 2; i++)
 	{
 		if (i % (w * 4) < (w * 4) / 3)
@@ -164,7 +164,7 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	convert(image2, w, h);
 	convert(image3, w, h);
 
-	top.reserve(buffer.size() / 6);
+	top.reserve(image.size() / 6);
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
 		for (long long j = 0; j < h / 2; j++)
@@ -301,6 +301,14 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				value += temp[i];
 			}
 		}
+		while (option.back() == ' ' || option.back() == '\t')
+		{
+			option.pop_back();
+		}
+		while (value.front() == ' ' || value.front() == '\t')
+		{
+			value.erase(value.begin());
+		}
 		if (temp == "")
 		{
 			continue;
@@ -322,8 +330,16 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				}
 			}
 			temp += '0';
-			((option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : startfadeout) : (option == "endFadeIn" ? endfadein : endfadeout)) = (stoi(temp) + 18000 + 24000) % 24000;
-			j["properties"]["fade"][option] = (stoi(temp) + 18000 + 24000) % 24000;
+			try
+			{
+				((option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : startfadeout) : (option == "endFadeIn" ? endfadein : endfadeout)) = (stoi(temp) + 18000 + 24000) % 24000;
+				j["properties"]["fade"][option] = (stoi(temp) + 18000 + 24000) % 24000;
+			}
+			catch (std::invalid_argument& e)
+			{
+				out(5) << "Error: " << e.what() << "\n\tIn file \"" << png.path().u8string() << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
+				return;
+			}
 		}
 		else if (option == "blend")
 		{

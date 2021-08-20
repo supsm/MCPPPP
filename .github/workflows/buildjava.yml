@@ -9,13 +9,13 @@ on:
     branches:
     - mod
     paths:
-    - 'src/main/java'
+    #- 'src/main/java/**'
     - 'src/main/resources/MCPPPP-mac-cli'
   pull_request:
     branches:
     - mod
     paths:
-    - 'src/main/java'
+    #- 'src/main/java/**'
     - 'src/main/resources/MCPPPP-mac-cli'
   workflow_dispatch:
 
