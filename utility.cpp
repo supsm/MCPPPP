@@ -39,9 +39,9 @@
 
 inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false;
 inline int outputlevel = 3, loglevel = 1;
-inline std::ofstream logfile("log.txt");
+inline std::ofstream logfile("mcpppp-log.txt");
 inline std::set<std::string> paths = {};
-std::string logfilename = "log.txt";
+std::string logfilename = "mcpppp-log.txt";
 #ifdef GUI
 bool dofsb = true, dovmt = true, docim = true, running = false;
 long long numbuttons = 0;
