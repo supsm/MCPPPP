@@ -141,6 +141,10 @@ void fsbpng(std::string& folder, std::string& path, bool& zip, std::filesystem::
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
+	if (w % 3 || h % 2)
+	{
+		return;
+	}
 	image1.reserve(buffer.size() / 6);
 	image2.reserve(buffer.size() / 6);
 	image3.reserve(buffer.size() / 6);
