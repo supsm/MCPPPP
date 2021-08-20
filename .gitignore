@@ -7,7 +7,7 @@ mcpppp-temp/
 *.bat
 \!filesize.exe
 files.txt
-log.txt
+mcpppp-log.txt
 
 Debug/
 x64/
