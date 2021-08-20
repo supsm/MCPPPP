@@ -1,4 +1,4 @@
-*.properties
+mcpppp.properties
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
@@ -7,7 +7,7 @@ mcpppp-temp/
 *.bat
 \!filesize.exe
 files.txt
-log.txt
+mcpppp-log.txt
 
 Debug/
 x64/

@@ -1,10 +1,16 @@
 # MCPatcherPatcher++
 A resource pack converter from Optifine format to newer and alternative formats. This project uses C++ as the language. This might seem odd in the Minecraft community, but allows using 25MB of RAM, where other tools use excessive amounts of resources for no reason (MCPP uses 50 MB idle). Note that RAM usage varies depending on what is being converted, FSB usually will use more.  
+
+#### Formats
+Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes).  
+[Varied Mob Textures](https://www.curseforge.com/minecraft/mc-mods/varied-mob-textures) isn't updated to 1.17 and doesn't have a set format yet, and [Chime](https://www.curseforge.com/minecraft/mc-mods/chime-fabric) also isn't updated to 1.17. Chime conversion will work if you build from source.  
+[Centime](https://github.com/SekoiaTree/Centime) will be supported eventually if I have enough time.  
   
 [Discord](https://discord.gg/waXJDswsaR)  
+[Modrinth](https://modrinth.com/mod/mcpppp)
 
 #### Important Note
-Some websites have been stealing this project (you'll know what I mean if you search "MCPPPP"). If you are not on github, please refer to the [official page](https://github.com/supsm/MCPPPP) instead. Most other websites are outdated, and some might contain unwanted programs. If there is another official website where I distribute binaries, it will be linked on the github.  
+Some websites have been stealing this project (you'll know what I mean if you search "MCPPPP"). If you are not on github, please refer to the [official page](https://github.com/supsm/MCPPPP) instead. Most other websites are outdated, and some might contain unwanted programs. If there is another official website where I distribute binaries (e.g. modrinth), it will be linked on the github.  
 
 ## TLDR
 On Windows, download `MCPPPP-windows.exe` from releases and double click on it.  
