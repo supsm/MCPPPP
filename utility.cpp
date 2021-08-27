@@ -123,6 +123,16 @@ std::string wtomb(std::wstring str)
 	return converter.to_bytes(str);
 }
 
+void findreplace(std::string& source, std::string find, std::string replace)
+{
+	int pos;
+	while (source.find(find) != std::string::npos)
+	{
+		pos = source.find(find);
+		source.replace(pos, find.length(), replace);
+	}
+}
+
 void setting(std::string option, std::string value)
 {
 	if (lowercase(option) == "pauseonexit")

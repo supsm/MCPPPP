@@ -15,7 +15,7 @@ Mostly everything has a hover tooltip. Hover over something to get more informat
 ## Settings Screen
 ![Guisettings](images/guisettings.png)  
 **Note: 1-5 can be found at Use -> CLI -> Settings in [README.md](README.md). These can also be found in the hover toopltip.**
-1. **log** - A log file where logs will be stored (default `log.txt`)
+1. **log** - A log file where logs will be stored (default `mcpppp-log.txt`)
 2. **timestamp** - Automatically delete `mcpppp-temp` folder on startup (default `true`)
 3. **outputLevel** - How much info should be outputted. 1 (min) outputs most info, 5 (max) outputs least info (default `3`)
 4. **logLevel** - Similar to outputLevel, but for log
