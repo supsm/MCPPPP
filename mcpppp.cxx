@@ -90,6 +90,7 @@ UI::UI() {
       o->when(FL_WHEN_CHANGED);
     } // Fl_Check_Button* o
     { scroll = new Fl_Scroll(445, 55, 190, 260, "Resourcepacks to convert");
+      scroll->color((Fl_Color)48);
       { // padding
         Fl_Check_Button* o = new Fl_Check_Button(445, 60, 190, 15);
         o->down_box(FL_DOWN_BOX);

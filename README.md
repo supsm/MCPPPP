@@ -43,7 +43,7 @@ Alternatively, command-line arguments may be passed for temorary settings (if yo
   | Name              | Values/Type      | Description                                                                                                            | Default    |
   |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:----------:|
   | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`    |
-  | `log`             | String           | A log file where logs will be stored                                                                                   | `log.txt` |
+  | `log`             | String           | A log file where logs will be stored                                                                                   | `mcpppp-log.txt` |
   | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`   |
   | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`  |
   | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`       |
