@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//#define GUI
+#define GUI
 
 #define NOMINMAX
 
@@ -148,6 +148,13 @@ int main(int argc, char* argv[])
 	}
 #endif
 
+#ifdef GUI
+	addpaths();
+	updatepaths();
+	dotimestamp = true;
+	updatesettings();
+#endif
+
 	out(5) << "MCPPPP " << VERSION
 #ifdef GUI
 		<< " (GUI)"
@@ -172,22 +179,25 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			out(4) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+#ifdef GUI
+			running = true; // prevent user from running
+			Fl::run();
+#else
 			goto exit;
+#endif
 		}
 	}
-#ifdef GUI
-	addpaths();
-	updatepaths();
-	dotimestamp = true;
-	updatesettings();
-#endif
 	for (std::string path : paths)
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
 			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
+		}
+		else
+		{
+			out(5) << "Path: " << path << std::endl;
 		}
 		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{

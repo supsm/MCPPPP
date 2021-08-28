@@ -371,6 +371,7 @@ outstream out(int level)
 void addpack(std::string);
 void addpath(std::string);
 void addpaths();
+void reload(Fl_Button* o, void* v);
 void updatepaths();
 void updatepathconfig();
 std::string winfilebrowser();
@@ -425,6 +426,7 @@ void run(Fl_Button* o, void* v)
 		return;
 	}
 	running = true;
+	reload(NULL, NULL);
 	std::thread t(guirun);
 	t.detach();
 }
@@ -531,6 +533,7 @@ void addrespath(Fl_Button* o, void* v)
 		updatepathconfig();
 		std::cout << str << std::endl;
 	}
+	reload(NULL, NULL);
 }
 
 // callback for "Delete" button in "Edit Paths"
@@ -548,6 +551,7 @@ void deleterespath(Fl_Button* o, void* v)
 	ui->paths->hide();
 	ui->paths->show();
 	updatepathconfig();
+	reload(NULL, NULL);
 }
 
 // callback for paths buttons in "Edit Paths"
