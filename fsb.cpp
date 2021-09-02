@@ -359,7 +359,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		}
 		else if (option == "rotate")
 		{
-			j["properties"]["shouldrotate"] = (value == "true") ? true : false;
+			j["properties"]["shouldRotate"] = (value == "true") ? true : false;
 		}
 		else if (option == "speed")
 		{
@@ -434,6 +434,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (source[0] == '.' && source[1] == '/')
 	{
 		source.erase(source.begin());
+		std::string origsource = source;
 		temp = png.path().parent_path().u8string();
 		if (temp.back() == '/' || temp.back() == '\\')
 		{
@@ -450,12 +451,12 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		{
 			out(4) << "FSB: File not found: " << temp + ".png" << std::endl;
 			lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-			lodepng::save_file(buffer, temp + "_top.png");
-			lodepng::save_file(buffer, temp + "_bottom.png");
-			lodepng::save_file(buffer, temp + "_north.png");
-			lodepng::save_file(buffer, temp + "_south.png");
-			lodepng::save_file(buffer, temp + "_west.png");
-			lodepng::save_file(buffer, temp + "_east.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_top.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_bottom.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_north.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_south.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_west.png");
+			lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_east.png");
 			buffer.clear();
 			buffer.shrink_to_fit();
 		}
