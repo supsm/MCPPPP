@@ -17,6 +17,7 @@ extern void editpath(Fl_Input*, void*);
 extern void opensettings(Fl_Button*, void*);
 extern void openhelp(Fl_Button*, void*);
 #include <FL/Fl_Box.H>
+extern void selectall(Fl_Check_Button*, void*);
 extern void addrespath(Fl_Button*, void*);
 extern void deleterespath(Fl_Button*, void*);
 #include <FL/Fl_Group.H>
@@ -33,6 +34,7 @@ public:
   Fl_Input *path_input;
   Fl_Box *box1;
   Fl_Box *box2;
+  Fl_Check_Button *allpacks;
   Fl_Window *edit_paths;
   Fl_Scroll *paths;
   Fl_Window *settings;

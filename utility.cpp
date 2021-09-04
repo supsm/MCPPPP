@@ -368,7 +368,7 @@ outstream out(int level)
 #include "vmt.cpp"
 #include "cim.cpp"
 
-void addpack(std::string);
+void addpack(std::string, bool selected);
 void addpath(std::string);
 void addpaths();
 void reload(Fl_Button* o, void* v);
@@ -453,6 +453,7 @@ void conversion(Fl_Check_Button* o, void* v)
 void resourcepack(Fl_Check_Button* o, void* v)
 {
 	entries[uintptr_t(v)].first = o->value();
+	ui->allpacks->value(0);
 	std::cout << o->label() << " " << uintptr_t(v) << " " << int(o->value()) << std::endl;
 }
 
@@ -475,7 +476,7 @@ void reload(Fl_Button* o, void* v)
 	pad->hide();
 	pad->deactivate();
 	ui->scroll->end();
-	for (std::string path : paths)
+	for (const std::string& path : paths)
 	{
 		if (std::filesystem::is_directory(std::filesystem::u8path(path)))
 		{
@@ -484,7 +485,7 @@ void reload(Fl_Button* o, void* v)
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
 					entries.push_back(std::make_pair(true, entry));
-					addpack(entry.path().filename().u8string());
+					addpack(entry.path().filename().u8string(), 0);
 					std::cout << entry.path().filename().u8string() << std::endl;
 				}
 			}
@@ -614,8 +615,27 @@ void settingchanged(Fl_Widget* o, void* v)
 	ui->savewarning->show();
 }
 
+// callback for select all/none
+void selectall(Fl_Check_Button* o, void* v)
+{
+	ui->scroll->clear();
+	numbuttons = 0;
+	ui->scroll->begin(); // padding
+	Fl_Check_Button* pad = new Fl_Check_Button(470, 45, 150, 15);
+	pad->down_box(FL_DOWN_BOX);
+	pad->labeltype(FL_NO_LABEL);
+	pad->hide();
+	pad->deactivate();
+	ui->scroll->end();
+	for (auto& entry : entries)
+	{
+		addpack(entry.second.path().filename().u8string(), o->value());
+	}
+	Fl::wait();
+}
+
 // add resourcepack to checklist
-void addpack(std::string name)
+void addpack(std::string name, bool selected)
 {
 	int w, h, dx, dy;
 	ui->scroll->begin();
@@ -623,7 +643,7 @@ void addpack(std::string name)
 	Fl_Check_Button* o = new Fl_Check_Button(445, 60 + 15 * numbuttons, w + 30, 15);
 	o->copy_label(name.c_str());
 	o->down_box(FL_DOWN_BOX);
-	o->value(1);
+	o->value(selected);
 	o->user_data((void*)(numbuttons));
 	o->callback((Fl_Callback*)(resourcepack));
 	o->when(FL_WHEN_CHANGED);
@@ -635,7 +655,7 @@ void addpack(std::string name)
 void updatepaths()
 {
 	std::string pstr;
-	for (std::string str : paths)
+	for (const std::string& str : paths)
 	{
 		pstr += str + " // ";
 	}
@@ -689,7 +709,7 @@ void updatepathconfig()
 			toremove.push_back(*it);
 		}
 	}
-	for (std::string str : toremove)
+	for (std::string& str : toremove)
 	{
 		deletedpaths.erase(str);
 	}
@@ -699,7 +719,7 @@ void updatepathconfig()
 	{
 		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
 	}
-	for (std::string str : paths)
+	for (const std::string& str : paths)
 	{
 		if (s.find(str) == s.end()) // we only need to add paths which haven't already been added (before # GUI)
 		{
@@ -709,11 +729,11 @@ void updatepathconfig()
 
 	// add added paths and output
 	std::ofstream fout("mcpppp.properties");
-	for (std::string str : lines)
+	for (std::string& str : lines)
 	{
 		fout << str << std::endl;
 	}
-	for (std::string str : deletedpaths)
+	for (const std::string& str : deletedpaths)
 	{
 		fout << "#!" << str << std::endl;
 	}
@@ -726,7 +746,7 @@ void addpaths()
 	int i = 0, dx, dy, w, h;
 	ui->paths->clear();
 	ui->paths->begin();
-	for (std::string str : paths)
+	for (const std::string& str : paths)
 	{
 		fl_text_extents(str.c_str(), dx, dy, w, h);
 		Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, std::max(w + 30, 250), 15);
