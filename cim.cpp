@@ -49,7 +49,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 		{
 			bool layer0 = false;
 			std::string first = "";
-			for (auto it : j["textures"].items())
+			for (auto& it : j["textures"].items())
 			{
 				if (it.value().type() == nlohmann::json::value_t::string)
 				{

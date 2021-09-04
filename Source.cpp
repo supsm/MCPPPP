@@ -6,7 +6,7 @@
 
 #define NOMINMAX
 
-#define VERSION "0.4.2" // MCPPPP version
+#define VERSION "0.4.4" // MCPPPP version
 
 #include <iostream>
 #include <filesystem>
@@ -188,7 +188,7 @@ int main(int argc, char* argv[])
 #endif
 		}
 	}
-	for (std::string path : paths)
+	for (const std::string& path : paths)
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
@@ -205,7 +205,7 @@ int main(int argc, char* argv[])
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
 				entries.push_back(std::make_pair(true, entry));
-				addpack(entry.path().filename().u8string());
+				addpack(entry.path().filename().u8string(), true);
 				std::cout << entry.path().filename().u8string() << std::endl;
 			}
 #else
