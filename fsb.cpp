@@ -293,19 +293,19 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		option.clear();
 		value.clear();
 		bool isvalue = false;
-		for (int i = 0; i < temp.size(); i++)
+		for (char& c : temp)
 		{
-			if (temp[i] == '=')
+			if (c == '=')
 			{
 				isvalue = true;
 			}
 			else if (!isvalue)
 			{
-				option += temp[i];
+				option += c;
 			}
 			else if (isvalue)
 			{
-				value += temp[i];
+				value += c;
 			}
 		}
 		while (option.back() == ' ' || option.back() == '\t')
@@ -330,7 +330,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			temp = value;
 			// apparently \: is valid syntax
 			findreplace(temp, "\\:", ":");
-			for (int i = 0; i < temp.size(); i++)
+			for (size_t i = 0; i < temp.size(); i++)
 			{
 				if (temp[i] == ':')
 				{
@@ -408,7 +408,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (heights)
 			{
 				heights >> height;
-				for (int i = 0; i < height.size(); i++)
+				for (size_t i = 0; i < height.size(); i++)
 				{
 					if (height[i] == '-')
 					{

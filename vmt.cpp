@@ -27,11 +27,11 @@ vmtconvert:
 				name = png.path().filename().u8string();
 				name.erase(name.begin() + i + 1, name.end());
 				folderpath = png.path().u8string();
-				for (int i = 0; i < folderpath.size(); i++)
+				for (char& c : folderpath)
 				{
-					if (folderpath[i] == '\\')
+					if (c == '\\')
 					{
-						folderpath[i] = '/';
+						c = '/';
 					}
 				}
 				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
@@ -45,11 +45,11 @@ vmtconvert:
 	if (curname == name && curnum != "")
 	{
 		folderpath = png.path().u8string();
-		for (int i = 0; i < folderpath.size(); i++)
+		for (char& c : folderpath)
 		{
-			if (folderpath[i] == '\\')
+			if (c == '\\')
 			{
-				folderpath[i] = '/';
+				c = '/';
 			}
 		}
 		folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
@@ -60,7 +60,7 @@ vmtconvert:
 	else if (!numbers.empty()) // TODO: what am i even doing wtf
 	{
 		std::vector<nlohmann::json> v;
-		for (int i = 0; i < numbers.size(); i++)
+		for (size_t i = 0; i < numbers.size(); i++)
 		{
 			v.push_back({ {"below", i + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers[i]) + ".png"}}} });
 		}
@@ -83,11 +83,11 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 	std::string name, folderpath;
 	std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 	folderpath = png.path().u8string();
-	for (int i = 0; i < folderpath.size(); i++)
+	for (char& c : folderpath)
 	{
-		if (folderpath[i] == '\\')
+		if (c == '\\')
 		{
-			folderpath[i] = '/';
+			c = '/';
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
@@ -115,19 +115,19 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		{
 			continue;
 		}
-		for (int i = 0; i < temp.size(); i++)
+		for (char& c : temp)
 		{
-			if (temp[i] == '=')
+			if (c == '=')
 			{
 				isvalue = true;
 			}
 			else if (!isvalue)
 			{
-				option += temp[i];
+				option += c;
 			}
 			else if (isvalue)
 			{
-				value += temp[i];
+				value += c;
 			}
 		}
 		tempnum.clear();
@@ -147,7 +147,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 			continue;
 		}
 		curnum = stoi(tempnum);
-		if (curnum > textures.size())
+		if (curnum > int(textures.size()))
 		{
 			textures.resize(curnum);
 			weights.resize(curnum);
@@ -207,11 +207,11 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				{
 					if (temp.find(":") == std::string::npos) // does not contain a namespace
 					{
-						for (int i = 0; i < biomelist.size(); i++)
+						for (std::string& s : biomelist)
 						{
-							if (ununderscore(biomelist[i]) == lowercase(temp))
+							if (ununderscore(s) == lowercase(temp))
 							{
-								biomes[curnum - 1].push_back("minecraft:" + biomelist[i]);
+								biomes[curnum - 1].push_back("minecraft:" + s);
 								break;
 							}
 						}
@@ -234,7 +234,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				if (temp != "")
 				{
 					height1.clear();
-					for (int i = 0; i < temp.size(); i++)
+					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp[i] == '-')
 						{
@@ -263,7 +263,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 			bool insensitive;
 			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
 			{
-				for (int i = 0; i < temp.size(); i++)
+				for (size_t i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == ':')
 					{
@@ -320,7 +320,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				if (temp != "")
 				{
 					time1.clear();
-					for (int i = 0; i < temp.size(); i++)
+					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp[i] == '-')
 						{
@@ -359,7 +359,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 			}
 		}
 	}
-	for (int i = 0; i < textures.size(); i++) // TODO: there's probably a better way to do this
+	for (size_t i = 0; i < textures.size(); i++) // TODO: there's probably a better way to do this
 	{
 		if (textures[i].empty())
 		{
@@ -369,7 +369,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		{
 			int weightsum = 0;
 			tempv.clear();
-			for (int j = 0; j < textures[i].size(); j++)
+			for (size_t j = 0; j < textures[i].size(); j++)
 			{
 				weightsum += weights[i][j];
 				tempv.push_back({ {"below", weightsum}, {"then", {{"type", VMT + ":constant"}, {"identifier", textures[i][j]}}} });
@@ -379,7 +379,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		else
 		{
 			tempv.clear();
-			for (int j = 0; j < textures[i].size(); j++)
+			for (size_t j = 0; j < textures[i].size(); j++)
 			{
 				tempv.push_back({ {"below", j + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", textures[i][j]}}} });
 			}
@@ -413,9 +413,9 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		if (heights[i].size())
 		{
 			tempv.clear();
-			for (int j = 0; j < heights[i].size(); j++)
+			for (std::pair<std::string, std::string>& p : heights[i])
 			{
-				tempv.push_back({ {"above", heights[i][j].first}, {"below", heights[i][j].second}, {"then", tempj} });
+				tempv.push_back({ {"above", p.first}, {"below", p.second}, {"then", tempj} });
 			}
 			tempj = { {"type", VMT + ":range"}, {"when", {{"type", VMT + ":entity_y"}}}, {"options", tempv} };
 		}
@@ -456,7 +456,7 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 		v.push_back(tempj);
 	}
 	tempv.clear();
-	for (int i = 0; i < v.size(); i++)
+	for (size_t i = 0; i < v.size(); i++)
 	{
 		tempv.push_back({ {"below", i + 1}, {"then", v[i]} });
 	}
@@ -572,7 +572,7 @@ void vmt(std::string path, std::string filename, bool zip)
 	if (!numbers.empty())
 	{
 		std::vector<nlohmann::json> v;
-		for (int i = 0; i < numbers.size(); i++)
+		for (size_t i = 0; i < numbers.size(); i++)
 		{
 			v.push_back({ {"below", i + 1}, {"then", {{"type", VMT + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers[i]) + ".png"}}} });
 		}
@@ -605,11 +605,11 @@ void vmt(std::string path, std::string filename, bool zip)
 			temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 			temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 			temp += '/';
-			for (int i = 0; i < temp.size(); i++)
+			for (char& c : temp)
 			{
-				if (temp[i] == '\\')
+				if (c == '\\')
 				{
-					temp[i] = '/';
+					c = '/';
 				}
 			}
 			std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
