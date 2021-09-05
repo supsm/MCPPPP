@@ -14,11 +14,11 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 	// mcpppp:item/
 
 	std::string folderpath = png.path().u8string();
-	for (int i = 0; i < folderpath.size(); i++)
+	for (char& c : folderpath)
 	{
-		if (folderpath[i] == '\\')
+		if (c == '\\')
 		{
-			folderpath[i] = '/';
+			c = '/';
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
@@ -85,11 +85,11 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
 {
 	std::string folderpath = png.path().u8string();
-	for (int i = 0; i < folderpath.size(); i++)
+	for (char& c : folderpath)
 	{
-		if (folderpath[i] == '\\')
+		if (c == '\\')
 		{
-			folderpath[i] = '/';
+			c = '/';
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
@@ -110,19 +110,19 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		{
 			continue;
 		}
-		for (int i = 0; i < temp.size(); i++)
+		for (char& c : temp)
 		{
-			if (temp[i] == '=')
+			if (c == '=')
 			{
 				isvalue = true;
 			}
 			else if (!isvalue)
 			{
-				option += temp[i];
+				option += c;
 			}
 			else if (isvalue)
 			{
-				value += temp[i];
+				value += c;
 			}
 		}
 		if (option == "type")
@@ -216,7 +216,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				}
 				else
 				{
-					for (int i = 0; i < temp.size(); i++)
+					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp[i] == '-')
 						{
@@ -257,7 +257,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				}
 				else
 				{
-					for (int i = 0; i < temp.size(); i++)
+					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp[i] == '-')
 						{
@@ -308,7 +308,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				}
 				else
 				{
-					for (int i = 0; i < temp.size(); i++)
+					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp[i] == '-')
 						{
@@ -336,23 +336,23 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		else if (option.find("nbt.") == 0)
 		{
 			temp.clear();
-			for (int i = 0; i < option.size(); i++)
+			for (char& c : option)
 			{
-				if (option[i] == '.')
+				if (c == '.')
 				{
 					nbt.push(temp);
 					temp.clear();
 				}
 				else
 				{
-					temp += option[i];
+					temp += c;
 				}
 			}
 			nbt.push(temp);
 			temp = value;
 			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
 			{
-				for (int i = 0; i < temp.size(); i++)
+				for (size_t i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == ':')
 					{
@@ -398,12 +398,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (nbts.size())
 	{
 		tempp.clear();
-		for (int i = 0; i < predicates.size(); i++)
+		for (nlohmann::json& j : predicates)
 		{
-			for (int j = 0; j < nbts.size(); j++)
+			for (nlohmann::json& j2 : nbts)
 			{
-				tempj = predicates[i];
-				tempj["predicate"]["nbt"] = nbts[j]["nbt"];
+				tempj = j;
+				tempj["predicate"]["nbt"] = j2["nbt"];
 				tempp.push_back(tempj);
 			}
 		}
@@ -412,12 +412,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (enchantments.size())
 	{
 		tempp.clear();
-		for (int i = 0; i < predicates.size(); i++)
+		for (nlohmann::json& j : predicates)
 		{
-			for (int j = 0; j < enchantments.size(); j++)
+			for (std::string& s : enchantments)
 			{
-				tempj = predicates[i];
-				tempj["predicate"]["nbt"]["Enchantments"].push_back(nlohmann::json({ {"id", enchantments[j]} }));
+				tempj = j;
+				tempj["predicate"]["nbt"]["Enchantments"].push_back(nlohmann::json({ {"id", s} }));
 				tempp.push_back(tempj);
 			}
 		}
@@ -426,22 +426,22 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (enchantmentlevels.size())
 	{
 		tempp.clear();
-		for (int i = 0; i < predicates.size(); i++)
+		for (nlohmann::json& j : predicates)
 		{
-			for (int j = 0; j < enchantmentlevels.size(); j++)
+			for (std::string& s : enchantmentlevels)
 			{
-				tempj = predicates[i];
+				tempj = j;
 				if (tempj["predicate"]["nbt"]["Enchantments"].type() == nlohmann::json::value_t::array)
 				{
-					for (int k = 0; k < tempj["predicate"]["nbt"]["Enchantments"].size(); k++)
+					for (nlohmann::json& j2 : tempj["predicate"]["nbt"]["Enchantments"])
 					{
-						tempj["predicate"]["nbt"]["Enchantments"][k]["lvl"] = enchantmentlevels[j];
+						j2["lvl"] = s;
 						tempp.push_back(tempj);
 					}
 				}
 				else
 				{
-					tempj["predicate"]["nbt"]["Enchantments"].push_back(nlohmann::json{ {"lvl", enchantmentlevels[j]} });
+					tempj["predicate"]["nbt"]["Enchantments"].push_back(nlohmann::json{ {"lvl", s} });
 					tempp.push_back(tempj);
 				}
 			}
@@ -451,12 +451,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (damages.size())
 	{
 		tempp.clear();
-		for (int i = 0; i < predicates.size(); i++)
+		for (nlohmann::json& j : predicates)
 		{
-			for (int j = 0; j < damages.size(); j++)
+			for (std::string& s : damages)
 			{
-				tempj = predicates[i];
-				tempj["predicate"]["damage"] = damages[j];
+				tempj = j;
+				tempj["predicate"]["damage"] = s;
 				tempp.push_back(tempj);
 			}
 		}
@@ -465,35 +465,35 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (stacksizes.size())
 	{
 		tempp.clear();
-		for (int i = 0; i < predicates.size(); i++)
+		for (nlohmann::json& j : predicates)
 		{
-			for (int j = 0; j < stacksizes.size(); j++)
+			for (std::string& s : stacksizes)
 			{
-				tempj = predicates[i];
-				tempj["predicate"]["count"] = stacksizes[j];
+				tempj = j;
+				tempj["predicate"]["count"] = s;
 				tempp.push_back(tempj);
 			}
 		}
 		predicates = tempp;
 	}
 	nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
-	for (int i = 0; i < items.size(); i++)
+	for (std::string& c : items)
 	{
 		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/"));
 		tempj = j;
-		std::ifstream fin(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json"));
+		std::ifstream fin(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + c + ".json"));
 		if (fin.good())
 		{
 			fin >> tempj;
 			std::vector<nlohmann::json> tempv = tempj["overrides"];
-			for (int j = 0; j < predicates.size(); j++)
+			for (nlohmann::json& j : predicates)
 			{
-				tempv.push_back(predicates[j]);
+				tempv.push_back(j);
 			}
 			tempj["overrides"] = tempv;
 		}
 		fin.close();
-		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + items[i] + ".json"));
+		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + c + ".json"));
 		fout << tempj.dump(1, '\t') << std::endl;
 		fout.close();
 	}
@@ -607,11 +607,11 @@ void cim(std::string path, std::string filename, bool zip)
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 				temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 				temp += '/';
-				for (int i = 0; i < temp.size(); i++)
+				for (char& c : temp)
 				{
-					if (temp[i] == '\\')
+					if (c == '\\')
 					{
-						temp[i] = '/';
+						c = '/';
 					}
 				}
 				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
@@ -636,11 +636,11 @@ void cim(std::string path, std::string filename, bool zip)
 				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
 				temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
 				temp += '/';
-				for (int i = 0; i < temp.size(); i++)
+				for (char& c : temp)
 				{
-					if (temp[i] == '\\')
+					if (c == '\\')
 					{
-						temp[i] = '/';
+						c = '/';
 					}
 				}
 				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);

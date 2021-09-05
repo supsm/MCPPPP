@@ -55,11 +55,11 @@ inline UI* ui = new UI();
 
 std::string lowercase(std::string str)
 {
-	for (int i = 0; i < str.size(); i++)
+	for (char& c : str)
 	{
-		if (str[i] >= 'A' && str[i] <= 'Z')
+		if (c >= 'A' && c <= 'Z')
 		{
-			str[i] += 32;
+			c += 32;
 		}
 	}
 	return str;
@@ -90,11 +90,11 @@ std::string timestamp()
 std::string ununderscore(std::string str)
 {
 	std::string str2;
-	for (int i = 0; i < str.size(); i++)
+	for (char& c : str)
 	{
-		if (str[i] != '_')
+		if (c != '_')
 		{
-			str2 += str[i];
+			str2 += c;
 		}
 	}
 	return str2;
@@ -378,38 +378,38 @@ std::string winfilebrowser();
 
 void guirun()
 {
-	for (int i = 0; i < entries.size(); i++)
+	for (std::pair<bool, std::filesystem::directory_entry>& p : entries)
 	{
-		if (entries[i].first)
+		if (p.first)
 		{
-			if (entries[i].second.is_directory())
+			if (p.second.is_directory())
 			{
 				if (dofsb)
 				{
-					fsb(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), false);
+					fsb(p.second.path().u8string(), p.second.path().filename().u8string(), false);
 				}
 				if (dovmt)
 				{
-					vmt(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), false);
+					vmt(p.second.path().u8string(), p.second.path().filename().u8string(), false);
 				}
 				if (docim)
 				{
-					cim(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), false);
+					cim(p.second.path().u8string(), p.second.path().filename().u8string(), false);
 				}
 			}
-			else if (entries[i].second.path().extension() == ".zip")
+			else if (p.second.path().extension() == ".zip")
 			{
 				if (dofsb)
 				{
-					fsb(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), true);
+					fsb(p.second.path().u8string(), p.second.path().filename().u8string(), true);
 				}
 				if (dovmt)
 				{
-					vmt(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), true);
+					vmt(p.second.path().u8string(), p.second.path().filename().u8string(), true);
 				}
 				if (docim)
 				{
-					cim(entries[i].second.path().u8string(), entries[i].second.path().filename().u8string(), true);
+					cim(p.second.path().u8string(), p.second.path().filename().u8string(), true);
 				}
 			}
 		}
@@ -426,7 +426,6 @@ void run(Fl_Button* o, void* v)
 		return;
 	}
 	running = true;
-	reload(NULL, NULL);
 	std::thread t(guirun);
 	t.detach();
 }
@@ -485,7 +484,7 @@ void reload(Fl_Button* o, void* v)
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
 					entries.push_back(std::make_pair(true, entry));
-					addpack(entry.path().filename().u8string(), 0);
+					addpack(entry.path().filename().u8string(), 1);
 					std::cout << entry.path().filename().u8string() << std::endl;
 				}
 			}
