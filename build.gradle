@@ -19,6 +19,8 @@ task publishModrinth (type: TaskModrinthUpload) {
 	addLoader("fabric")
 }
 
+publishModrinth.dependsOn build
+
 sourceCompatibility = JavaVersion.VERSION_16
 targetCompatibility = JavaVersion.VERSION_16
 

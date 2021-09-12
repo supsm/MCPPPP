@@ -19,7 +19,7 @@ jobs:
           java-version: 16
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew clean build
       - name: publish
-        run: ./gradlew publishModrinth
+        run: ./gradlew clean build publishModrinth
+        env:
+          MODRINTH: ${{ secrets.MODRINTH }}
