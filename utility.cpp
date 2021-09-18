@@ -457,6 +457,7 @@ void reload(Fl_Button* o, void* v)
 			}
 		}
 	}
+	ui->allpacks->value(1);
 	Fl::wait();
 }
 
