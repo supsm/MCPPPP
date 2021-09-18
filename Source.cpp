@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#define GUI
+//#define GUI
 
 #define NOMINMAX
 
@@ -30,7 +30,6 @@ int main(int argc, char* argv[])
 #if defined _WIN32 && defined GUI
 	SetProcessDPIAware(); // fix blurriness
 #endif
-	bool issetting = false, isvalue = false;
 	std::string str, option, value, temp;
 	std::stringstream ss;
 	std::error_code ec;

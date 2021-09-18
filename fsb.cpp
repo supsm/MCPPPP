@@ -427,6 +427,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		}
 	}
 	fin.close();
+	j["properties"]["rotation"]["static"] = { 1, 1, 1 };
 	if (startfadeout == -1)
 	{
 		j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
