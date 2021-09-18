@@ -7,6 +7,10 @@
 #include <string>
 #include <vector>
 
+void cim(std::string path, std::string filename, bool zip); // main cim function that calls everything else
+void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // convert cit properties to cim
+void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // converts everything else
+
 void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
 {
 	// png location (textures): assets/mcpppp/textures/item
