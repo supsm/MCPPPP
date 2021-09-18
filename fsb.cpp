@@ -8,6 +8,13 @@
 #include <string>
 #include <vector>
 
+void fsb(std::string path, std::string filename, bool zip); // main fsb function that calls everything else
+void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // convert optifine properties files into fsb properties json
+void fsbpng(std::string& folder, std::string& path, std::string output, bool& zip, std::filesystem::directory_entry png); // convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
+void rgb2hsv(double& first, double& second, double& third); // convert red-green-blue color to hue-saturation-value color
+void hsv2rgb(double& first, double& second, double& third); // same thing as above, but in reverse
+void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h); // convert black to transparent
+
 void rgb2hsv(double& first, double& second, double& third)
 {
 	double r = first * 20 / 51; // convert 0-255 to 0-100
@@ -94,7 +101,6 @@ void hsv2rgb(double& first, double& second, double& third)
 	}
 }
 
-// convert black to transparent
 void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h)
 {
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
