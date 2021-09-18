@@ -1,4 +1,5 @@
 mcpppp.properties
+mcpppp-config.json
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
@@ -8,6 +9,8 @@ mcpppp-temp/
 \!filesize.exe
 files.txt
 mcpppp-log.txt
+*.tmp*
+desktop.ini
 
 Debug/
 x64/

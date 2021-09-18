@@ -35,22 +35,8 @@ More detailed instructions below
 
 
 #### CLI
-In the CLI versrion of MCPPPP, you will need to add paths and settings yourself. To do this, add paths of folders to convert in `mcpppp.properties` such as `C:\Users\supsm\AppData\Roaming\.minecraft\resourcepacks`.  
-Settings can be specified in `mcpppp.properties`. To do so, put `//set` followed by an option and a value (space seperated) in one line.  
-Alternatively, command-line arguments may be passed for temorary settings (if you don't know what this means, you probably don't need to use this anyway). Newlines are replaced with `;`. **IMPORTANT:** a `;` is needed at the end of the command line argemunts, or mcpppp will get confused  
-<details>
-  <summary>Settings</summary>
-
-  | Name              | Values/Type      | Description                                                                                                            | Default    |
-  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:----------:|
-  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`    |
-  | `log`             | String           | A log file where logs will be stored                                                                                   | `mcpppp-log.txt` |
-  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`   |
-  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`  |
-  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`       |
-  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `1`       |
-  | `autoReconvert`   | `true`, `false` | Automatically reconvert resourcepacks instead of skipping. **Could lose data** if a pack isn't converted with MCPPPP  | `false`   |
-</details>
+In the CLI versrion of MCPPPP, you will need to add paths and settings yourself. Please read [CONFIG.md](CONFIG.md)
+Alternatively, command-line arguments may be passed for temorary settings. Simply add a json as the command line argument(s). 
 
 #### GUI
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  

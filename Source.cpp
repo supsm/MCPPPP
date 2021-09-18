@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//#define GUI
+#define GUI
 
 #define NOMINMAX
 
@@ -41,11 +41,11 @@ int main(int argc, char* argv[])
 #endif
 	if (argc < 2) // skip file settings if there are command line settings
 	{
-		std::ifstream config("mcpppp.properties");
-		if (config.fail() && argc < 2)
+		std::ifstream configfile("mcpppp-config.json");
+		if (configfile.fail() && argc < 2)
 		{
-			std::ofstream createconfig("mcpppp.properties");
-			createconfig << "# MCPPPP will search folders for resource packs (such as your resourcepacks folder) and will edit the resource pack.\n# It won't touch anything but the necessary folders, and will skip the resourcepack if the folders already exist.\n# Enter a newline-seperated list of such folders" << std::endl;
+			std::ofstream createconfig("mcpppp-config.json");
+			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 			createconfig.close();
 #ifdef GUI
 			openhelp(nullptr, nullptr);
@@ -54,98 +54,86 @@ int main(int argc, char* argv[])
 			goto exit;
 #endif
 		}
-		while (config.good()) // config file (mcpppp.properties)
-		{
-			getline(config, str);
-			if (str.back() == '\r')
-			{
-				str.erase(str.end() - 1);
-			}
-			if (str[0] == '/' && str[1] == '/')
-			{
-				ss.clear();
-				ss.str(str);
-				ss >> temp;
-				if (temp == "//set")
-				{
-					ss >> option;
-					getline(ss, value);
-					value.erase(value.begin());
-					setting(option, value);
-				}
-			}
-			else if (str[0] != '#' && str != "")
-			{
-				paths.insert(str);
-			}
-			else if (str.size() > 2)
-			{
-				if (str[1] == '!')
-				{
-					str.erase(str.begin(), str.begin() + 2);
-					paths.erase(str);
-#ifdef GUI
-					deletedpaths.insert(str);
-#endif
-				}
-			}
-		}
-		config.close();
-	}
-#ifndef GUI // gui doenst need command line options
-	for (int i = 1; i < argc; i++) // function arguments
-	{
-		if (issetting) // if current argument is part of setting
-		{
-			if (isvalue) // if arg is value of setting
-			{
-				value = argv[i];
-				while (value[value.size() - 1] != ';' && i < argc - 1)
-				{
-					i++;
-					value += " " + std::string(argv[i]);
-				}
-				value.erase(value.end() - 1);
-				issetting = false;
-				isvalue = false;
-				setting(option, value);
-			}
-			else // if arg is setting/option name
-			{
-				option = argv[i];
-				isvalue = true;
-			}
-		}
 		else
 		{
-			if (std::string(argv[i]) == "//set") // setting
+			try
 			{
-				issetting = true;
+				str.resize(std::filesystem::file_size("mcpppp-config.json"));
+				configfile.read((char*)(str.c_str()), std::filesystem::file_size("mcpppp-config.json"));
+				config = nlohmann::ordered_json::parse(str, nullptr, true, true);
 			}
-			else if (argv[i][0] == '#') // comment
+			catch (nlohmann::json::exception& e)
 			{
-				// not gonna be implementing #!path since it isn't necessary
-				// in file it's necessary since gui has to remove certain paths
-				temp = argv[i];
-				while (temp[temp.size() - 1] != ';' && i < argc - 1)
+				out(5) << e.what() << std::endl;
+				goto exit;
+			}
+			paths.clear();
+			if (!config.contains("settings"))
+			{
+				out(4) << "No settings found" << std::endl;
+			}
+			else if (config["settings"].type() != nlohmann::json::value_t::object)
+			{
+				out(5) << "settings must be an object, got " << config["settings"].type_name() << std::endl;
+			}
+			else
+			{
+				for (auto& j : config["settings"].items())
 				{
-					i++;
-					temp = argv[i];
+					setting(j.key(), j.value());
 				}
 			}
-			else // path
+			if (!config.contains("paths"))
 			{
-				temp = argv[i];
-				while (temp[temp.size() - 1] != ';' && i < argc - 1)
+				out(4) << "No paths found" << std::endl;
+				config["paths"] = nlohmann::json::array();
+			}
+			else if (config["paths"].type() != nlohmann::json::value_t::array)
+			{
+				out(5) << "paths must be an array, got " << config["paths"].type_name() << std::endl;
+				goto exit;
+			}
+			else
+			{
+				paths.insert(config["paths"].begin(), config["paths"].end());
+			}
+			if (config.contains("gui"))
+			{
+				if (config["gui"].type() == nlohmann::json::value_t::object)
 				{
-					i++;
-					temp += " " + std::string(argv[i]);
+					if (config["gui"].contains("settings"))
+					{
+						if (config["gui"]["settings"].type() == nlohmann::json::value_t::object)
+						{
+							for (auto& j : config["gui"]["settings"].items())
+							{
+								setting(j.key(), j.value());
+							}
+						}
+					}
+					if (config["gui"].contains("paths"))
+					{
+						if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
+						{
+							paths.insert(config["gui"]["paths"].begin(), config["gui"]["paths"].end());
+						}
+					}
+					if (config["gui"].contains("excludepaths"))
+					{
+						if (config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
+						{
+							for (std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
+							{
+								paths.erase(path);
+							}
+						}
+					}
 				}
-				temp.erase(temp.end() - 1);
-				paths.insert(temp);
 			}
 		}
 	}
+#ifndef GUI // gui doenst need command line options
+	// TODO: command line options
 #endif
 
 #ifdef GUI
@@ -186,7 +174,7 @@ int main(int argc, char* argv[])
 #else
 			goto exit;
 #endif
-		}
+	}
 	}
 	for (const std::string& path : paths)
 	{

@@ -6,6 +6,8 @@
 #include <sstream>
 #include <string>
 #include <thread>
+#include <tuple>
+#include <unordered_map>
 #include <vector>
 
 #include "json.hpp"
@@ -40,8 +42,25 @@
 inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false;
 inline int outputlevel = 3, loglevel = 1;
 inline std::ofstream logfile("mcpppp-log.txt");
-inline std::set<std::string> paths = {};
 std::string logfilename = "mcpppp-log.txt";
+
+inline std::set<std::string> paths = {};
+inline nlohmann::ordered_json config;
+
+enum class type { boolean, integer, string };
+
+// type, pointer to variable to modify, default value
+std::unordered_map<std::string, std::tuple<type, void*, nlohmann::json>> settings =
+{
+	{"pauseonexit", {type::boolean, &pauseonexit, pauseonexit}},
+	{"log", {type::string, &logfilename, logfilename}},
+	{"timestamp", {type::boolean, &dotimestamp, dotimestamp}},
+	{"autodeletetemp", {type::boolean, &autodeletetemp, autodeletetemp}},
+	{"outputlevel", {type::integer, &outputlevel, outputlevel}},
+	{"loglevel", {type::integer, &loglevel, loglevel}},
+	{"autoreconvert", {type::boolean, &autoreconvert, autoreconvert}}
+};
+
 #ifdef GUI
 bool dofsb = true, dovmt = true, docim = true, running = false;
 long long numbuttons = 0;
@@ -130,111 +149,6 @@ void findreplace(std::string& source, std::string find, std::string replace)
 	{
 		pos = source.find(find);
 		source.replace(pos, find.length(), replace);
-	}
-}
-
-void setting(std::string option, std::string value)
-{
-	if (lowercase(option) == "pauseonexit")
-	{
-		if (lowercase(value) == "true")
-		{
-			pauseonexit = true;
-		}
-		else if (lowercase(value) == "false")
-		{
-			pauseonexit = false;
-		}
-		else
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-		}
-	}
-	else if (lowercase(option) == "log")
-	{
-		if (value == "")
-		{
-			dolog = true;
-			logfilename = value;
-			logfile.open(value);
-		}
-		else if (dolog)
-		{
-			dolog = false;
-			logfilename.clear();
-			logfile.close();
-		}
-	}
-	else if (lowercase(option) == "timestamp")
-	{
-		if (lowercase(value) == "true")
-		{
-			dotimestamp = true;
-		}
-		else if (lowercase(value) == "false")
-		{
-			dotimestamp = false;
-		}
-		else
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-		}
-	}
-	else if (lowercase(option) == "autodeletetemp")
-	{
-		if (lowercase(value) == "true")
-		{
-			autodeletetemp = true;
-		}
-		else if (lowercase(value) == "false")
-		{
-			autodeletetemp = false;
-		}
-		else
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-		}
-	}
-	else if (lowercase(option) == "outputlevel")
-	{
-		try
-		{
-			outputlevel = stoi(value);
-		}
-		catch (std::exception e)
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected integer, 1-5" << std::endl;
-		}
-	}
-	else if (lowercase(option) == "loglevel")
-	{
-		try
-		{
-			loglevel = stoi(value);
-		}
-		catch (std::exception e)
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected integer, 1-5" << std::endl;
-		}
-	}
-	else if (lowercase(option) == "autoreconvert")
-	{
-		if (lowercase(value) == "true")
-		{
-			autoreconvert = true;
-		}
-		else if (lowercase(value) == "false")
-		{
-			autoreconvert = false;
-		}
-		else
-		{
-			std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid value for " << option << ": " << value << " Expected true, false" << std::endl;
-		}
-	}
-	else
-	{
-		std::cerr << (dotimestamp ? timestamp() : "") << "Not a valid option: " << option << std::endl;
 	}
 }
 
@@ -361,6 +275,59 @@ outstream out(int level)
 		file = false;
 	}
 	return o;
+}
+
+void setting(std::string option, nlohmann::json j)
+{
+	if (settings.find(lowercase(option)) == settings.end())
+	{
+		out(4) << "Unknown setting: " << option << std::endl;
+		return;
+	}
+	type t = std::get<0>(settings[lowercase(option)]);
+	void* var = std::get<1>(settings[lowercase(option)]);
+	if (t == type::boolean)
+	{
+		try
+		{
+			*(bool*)(var) = j.get<bool>();
+		}
+		catch (nlohmann::json::exception& e)
+		{
+			out(5) << "Not a valid value for " << option << ": " << j << "; Expected bool" << std::endl;
+		}
+	}
+	else if (t == type::integer)
+	{
+		try
+		{
+			*(int*)(var) = j.get<int>();
+		}
+		catch (nlohmann::json::exception& e)
+		{
+			out(5) << "Not a valid value for " << option << ": " << j << "; Expected int" << std::endl;
+		}
+	}
+	else
+	{
+		try
+		{
+			*(std::string*)(var) = j.get<std::string>();
+			if (option == "log")
+			{
+				dolog = (j.get<std::string>() == "");
+				if (dolog)
+				{
+					logfile.close();
+					logfile.open(j.get<std::string>());
+				}
+			}
+		}
+		catch (nlohmann::json::exception& e)
+		{
+			out(5) << "Not a valid value for " << option << ": " << j << "; Expected string" << std::endl;
+		}
+	}
 }
 
 #ifdef GUI
@@ -581,31 +548,78 @@ void openhelp(Fl_Button* o, void* v)
 void savesettings(Fl_Button* o, void* v)
 {
 	logfilename = ui->log->value();
+	dolog = (logfilename == "");
 	if (dolog)
 	{
 		logfile.close();
-		if (logfilename != "")
-		{
-			logfile.open(logfilename);
-		}
-		else
-		{
-			dolog = false;
-		}
-	}
-	else
-	{
-		if (logfilename != "")
-		{
-			logfile.open(logfilename);
-			dolog = true;
-		}
+		logfile.open(logfilename);
 	}
 	dotimestamp = ui->timestamptrue->value();
 	outputlevel = ui->outputlevel->value();
 	loglevel = ui->loglevel->value();
 	autoreconvert = ui->autoreconverttrue->value();
-	// TODO: output to file
+
+	config["gui"]["settings"]["log"] = logfilename;
+	config["gui"]["settings"]["timestamp"] = dotimestamp;
+	config["gui"]["settings"]["outputLevel"] = outputlevel;
+	config["gui"]["settings"]["logLevel"] = loglevel;
+	config["gui"]["settings"]["autoReconvert"] = autoreconvert;
+
+	// remove excess settings
+	std::vector<std::string> toremove;
+	std::ifstream configfile("mcpppp-config.json");
+	std::string temp;
+	nlohmann::json j;
+	try
+	{
+		temp.resize(std::filesystem::file_size("mcpppp-config.json"));
+		configfile.read((char*)(temp.c_str()), std::filesystem::file_size("mcpppp-config.json"));
+		j = nlohmann::json::parse(temp, nullptr, true, true);
+	}
+	catch (nlohmann::json::exception& e)
+	{
+		out(5) << e.what() << std::endl;
+		throw e;
+	}
+	configfile.close();
+	if (j.contains("settings"))
+	{
+		if (j["settings"].type() == nlohmann::json::value_t::object)
+		{
+			for (auto& setting : j["settings"].items())
+			{
+				for (auto& setting2 : config["gui"]["settings"].items())
+				{
+					if (lowercase(setting.key()) == lowercase(setting2.key()))
+					{
+						if (setting.value() == nlohmann::json(setting2.value()))
+						{
+							config["gui"]["settings"].erase(setting2.key());
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+	for (auto& setting : config["gui"]["settings"].items())
+	{
+		if (std::get<2>(settings[lowercase(setting.key())]) == nlohmann::json(setting.value()))
+		{
+			toremove.push_back(setting.key());
+		}
+	}
+	for (std::string& s : toremove)
+	{
+		config["gui"]["settings"].erase(s);
+	}
+
+	std::ofstream fout("mcpppp-config.json");
+	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
+	fout << config.dump(1, '\t') << std::endl;
+	fout.close();
+
+	ui->savewarning->hide();
 }
 
 // callback for edited settings
@@ -683,59 +697,66 @@ void updatesettings()
 // update config file to include paths
 void updatepathconfig()
 {
+	std::set<std::string> temppaths = paths;
+
 	// input stuff from file
+	std::ifstream configfile("mcpppp-config.json");
 	std::string temp;
-	std::vector<std::string> lines;
-	std::ifstream config("mcpppp.properties");
-	while (config)
+	nlohmann::json j;
+	try
 	{
-		getline(config, temp);
-		lines.push_back(temp);
-		if (temp.find("# GUI") == 0)
-		{
-			break;
-		}
+		temp.resize(std::filesystem::file_size("mcpppp-config.json"));
+		configfile.read((char*)(temp.c_str()), std::filesystem::file_size("mcpppp-config.json"));
+		j = nlohmann::json::parse(temp, nullptr, true, true);
 	}
-	config.close();
+	catch (nlohmann::json::exception& e)
+	{
+		out(5) << e.what() << std::endl;
+		throw e;
+	}
+	configfile.close();
 
 	// remove excess deleted paths
-	std::set<std::string> s(lines.begin(), lines.end());
-	std::vector<std::string> toremove;
-	for (auto it = deletedpaths.begin(); it != deletedpaths.end(); it++)
+	if (j.contains("gui"))
 	{
-		if (s.find(*it) == s.end()) // we don't need to delete paths which are after # GUI (we can override)
+		if (j["gui"].type() == nlohmann::json::value_t::object)
 		{
-			toremove.push_back(*it);
+			if (j["gui"].contains("paths"))
+			{
+				if (j["gui"]["paths"].type() == nlohmann::json::value_t::array)
+				{
+					for (std::string& path : j["gui"]["paths"].get<std::vector<std::string>>())
+					{
+						if (deletedpaths.find(path) != deletedpaths.end()) // we don't need to delete paths which are in gui (we can override)
+						{
+							deletedpaths.erase(path);
+						}
+					}
+				}
+			}
 		}
-	}
-	for (std::string& str : toremove)
-	{
-		deletedpaths.erase(str);
 	}
 
 	// remove excess paths
-	if (lines.back().find("# GUI") != 0)
+	if (j.contains("paths"))
 	{
-		lines.push_back("# GUI (DO NOT EDIT ANY LINES AFTER THIS LINE, OR THEY MAY BE DELETED)");
-	}
-	for (const std::string& str : paths)
-	{
-		if (s.find(str) == s.end()) // we only need to add paths which haven't already been added (before # GUI)
+		if (j["paths"].type() == nlohmann::json::value_t::array)
 		{
-			lines.push_back(str);
+			for (std::string& path : j["paths"].get<std::vector<std::string>>())
+			{
+				if (temppaths.find(path) != temppaths.end()) // we only need to add paths which haven't already been added (outside of gui)
+				{
+					temppaths.erase(path);
+				}
+			}
 		}
 	}
 
-	// add added paths and output
-	std::ofstream fout("mcpppp.properties");
-	for (std::string& str : lines)
-	{
-		fout << str << std::endl;
-	}
-	for (const std::string& str : deletedpaths)
-	{
-		fout << "#!" << str << std::endl;
-	}
+	config["gui"]["paths"] = std::vector<std::string>(temppaths.begin(), temppaths.end());
+	config["gui"]["excludepaths"] = std::vector<std::string>(deletedpaths.begin(), deletedpaths.end());
+	std::ofstream fout("mcpppp-config.json");
+	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
+	fout << config.dump(1, '\t') << std::endl;
 	fout.close();
 }
 
