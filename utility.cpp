@@ -330,6 +330,73 @@ void setting(std::string option, nlohmann::json j)
 	}
 }
 
+void readconfig()
+{
+	paths.clear();
+	if (!config.contains("settings"))
+	{
+		out(4) << "No settings found" << std::endl;
+	}
+	else if (config["settings"].type() != nlohmann::json::value_t::object)
+	{
+		out(5) << "settings must be an object, got " << config["settings"].type_name() << std::endl;
+	}
+	else
+	{
+		for (auto& j : config["settings"].items())
+		{
+			setting(j.key(), j.value());
+		}
+	}
+	if (!config.contains("paths"))
+	{
+		out(4) << "No paths found" << std::endl;
+		config["paths"] = nlohmann::json::array();
+	}
+	else if (config["paths"].type() != nlohmann::json::value_t::array)
+	{
+		out(5) << "paths must be an array, got " << config["paths"].type_name() << std::endl;
+		throw std::invalid_argument(std::string("paths must be array, got ") + config["paths"].type_name());
+	}
+	else
+	{
+		paths.insert(config["paths"].begin(), config["paths"].end());
+	}
+	if (config.contains("gui"))
+	{
+		if (config["gui"].type() == nlohmann::json::value_t::object)
+		{
+			if (config["gui"].contains("settings"))
+			{
+				if (config["gui"]["settings"].type() == nlohmann::json::value_t::object)
+				{
+					for (auto& j : config["gui"]["settings"].items())
+					{
+						setting(j.key(), j.value());
+					}
+				}
+			}
+			if (config["gui"].contains("paths"))
+			{
+				if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
+				{
+					paths.insert(config["gui"]["paths"].begin(), config["gui"]["paths"].end());
+				}
+			}
+			if (config["gui"].contains("excludepaths"))
+			{
+				if (config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
+				{
+					for (std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
+					{
+						paths.erase(path);
+					}
+				}
+			}
+		}
+	}
+}
+
 #ifdef GUI
 #include "fsb.cpp"
 #include "vmt.cpp"

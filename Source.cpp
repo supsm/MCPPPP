@@ -66,73 +66,21 @@ int main(int argc, char* argv[])
 				out(5) << e.what() << std::endl;
 				goto exit;
 			}
-			paths.clear();
-			if (!config.contains("settings"))
-			{
-				out(4) << "No settings found" << std::endl;
-			}
-			else if (config["settings"].type() != nlohmann::json::value_t::object)
-			{
-				out(5) << "settings must be an object, got " << config["settings"].type_name() << std::endl;
-			}
-			else
-			{
-				for (auto& j : config["settings"].items())
-				{
-					setting(j.key(), j.value());
-				}
-			}
-			if (!config.contains("paths"))
-			{
-				out(4) << "No paths found" << std::endl;
-				config["paths"] = nlohmann::json::array();
-			}
-			else if (config["paths"].type() != nlohmann::json::value_t::array)
-			{
-				out(5) << "paths must be an array, got " << config["paths"].type_name() << std::endl;
-				goto exit;
-			}
-			else
-			{
-				paths.insert(config["paths"].begin(), config["paths"].end());
-			}
-			if (config.contains("gui"))
-			{
-				if (config["gui"].type() == nlohmann::json::value_t::object)
-				{
-					if (config["gui"].contains("settings"))
-					{
-						if (config["gui"]["settings"].type() == nlohmann::json::value_t::object)
-						{
-							for (auto& j : config["gui"]["settings"].items())
-							{
-								setting(j.key(), j.value());
-							}
-						}
-					}
-					if (config["gui"].contains("paths"))
-					{
-						if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
-						{
-							paths.insert(config["gui"]["paths"].begin(), config["gui"]["paths"].end());
-						}
-					}
-					if (config["gui"].contains("excludepaths"))
-					{
-						if (config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
-						{
-							for (std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
-							{
-								paths.erase(path);
-							}
-						}
-					}
-				}
-			}
+			readconfig();
 		}
 	}
 #ifndef GUI // gui doenst need command line options
-	// TODO: command line options
+	else
+	{
+		str.clear();
+		for (int i = 1; i < argc; i++)
+		{
+			str += argv[i];
+			str += ' ';
+		}
+		config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+		readconfig();
+	}
 #endif
 
 #ifdef GUI
@@ -147,6 +95,23 @@ int main(int argc, char* argv[])
 		<< " (GUI)"
 #else
 		<< " (CLI)"
+#endif
+		<< std::endl;
+	out(5) << "Os: " << 
+#ifdef _WIN64
+		"Win64"
+#elif defined(_WIN32)
+		"Win32"
+#elif defined(__APPLE__) || defined(__MACH__)
+		"Mac"
+#elif defined(__linux__)
+		"Linux"
+#elif defined(__FreeBSD__)
+		"FreeBSD"
+#elif defind(__unix) || defined(__unix__)
+		"Other Unix"
+#else
+		"Other"
 #endif
 		<< std::endl << std::endl;
 	out(5) << "pauseOnExit     " << (pauseonexit ? "true" : "false") << std::endl;
