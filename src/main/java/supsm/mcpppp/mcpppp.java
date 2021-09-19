@@ -35,13 +35,14 @@ public class mcpppp implements ModInitializer {
 		// Proceed with mild caution.
 
 		String OS = System.getProperty("os.name").toLowerCase();
-		String path = System.getProperty("user.dir") + "/resourcepacks;";
+		String path = System.getProperty("user.dir") + "/resourcepacks";
+		String arguments = "{\"settings\":{\"pauseonexit\":false,\"timestamp\":true},\"paths\":\"" + path + "\"}";
 		if (OS.contains("windows"))
 		{
 			extract("MCPPPP-windows-cli.exe");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("MCPPPP-windows-cli", "//set", "pauseonexit", "false;", "//set", "timestamp", "true;", path);
+				ProcessBuilder pb = new ProcessBuilder("MCPPPP-windows-cli", arguments);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
@@ -60,7 +61,7 @@ public class mcpppp implements ModInitializer {
 			extract("MCPPPP-linux");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-linux", "//set", "pauseonexit", "false;", "//set", "timestamp", "true;", path);
+				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-linux", arguments);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
@@ -79,7 +80,7 @@ public class mcpppp implements ModInitializer {
 			extract("MCPPPP-mac-cli.exe");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("MCPPPP-mac-cli", "//set", "pauseonexit", "false;", "//set", "timestamp", "true;", path);
+				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-mac-cli", arguments);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
