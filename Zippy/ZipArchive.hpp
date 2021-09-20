@@ -498,12 +498,12 @@ namespace Zippy
          * @brief
          * @param stream
          */
-        void Save(std::ostream& stream) {
+        /*void Save(std::ostream& stream) {
 
             if (!IsOpen()) throw ZipLogicError("Cannot call Save on empty ZipArchive object!");
 
             // TODO: To be implemented
-        }
+        }*/
 
         /**
          * @brief Deletes an entry from the archive.
@@ -594,21 +594,21 @@ namespace Zippy
          * @param dest The path to extract the entry to.
          * @todo To be implemented
          */
-        void ExtractDir(const std::string& dir, const std::string& dest) {
+        /*void ExtractDir(const std::string& dir, const std::string& dest) {
 
             if (!IsOpen()) throw ZipLogicError("Cannot call ExtractDir on empty ZipArchive object!");
 
-        }
+        }*/
 
         /**
          * @brief Extract all archive contents to the destination path.
          * @param dest The path to extract the entry to.
          * @todo To be implemented
          */
-        void ExtractAll(const std::string& dest) {
+        /*void ExtractAll(const std::string& dest) {
 
             if (!IsOpen()) throw ZipLogicError("Cannot call ExtractAll on empty ZipArchive object!");
-        }
+        }*/
 
         /**
          * @brief Add a new entry to the archive.

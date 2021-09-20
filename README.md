@@ -54,7 +54,7 @@ Add `./` as include path
 Add `fltk.lib` as a library  
 Note: `User32.lib`, `Gdi32.lib`, `Comdlg32.lib`, `Advapi32.lib`, `Shell32.lib`, and `Ole32.lib` are also required. If you are using an ide, these may already be linked.  
 
-My clang build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -fpermissive -Ofast -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
+My clang (windows) build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -fpermissive -Ofast -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
 
 #### GUI (Other)
 Uncomeent `#define GUI` at top of `Source.cpp`  

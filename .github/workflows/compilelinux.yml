@@ -1,0 +1,24 @@
+name: Compile Linux
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'MCPPPP-windows.exe'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: cli
+      run: clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-linux
+    - name: gui
+      run: clang++ -I./ -DGUI -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -std=c++17 -o MCPPPP-linux-gui
+    - uses: EndBug/add-and-commit@v7
+      with:
+        add: '["MCPPPP-linux", "MCPPPP-linux-gui"]'
+        message: 'add linux binary'
+        push: true

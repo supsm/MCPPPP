@@ -4,14 +4,15 @@ mcpppp-config.json
 *.vcxproj.filters
 *.vcxproj.user
 *.css
-mcpppp-temp/
 *.bat
+*.tmp*
 \!filesize.exe
+\!bumpversion.exe
 files.txt
 mcpppp-log.txt
-*.tmp*
 desktop.ini
 
+mcpppp-temp/
 Debug/
 x64/
 x64-Debug/
