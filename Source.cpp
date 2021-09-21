@@ -78,7 +78,15 @@ int main(int argc, char* argv[])
 			str += argv[i];
 			str += ' ';
 		}
-		config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+		try
+		{
+			config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+		}
+		catch (nlohmann::json::exception& e)
+		{
+			out(5) << e.what() << std::endl;
+			goto exit;
+		}
 		readconfig();
 	}
 #endif
