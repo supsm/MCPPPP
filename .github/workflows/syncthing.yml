@@ -15,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: extract
+      run: tar -xf MCPPPP-mac-cli.tar.gz
     - name: Sync
       uses: BetaHuhn/repo-file-sync-action@v1
       with:
