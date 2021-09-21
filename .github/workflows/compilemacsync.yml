@@ -6,6 +6,14 @@ on:
     - master
     paths:
     - 'MCPPPP-linux'
+  workflow_run:
+    workflows:
+    - Compile Linux
+    types:
+    - completed
+    branches:
+    - master
+
   workflow_dispatch:
 
 jobs:

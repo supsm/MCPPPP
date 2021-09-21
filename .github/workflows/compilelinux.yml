@@ -1,11 +1,6 @@
 name: Compile Linux
 
 on:
-  push:
-    branches:
-    - master
-    paths:
-    - 'MCPPPP-windows.exe'
   workflow_dispatch:
 
 jobs:
