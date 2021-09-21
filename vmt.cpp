@@ -9,6 +9,10 @@
 
 #define VMT std::string("reselect") // will happen soon
 
+void vmt(std::string path, std::string filename, bool zip); // main vmt function that calls everything else
+void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zip, std::filesystem::directory_entry png); // converts optifine properties to vmt properties json
+void vmtpng(std::string& name, std::string& folder, std::string& path, bool& newlocation, bool& zip, std::vector<int>& numbers, std::filesystem::directory_entry png); // moves vmt pngs to new location
+
 void vmtpng(std::string& name, std::string& folder, std::string& path, bool& newlocation, bool& zip, std::vector<int>& numbers, std::filesystem::directory_entry png)
 {
 	std::string folderpath, curname, curnum;
