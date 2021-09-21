@@ -73,10 +73,11 @@ int main(int argc, char* argv[])
 	else
 	{
 		str.clear();
-		for (int i = 1; i < argc; i++)
+		str += argv[1];
+		for (int i = 2; i < argc; i++)
 		{
-			str += argv[i];
 			str += ' ';
+			str += argv[i];
 		}
 		try
 		{
