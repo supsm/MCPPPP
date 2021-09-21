@@ -1,5 +1,6 @@
 package supsm.mcpppp;
 
+import com.google.gson.*;
 import net.fabricmc.api.ModInitializer;
 
 import java.io.File;
@@ -36,13 +37,20 @@ public class mcpppp implements ModInitializer {
 
 		String OS = System.getProperty("os.name").toLowerCase();
 		String path = System.getProperty("user.dir") + "/resourcepacks";
-		String arguments = "{\"settings\":{\"pauseonexit\":false,\"timestamp\":true},\"paths\":\"" + path + "\"}";
+		JsonObject arguments = new JsonParser().parse("{\"settings\":{\"pauseonexit\":false,\"timestamp\":true}}").getAsJsonObject();
+		JsonArray array = new JsonArray();
+		array.add(path);
+		arguments.add("paths", array);
+
+		String s = arguments.toString();
+		s = s.replaceAll("\"", "\\\\\"");
+
 		if (OS.contains("windows"))
 		{
 			extract("MCPPPP-windows-cli.exe");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("MCPPPP-windows-cli", arguments);
+				ProcessBuilder pb = new ProcessBuilder("MCPPPP-windows-cli", s);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
@@ -61,7 +69,7 @@ public class mcpppp implements ModInitializer {
 			extract("MCPPPP-linux");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-linux", arguments);
+				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-linux", s);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
@@ -80,7 +88,7 @@ public class mcpppp implements ModInitializer {
 			extract("MCPPPP-mac-cli.exe");
 			try
 			{
-				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-mac-cli", arguments);
+				ProcessBuilder pb = new ProcessBuilder("./MCPPPP-mac-cli", s);
 				pb.inheritIO();
 				Process p = pb.start();
 				while (p.isAlive())
