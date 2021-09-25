@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//#define GUI
+#define GUI
 
 #define NOMINMAX
 
-#define VERSION "0.5.0" // MCPPPP version
+#define VERSION "0.5.1" // MCPPPP version
 
 #include <iostream>
 #include <filesystem>
@@ -44,7 +44,7 @@ int main(int argc, char* argv[])
 		if (configfile.fail() && argc < 2)
 		{
 			std::ofstream createconfig("mcpppp-config.json");
-			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
+			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl << "{}" << std::endl;
 			createconfig.close();
 #ifdef GUI
 			openhelp(nullptr, nullptr);
@@ -140,11 +140,10 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 #ifdef GUI
-			running = true; // prevent user from running
-			Fl::run();
+			ui->tempfound->show();
 #else
+			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 			goto exit;
 #endif
 	}

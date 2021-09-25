@@ -298,6 +298,29 @@ g\\n5 Error");
     } // Fl_Help_View* o
     help->end();
   } // Fl_Window* help
+  { tempfound = new Fl_Window(200, 160, "mcpppp-temp");
+    tempfound->user_data((void*)(this));
+    { Fl_Box* o = new Fl_Box(10, 10, 180, 100, "mcpppp-temp folder was found. It may contain important information if you cre\
+ated it yourself. Do you want to delete it?");
+      o->align(Fl_Align(FL_ALIGN_WRAP));
+    } // Fl_Box* o
+    { Fl_Button* o = new Fl_Button(10, 120, 85, 20, "Yes");
+      o->tooltip("Delete mcpppp-temp");
+      o->box(FL_BORDER_BOX);
+      o->down_box(FL_BORDER_BOX);
+      o->color(FL_DARK2);
+      o->selection_color((Fl_Color)43);
+      o->callback((Fl_Callback*)deletetemp);
+    } // Fl_Button* o
+    { Fl_Button* o = new Fl_Button(105, 120, 85, 20, "No");
+      o->box(FL_BORDER_BOX);
+      o->down_box(FL_BORDER_BOX);
+      o->color(FL_DARK2);
+      o->selection_color((Fl_Color)43);
+      o->callback((Fl_Callback*)dontdeletetemp);
+    } // Fl_Button* o
+    tempfound->end();
+  } // Fl_Window* tempfound
 }
 
 void UI::show() {

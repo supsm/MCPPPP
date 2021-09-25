@@ -35,7 +35,7 @@ More detailed instructions below
 
 
 #### CLI
-In the CLI versrion of MCPPPP, you will need to add paths and settings yourself. Please read [CONFIG.md](CONFIG.md)
+In the CLI version of MCPPPP, you will need to add paths and settings yourself. Please read [CONFIG.md](CONFIG.md)  
 Alternatively, command-line arguments may be passed for temorary settings. Simply add a json as the command line argument(s). 
 
 #### GUI
@@ -46,7 +46,7 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
 3. Build `Source.cpp` in whichever fashion you want, using C++17. Turn on optimizations if possible, the conversion process will be a lot faster.  
 
-My build script: `clang++ Source.cpp -fpermissive -std=c++17 -O3 -o MCPPPP-linux`  
+My build script: `clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-windows-cli.exe`  
 
 #### GUI (Windows)
 Uncomment `#define GUI` at top of `Source.cpp`  
