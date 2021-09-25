@@ -24,6 +24,8 @@ extern void deleterespath(Fl_Button*, void*);
 #include <FL/Fl_Counter.H>
 extern void savesettings(Fl_Button*, void*);
 #include <FL/Fl_Help_View.H>
+extern void deletetemp(Fl_Button*, void*);
+extern void dontdeletetemp(Fl_Button*, void*);
 
 class UI {
 public:
@@ -75,6 +77,7 @@ private:
 public:
   Fl_Box *savewarning;
   Fl_Window *help;
+  Fl_Window *tempfound;
   void show();
 };
 extern void settingchanged(Fl_Widget*, void*);

@@ -715,6 +715,21 @@ void selectall(Fl_Check_Button* o, void* v)
 	Fl::wait();
 }
 
+// callback for delete mcpppp-temp
+void deletetemp(Fl_Button* o, void* v)
+{
+	std::filesystem::remove_all("mcpppp-temp");
+	ui->tempfound->hide();
+}
+
+// callback for not deleting mcpppp-temp
+void dontdeletetemp(Fl_Button* o, void* v)
+{
+	out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+	running = true;
+	ui->tempfound->hide();
+}
+
 // add resourcepack to checklist
 void addpack(std::string name, bool selected)
 {
