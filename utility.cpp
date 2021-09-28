@@ -50,7 +50,7 @@ inline nlohmann::ordered_json config;
 enum class type { boolean, integer, string };
 
 // type, pointer to variable to modify, default value
-std::unordered_map<std::string, std::tuple<type, void*, nlohmann::json>> settings =
+const std::unordered_map<std::string, std::tuple<type, void*, nlohmann::json>> settings =
 {
 	{"pauseonexit", {type::boolean, &pauseonexit, pauseonexit}},
 	{"log", {type::string, &logfilename, logfilename}},
@@ -119,23 +119,6 @@ std::string ununderscore(std::string str)
 	return str2;
 }
 
-namespace supsm
-{
-	void copy(std::filesystem::path from, std::filesystem::path to)
-	{
-		if (std::filesystem::is_directory(to))
-		{
-			return;
-		}
-		if (std::filesystem::exists(to))
-		{
-			std::filesystem::remove(to);
-		}
-		std::filesystem::create_directories(to.parent_path());
-		std::filesystem::copy(from, to);
-	}
-}
-
 std::string wtomb(std::wstring str)
 {
 	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
@@ -144,12 +127,54 @@ std::string wtomb(std::wstring str)
 
 void findreplace(std::string& source, std::string find, std::string replace)
 {
-	int pos;
-	while (source.find(find) != std::string::npos)
+	int pos = -2;
+	while (source.find(find, pos + 2) != std::string::npos)
 	{
-		pos = source.find(find);
+		pos = source.find(find, pos + 2);
 		source.replace(pos, find.length(), replace);
 	}
+}
+
+std::string oftoregex(std::string of)
+{
+	findreplace(of, ".", "\\.");
+	findreplace(of, "[", "\\[");
+	findreplace(of, "]", "\\]");
+	findreplace(of, "^", "\\^");
+	findreplace(of, "$", "\\$");
+	findreplace(of, "+", "\\+");
+	findreplace(of, "{", "\\{");
+	findreplace(of, "}", "\\}");
+	for (size_t i = 0; i < of.size(); i++)
+	{
+		if (of[i] == '*')
+		{
+			if (i != 0)
+			{
+				if (of[i - 1] == '\\')
+				{
+					continue;
+				}
+			}
+			of.replace(i, 1, ".*");
+			i++;
+		}
+	}
+	for (size_t i = 0; i < of.size(); i++)
+	{
+		if (of[i] == '?')
+		{
+			if (i != 0)
+			{
+				if (of[i - 1] == '\\')
+				{
+					continue;
+				}
+			}
+			of.replace(i, 1, ".*");
+		}
+	}
+	return of;
 }
 
 bool c, file;
@@ -277,6 +302,37 @@ outstream out(int level)
 	return o;
 }
 
+namespace supsm
+{
+	void copy(std::filesystem::path from, std::filesystem::path to)
+	{
+		if (std::filesystem::is_directory(to))
+		{
+			return;
+		}
+		if (std::filesystem::exists(to))
+		{
+			std::filesystem::remove(to);
+		}
+		try
+		{
+			std::filesystem::create_directories(to.parent_path());
+		}
+		catch (std::filesystem::filesystem_error& e)
+		{
+			out(5) << "Error creating directory: " << e.what() << std::endl;
+		}
+		try
+		{
+			std::filesystem::copy(from, to);
+		}
+		catch (std::filesystem::filesystem_error& e)
+		{
+			out(5) << "Error copying file: " << e.what() << std::endl;
+		}
+	}
+}
+
 void setting(std::string option, nlohmann::json j)
 {
 	if (settings.find(lowercase(option)) == settings.end())
@@ -284,8 +340,8 @@ void setting(std::string option, nlohmann::json j)
 		out(4) << "Unknown setting: " << option << std::endl;
 		return;
 	}
-	type t = std::get<0>(settings[lowercase(option)]);
-	void* var = std::get<1>(settings[lowercase(option)]);
+	type t = std::get<0>(settings.at(lowercase(option)));
+	void* var = std::get<1>(settings.at(lowercase(option)));
 	if (t == type::boolean)
 	{
 		try
@@ -672,7 +728,7 @@ void savesettings(Fl_Button* o, void* v)
 	}
 	for (auto& setting : config["gui"]["settings"].items())
 	{
-		if (std::get<2>(settings[lowercase(setting.key())]) == nlohmann::json(setting.value()))
+		if (std::get<2>(settings.at(lowercase(setting.key()))) == nlohmann::json(setting.value()))
 		{
 			toremove.push_back(setting.key());
 		}
@@ -683,7 +739,7 @@ void savesettings(Fl_Button* o, void* v)
 	}
 
 	std::ofstream fout("mcpppp-config.json");
-	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
+	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl << "{}" << std::endl;
 	fout << config.dump(1, '\t') << std::endl;
 	fout.close();
 
@@ -711,6 +767,7 @@ void selectall(Fl_Check_Button* o, void* v)
 	for (auto& entry : entries)
 	{
 		addpack(entry.second.path().filename().u8string(), o->value());
+		entry.first = o->value();
 	}
 	Fl::wait();
 }
@@ -738,6 +795,7 @@ void addpack(std::string name, bool selected)
 	fl_text_extents(name.c_str(), dx, dy, w, h);
 	Fl_Check_Button* o = new Fl_Check_Button(445, 60 + 15 * numbuttons, w + 30, 15);
 	o->copy_label(name.c_str());
+	o->copy_tooltip(name.c_str());
 	o->down_box(FL_DOWN_BOX);
 	o->value(selected);
 	o->user_data((void*)(numbuttons));

@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#define GUI
+//#define GUI
 
 #define NOMINMAX
 
@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
 		"Linux"
 #elif defined(__FreeBSD__)
 		"FreeBSD"
-#elif defind(__unix) || defined(__unix__)
+#elif defined(__unix) || defined(__unix__)
 		"Other Unix"
 #else
 		"Other"
