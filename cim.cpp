@@ -30,7 +30,9 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 	if (png.path().extension() == ".png")
 	{
 		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath));
-		copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath + png.path().filename().u8string()));
+		std::string filename = png.path().filename().u8string();
+		findreplace(filename, " ", "_");
+		copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/item/" + folderpath + filename));
 	}
 	else
 	{
@@ -68,6 +70,31 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 						temp = "mcpppp:item/" + folderpath + temp;
 						it.value() = temp;
 					}
+					if (temp.find(" ") != std::string::npos)
+					{
+						std::string origtemp = temp;
+						findreplace(temp, " ", "_");
+						if (temp.find(":") == std::string::npos)
+						{
+							supsm::copy(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/textures/" + origtemp + ".png"), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
+							it.value() = "mcpppp:extra/minecraft/" + temp;
+						}
+						else
+						{
+							std::string ns;
+							for (size_t i = 0; i < origtemp.size(); i++)
+							{
+								if (origtemp[i] == ':')
+								{
+									origtemp.erase(origtemp.begin(), origtemp.begin() + i);
+									break;
+								}
+								ns.push_back(origtemp[i]);
+							}
+							supsm::copy(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + ns + "/textures/" + origtemp + ".png"), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
+							it.value() = "mcpppp:extra/" + ns + "/" + temp;
+						}
+					}
 					if (first == "")
 					{
 						first = it.value();
@@ -80,7 +107,9 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 			}
 		}
 		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath));
-		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath + png.path().filename().u8string()));
+		std::string filename = png.path().filename().u8string();
+		findreplace(filename, " ", "_");
+		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/item/" + folderpath + filename));
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
 	}
@@ -140,12 +169,17 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			while (ss)
 			{
 				ss >> temp;
+				if (temp.find("minecraft:") == 0)
+				{
+					temp.erase(temp.begin(), temp.begin() + 10);
+				}
 				items.push_back(temp);
 			}
 		}
 		else if (option == "texture")
 		{
 			texture = value;
+			findreplace(texture, " ", "_");
 			if (texture.find(".png") != std::string::npos)
 			{
 				texture.erase(texture.end() - 4, texture.end());
@@ -175,9 +209,10 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		else if (option == "model")
 		{
 			model = value;
-			if (model.find(".png") != std::string::npos)
+			findreplace(model, " ", "_");
+			if (model.find(".json") != std::string::npos)
 			{
-				model.erase(model.end() - 4, model.end());
+				model.erase(model.end() - 5, model.end());
 			}
 			if (model.find("/") != std::string::npos && model[0] != '.')
 			{
@@ -354,8 +389,9 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			}
 			nbt.push(temp);
 			temp = value;
-			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
+			if (temp.find("regex:") <= 1)
 			{
+				bool insensitive = (temp.find("iregex:") == 0);
 				for (size_t i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == ':')
@@ -364,7 +400,20 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 						break;
 					}
 				}
-				temp = '/' + temp + '/';
+				temp = std::string("/") + (insensitive ? "(?i)" : "") + temp + "/";
+			}
+			else if (temp.find("pattern:") <= 1)
+			{
+				bool insensitive = (temp.find("ipattern:") == 0);
+				for (size_t i = 0; i < temp.size(); i++)
+				{
+					if (temp[i] == ':')
+					{
+						temp.erase(temp.begin(), temp.begin() + i + 1);
+						break;
+					}
+				}
+				temp = std::string("/") + (insensitive ? "(?i)" : "") + oftoregex(temp) + "/";
 			}
 			if (lowercase(option) == "nbt.display.name")
 			{

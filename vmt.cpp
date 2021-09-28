@@ -265,8 +265,16 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 			// pattern/ipattern to regex/iregex conversion
 			temp = value;
 			bool insensitive;
-			if (temp.find("regex:") != std::string::npos || temp.find("pattern:") != std::string::npos)
+			if (temp.find("regex:") != std::string::npos)
 			{
+				if (temp.find("iregex:") != std::string::npos)
+				{
+					insensitive = true;
+				}
+				else
+				{
+					insensitive = false;
+				}
 				for (size_t i = 0; i < temp.size(); i++)
 				{
 					if (temp[i] == ':')
@@ -275,7 +283,10 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 						break;
 					}
 				}
-				if (temp.find("iregex:") != std::string::npos || temp.find("ipattern:") != std::string::npos)
+			}
+			else if (temp.find("pattern:") != std::string::npos)
+			{
+				if (temp.find("ipattern:") != std::string::npos)
 				{
 					insensitive = true;
 				}
@@ -283,6 +294,15 @@ void vmtprop(std::string& folder, std::string& path, bool& newlocation, bool& zi
 				{
 					insensitive = false;
 				}
+				for (size_t i = 0; i < temp.size(); i++)
+				{
+					if (temp[i] == ':')
+					{
+						temp.erase(temp.begin(), temp.begin() + i + 1);
+						break;
+					}
+				}
+				temp = oftoregex(temp);
 			}
 			names[curnum - 1] = std::make_pair(temp, insensitive);
 		}
