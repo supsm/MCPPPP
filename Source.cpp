@@ -6,7 +6,7 @@
 
 #define NOMINMAX
 
-#define VERSION "0.5.1" // MCPPPP version
+#define VERSION "0.5.2" // MCPPPP version
 
 #include <iostream>
 #include <filesystem>
@@ -157,7 +157,7 @@ int main(int argc, char* argv[])
 		}
 		else
 		{
-			out(5) << "Path: " << path << std::endl;
+			out(2) << "Path: " << path << std::endl;
 		}
 		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
