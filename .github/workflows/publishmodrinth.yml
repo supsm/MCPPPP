@@ -10,6 +10,8 @@ jobs:
     steps:
       - name: checkout repository
         uses: actions/checkout@v2
+        with:
+          ref: 'mod'
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk 16
@@ -18,7 +20,7 @@ jobs:
           java-version: 16
       - name: make gradle wrapper executable
         run: chmod +x ./gradlew
-      - name: build
-        run: ./gradlew clean build
       - name: publish
-        run: ./gradlew publishModrinth
+        run: ./gradlew clean build publishModrinth
+        env:
+          MODRINTH: ${{ secrets.MODRINTH }}
