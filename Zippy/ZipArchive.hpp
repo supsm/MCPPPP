@@ -542,7 +542,7 @@ namespace Zippy
             }
 
             // ===== Check that the operation was successful
-            if (!result->IsDirectory() && result->m_EntryData.data() == nullptr)
+            if (!result->IsDirectory() && result->m_EntryData.data() == nullptr && m_Archive.m_last_error)
                 throw ZipRuntimeError(mz_zip_get_error_string(m_Archive.m_last_error));
 
             // ===== Return ZipEntry object with the file data.
