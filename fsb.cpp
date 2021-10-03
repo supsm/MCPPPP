@@ -8,21 +8,24 @@
 #include <string>
 #include <vector>
 
-void fsb(std::string path, std::string filename, bool zip); // main fsb function that calls everything else
-void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // convert optifine properties files into fsb properties json
-void fsbpng(std::string& folder, std::string& path, std::string output, bool& zip, std::filesystem::directory_entry png); // convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
-void rgb2hsv(double& first, double& second, double& third); // convert red-green-blue color to hue-saturation-value color
-void hsv2rgb(double& first, double& second, double& third); // same thing as above, but in reverse
-void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h); // convert black to transparent
+#include "utility.cpp"
+#include "lodepng.cpp"
 
-void rgb2hsv(double& first, double& second, double& third)
+void fsb(const std::string& path, const std::string& filename, const bool& zip); // main fsb function that calls everything else
+void fsbprop(const std::string& folder, const std::string& path, bool& zip, const std::filesystem::directory_entry& png); // convert optifine properties files into fsb properties json
+void fsbpng(const std::string& folder, const std::string& path, const std::string& output, bool& zip, const std::filesystem::directory_entry& png); // convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
+void rgb2hsv(double& first, double& second, double& third) noexcept; // convert red-green-blue color to hue-saturation-value color
+void hsv2rgb(double& first, double& second, double& third) noexcept; // same thing as above, but in reverse
+void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h); // convert black to transparent
+
+static void rgb2hsv(double& first, double& second, double& third) noexcept
 {
-	double r = first * 20 / 51; // convert 0-255 to 0-100
-	double g = second * 20 / 51;
-	double b = third * 20 / 51;
+	const double r = first * 20 / 51; // convert 0-255 to 0-100
+	const double g = second * 20 / 51;
+	const double b = third * 20 / 51;
 
-	double max = std::max(std::max(r, g), b);
-	double d = max - std::min(std::min(r, g), b);
+	const double max = std::max(std::max(r, g), b);
+	const double d = max - std::min(std::min(r, g), b);
 
 	// hue
 	if (d == 0)
@@ -57,11 +60,11 @@ void rgb2hsv(double& first, double& second, double& third)
 	third = max; // value
 }
 
-void hsv2rgb(double& first, double& second, double& third)
+static void hsv2rgb(double& first, double& second, double& third) noexcept
 {
-	double c = second * third / 10000;
-	double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
-	double m = third / 100 - c;
+	const double c = second * third / 10000;
+	const double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
+	const double m = third / 100 - c;
 
 	if (first < 60)
 	{
@@ -101,38 +104,36 @@ void hsv2rgb(double& first, double& second, double& third)
 	}
 }
 
-void convert(std::vector<unsigned char>& image, unsigned int w, unsigned int h)
+static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
 {
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
 		for (long long j = 0; j < h / 2; j++)
 		{
 			// if completely opaque
-			if (image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3] == 255)
+			if (image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)) == 255)
 			{
-				double first = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i];
-				double second = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1];
-				double third = image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2];
-				double alpha;
+				double first = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i));
+				double second = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1));
+				double third = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2));
 				rgb2hsv(first, second, third);
-				alpha = third * 51 / 20; // convert 0-100 to 0-255
+				const double alpha = third * 51 / 20; // convert 0-100 to 0-255
 				third = 100;
 				hsv2rgb(first, second, third);
-				image[((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)] = first;
-				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1] = second;
-				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2] = third;
-				image[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3] = alpha;
+				image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)) = static_cast<uint8_t>(first);
+				image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1)) = static_cast<uint8_t>(second);
+				image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2)) = static_cast<uint8_t>(third);
+				image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)) = static_cast<uint8_t>(alpha);
 			}
 		}
 	}
 }
 
-void fsbpng(std::string& folder, std::string& path, std::string output, bool& zip, std::filesystem::directory_entry png)
+static void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-	int error;
-	unsigned int w, h;
-	std::vector<unsigned char> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
+	unsigned int w, h, error;
+	std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 	// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 	std::string filename = png.path().filename().u8string();
 	lodepng::State state;
@@ -140,16 +141,16 @@ void fsbpng(std::string& folder, std::string& path, std::string output, bool& zi
 	state.info_raw.bitdepth = 8;
 	filename.erase(filename.end() - 4, filename.end());
 	error = lodepng::load_file(buffer, png.path().u8string());
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::decode(image, w, h, state, buffer);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
-	if (w % 3 || h % 2)
+	if (w % 3 == 0 || h % 2 == 0)
 	{
 		out(5) << "FSB: Wrong dimensions: " << png.path().u8string();
 		return;
@@ -157,19 +158,19 @@ void fsbpng(std::string& folder, std::string& path, std::string output, bool& zi
 	image1.reserve(buffer.size() / 6);
 	image2.reserve(buffer.size() / 6);
 	image3.reserve(buffer.size() / 6);
-	for (long long i = 0; i < (w * 4) * h / 2; i++)
+	for (size_t i = 0; i < (w * 4) * h / 2; i++)
 	{
 		if (i % (w * 4) < (w * 4) / 3)
 		{
-			image1.push_back(image[i]);
+			image1.push_back(image.at(i));
 		}
 		else if (i % (w * 4) < 2 * (w * 4) / 3)
 		{
-			image2.push_back(image[i]);
+			image2.push_back(image.at(i));
 		}
 		else
 		{
-			image3.push_back(image[i]);
+			image3.push_back(image.at(i));
 		}
 	}
 
@@ -182,62 +183,62 @@ void fsbpng(std::string& folder, std::string& path, std::string output, bool& zi
 	{
 		for (long long j = 0; j < h / 2; j++)
 		{
-			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i]);
-			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1]);
-			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2]);
-			top.push_back(image2[(w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3]);
+			top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)));
+			top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1)));
+			top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2)));
+			top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)));
 		}
 	}
 	buffer.clear();
 	std::filesystem::create_directories(std::filesystem::u8path(zip ? "mcpppp-temp/" + folder + output : path + output));
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_bottom.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, top, h / 2, w / 3, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_top.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_south.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	image1.clear();
 	image2.clear();
 	image3.clear();
-	for (long long i = (w * 4) * h / 2; i < (w * 4) * h; i++)
+	for (size_t i = (w * 4) * h / 2; i < (w * 4) * h; i++)
 	{
 		if (i % (w * 4) < (w * 4) / 3)
 		{
-			image1.push_back(image[i]);
+			image1.push_back(image.at(i));
 		}
 		else if (i % (w * 4) < 2 * (w * 4) / 3)
 		{
-			image2.push_back(image[i]);
+			image2.push_back(image.at(i));
 		}
 		else
 		{
-			image3.push_back(image[i]);
+			image3.push_back(image.at(i));
 		}
 	}
 
@@ -247,44 +248,44 @@ void fsbpng(std::string& folder, std::string& path, std::string output, bool& zi
 
 	buffer.clear();
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_west.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image2, w / 3, h / 2, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_north.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_east.png");
-	if (error)
+	if (error == 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 }
 
-void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
+static void fsbprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 	std::string name = png.path().filename().u8string(), source, option, value, temp;
-	std::vector<unsigned char> buffer;
+	std::vector<uint8_t> buffer;
 	lodepng::State state;
 	state.info_raw.colortype = LCT_RGBA;
 	state.info_raw.bitdepth = 8;
@@ -299,7 +300,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		option.clear();
 		value.clear();
 		bool isvalue = false;
-		for (char& c : temp)
+		for (const char& c : temp)
 		{
 			if (c == '=')
 			{
@@ -338,9 +339,9 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			findreplace(temp, "\\:", ":");
 			for (size_t i = 0; i < temp.size(); i++)
 			{
-				if (temp[i] == ':')
+				if (temp.at(i) == ':')
 				{
-					temp.erase(temp.begin() + i);
+					temp.erase(temp.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i));
 					i--;
 				}
 			}
@@ -348,12 +349,12 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			try
 			{
 				int tempi = stoi(temp);
-				tempi = int(tempi / 1000) * 1000 + round((tempi % 1000) / 3.0 * 5);
+				tempi = tempi / 1000 * 1000 + static_cast<int>(round((tempi % 1000) / 3.0 * 5));
 				tempi = (tempi + 18000) % 24000;
 				((option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : startfadeout) : (option == "endFadeIn" ? endfadein : endfadeout)) = tempi;
 				j["properties"]["fade"][option] = tempi;
 			}
-			catch (std::invalid_argument& e)
+			catch (const std::invalid_argument& e)
 			{
 				out(5) << "Error: " << e.what() << "\n\tIn file \"" << png.path().u8string() << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
 				return;
@@ -365,7 +366,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		}
 		else if (option == "rotate")
 		{
-			j["properties"]["shouldRotate"] = (value == "true") ? true : false;
+			j["properties"]["shouldRotate"] = (value == "true");
 		}
 		else if (option == "speed")
 		{
@@ -416,11 +417,11 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				heights >> height;
 				for (size_t i = 0; i < height.size(); i++)
 				{
-					if (height[i] == '-')
+					if (height.at(i) == '-')
 					{
 						minheight = height;
-						minheight.erase(minheight.begin() + i, minheight.end());
-						height.erase(height.begin(), height.begin() + i);
+						minheight.erase(minheight.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i), minheight.end());
+						height.erase(height.begin(), height.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i));
 						heightlist.push_back({ {"min", stod(minheight)}, {"max", stod(height)} });
 					}
 				}
@@ -438,7 +439,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	{
 		j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
 	}
-	if (source[0] == '.' && source[1] == '/')
+	if (source.at(0) == '.' && source.at(1) == '/')
 	{
 		source.erase(source.begin());
 		std::string origsource = source;
@@ -471,11 +472,11 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	else
 	{
 		std::string sourcefolder = source, sourcefile;
-		while (sourcefolder.back() != '/' && sourcefolder.size() > 0)
+		while (sourcefolder.back() != '/' && !sourcefolder.empty())
 		{
 			sourcefolder.erase(sourcefolder.end() - 1);
 		}
-		sourcefile = std::string(source.begin() + sourcefolder.size(), source.end());
+		sourcefile = std::string(source.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(sourcefolder.size()), source.end());
 		if (sourcefolder.front() != '/')
 		{
 			sourcefolder.insert(sourcefolder.begin(), '/');
@@ -515,7 +516,7 @@ void fsbprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	fout.close();
 }
 
-void fsb(std::string path, std::string filename, bool zip)
+inline void fsb(const std::string& path, const std::string& filename, const bool& zip)
 {
 	std::string folder;
 	bool optifine;
@@ -597,7 +598,7 @@ void fsb(std::string path, std::string filename, bool zip)
 	{
 		out(3) << "FSB: Compressing " + filename << std::endl;
 		Zippy::ZipEntryData zed;
-		long long filesize;
+		size_t filesize;
 		for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
 		{
 			if (png.is_directory())
@@ -609,7 +610,7 @@ void fsb(std::string path, std::string filename, bool zip)
 			filesize = png.file_size();
 			zed.resize(filesize);
 			fin.seekg(0, std::ios::beg);
-			fin.read((char*)(zed.data()), filesize);
+			fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
 			fin.close();
 			zipa.AddEntry("assets/fabricskyboxes/sky/" + png.path().filename().u8string(), zed);
 		}
