@@ -7,11 +7,13 @@
 #include <string>
 #include <vector>
 
-void cim(std::string path, std::string filename, bool zip); // main cim function that calls everything else
-void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // convert cit properties to cim
-void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png); // converts everything else
+#include "utility.cpp"
 
-void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
+void cim(const std::string& path, const std::string& filename, const bool& zip); // main cim function that calls everything else
+void cimprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png); // convert cit properties to cim
+void cimother(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png); // converts everything else
+
+static void cimother(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	// png location (textures): assets/mcpppp/textures/item
 	// json location (models): assets/mcpppp/models/item
@@ -44,7 +46,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 		if (j.contains("parent"))
 		{
 			temp = j["parent"].get<std::string>();
-			if (temp[0] == '.' && temp[1] == '/')
+			if (temp.at(0) == '.' && temp.at(1) == '/')
 			{
 				temp.erase(temp.begin(), temp.begin() + 2);
 				temp = "mcpppp:item/" + folderpath + temp;
@@ -54,8 +56,8 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 		if (j.contains("textures"))
 		{
 			bool layer0 = false;
-			std::string first = "";
-			for (auto& it : j["textures"].items())
+			std::string first;
+			for (const auto& it : j["textures"].items())
 			{
 				if (it.value().type() == nlohmann::json::value_t::string)
 				{
@@ -64,7 +66,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 						layer0 = true;
 					}
 					temp = it.value().get<std::string>();
-					if (temp[0] == '.' && temp[1] == '/')
+					if (temp.at(0) == '.' && temp.at(1) == '/')
 					{
 						temp.erase(temp.begin(), temp.begin() + 2);
 						temp = "mcpppp:item/" + folderpath + temp;
@@ -84,12 +86,12 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 							std::string ns;
 							for (size_t i = 0; i < origtemp.size(); i++)
 							{
-								if (origtemp[i] == ':')
+								if (origtemp.at(i) == ':')
 								{
 									origtemp.erase(origtemp.begin(), origtemp.begin() + i);
 									break;
 								}
-								ns.push_back(origtemp[i]);
+								ns.push_back(origtemp.at(i));
 							}
 							supsm::copy(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/" + ns + "/textures/" + origtemp + ".png"), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
 							it.value() = "mcpppp:extra/" + ns + "/" + temp;
@@ -115,7 +117,7 @@ void cimother(std::string& folder, std::string& path, bool& zip, std::filesystem
 	}
 }
 
-void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem::directory_entry png)
+static void cimprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	std::string folderpath = png.path().u8string();
 	for (char& c : folderpath)
@@ -127,7 +129,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
 	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
-	std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name = "";
+	std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 	std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 	std::vector<nlohmann::json> nbts, predicates, tempp;
 	std::stack<std::string> nbt;
@@ -139,11 +141,11 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		option.clear();
 		value.clear();
 		bool isvalue = false;
-		if (temp == "" || temp[0] == '#')
+		if (temp == "" || temp.at(0) == '#')
 		{
 			continue;
 		}
-		for (char& c : temp)
+		for (const char& c : temp)
 		{
 			if (c == '=')
 			{
@@ -184,7 +186,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			{
 				texture.erase(texture.end() - 4, texture.end());
 			}
-			if (texture.find("/") != std::string::npos && texture[0] != '.')
+			if (texture.find("/") != std::string::npos && texture.at(0) != '.')
 			{
 				// assets/mcpppp/textures/extra
 				// mcpppp:extra/
@@ -192,7 +194,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + texture + ".png"));
 				texture = "mcpppp:extra/" + texture;
 			}
-			else if (texture[0] == '.')
+			else if (texture.at(0) == '.')
 			{
 				texture.erase(texture.begin(), texture.begin() + 2);
 				texture = "mcpppp:item/" + folderpath + texture;
@@ -214,7 +216,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			{
 				model.erase(model.end() - 5, model.end());
 			}
-			if (model.find("/") != std::string::npos && model[0] != '.')
+			if (model.find("/") != std::string::npos && model.at(0) != '.')
 			{
 				// assets/mcpppp/models/extra
 				// mcpppp:extra/
@@ -222,7 +224,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/" + model + ".png"));
 				model = "mcpppp:extra/" + model;
 			}
-			else if (model[0] == '.')
+			else if (model.at(0) == '.')
 			{
 				model.erase(model.begin(), model.begin() + 2);
 				model = "mcpppp:item/" + folderpath + model;
@@ -243,12 +245,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					damages.push_back("[" + temp + ", " + temp + "]");
 				}
-				else if (temp[0] == '-')
+				else if (temp.at(0) == '-')
 				{
 					temp.erase(temp.begin());
 					damages.push_back("<=" + temp);
 				}
-				else if (temp[temp.size() - 1] == '-')
+				else if (temp.at(temp.size() - 1) == '-')
 				{
 					temp.erase(temp.end() - 1);
 					damages.push_back(">=" + temp);
@@ -257,7 +259,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					for (size_t i = 0; i < temp.size(); i++)
 					{
-						if (temp[i] == '-')
+						if (temp.at(i) == '-')
 						{
 							first = temp;
 							first.erase(first.begin() + i, first.end());
@@ -284,12 +286,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					stacksizes.push_back("[" + temp + ", " + temp + "]");
 				}
-				else if (temp[0] == '-')
+				else if (temp.at(0) == '-')
 				{
 					temp.erase(temp.begin());
 					stacksizes.push_back("<=" + temp);
 				}
-				else if (temp[temp.size() - 1] == '-')
+				else if (temp.at(temp.size() - 1) == '-')
 				{
 					temp.erase(temp.end() - 1);
 					stacksizes.push_back(">=" + temp);
@@ -298,7 +300,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					for (size_t i = 0; i < temp.size(); i++)
 					{
-						if (temp[i] == '-')
+						if (temp.at(i) == '-')
 						{
 							first = temp;
 							first.erase(first.begin() + i, first.end());
@@ -335,12 +337,12 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					enchantmentlevels.push_back("[" + temp + ", " + temp + "]");
 				}
-				else if (temp[0] == '-')
+				else if (temp.at(0) == '-')
 				{
 					temp.erase(temp.begin());
 					enchantmentlevels.push_back("<=" + temp);
 				}
-				else if (temp[temp.size() - 1] == '-')
+				else if (temp.at(temp.size() - 1) == '-')
 				{
 					temp.erase(temp.end() - 1);
 					enchantmentlevels.push_back(">=" + temp);
@@ -349,7 +351,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 				{
 					for (size_t i = 0; i < temp.size(); i++)
 					{
-						if (temp[i] == '-')
+						if (temp.at(i) == '-')
 						{
 							first = temp;
 							first.erase(first.begin() + i, first.end());
@@ -375,7 +377,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		else if (option.find("nbt.") == 0)
 		{
 			temp.clear();
-			for (char& c : option)
+			for (const char& c : option)
 			{
 				if (c == '.')
 				{
@@ -391,10 +393,10 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			temp = value;
 			if (temp.find("regex:") <= 1)
 			{
-				bool insensitive = (temp.find("iregex:") == 0);
+				const bool insensitive = (temp.find("iregex:") == 0);
 				for (size_t i = 0; i < temp.size(); i++)
 				{
-					if (temp[i] == ':')
+					if (temp.at(i) == ':')
 					{
 						temp.erase(temp.begin(), temp.begin() + i + 1);
 						break;
@@ -404,10 +406,10 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 			}
 			else if (temp.find("pattern:") <= 1)
 			{
-				bool insensitive = (temp.find("ipattern:") == 0);
+				const bool insensitive = (temp.find("ipattern:") == 0);
 				for (size_t i = 0; i < temp.size(); i++)
 				{
-					if (temp[i] == ':')
+					if (temp.at(i) == ':')
 					{
 						temp.erase(temp.begin(), temp.begin() + i + 1);
 						break;
@@ -451,7 +453,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (nbts.size())
 	{
 		tempp.clear();
-		for (nlohmann::json& j : predicates)
+		for (const nlohmann::json& j : predicates)
 		{
 			for (nlohmann::json& j2 : nbts)
 			{
@@ -465,7 +467,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (enchantments.size())
 	{
 		tempp.clear();
-		for (nlohmann::json& j : predicates)
+		for (const nlohmann::json& j : predicates)
 		{
 			for (std::string& s : enchantments)
 			{
@@ -479,7 +481,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (enchantmentlevels.size())
 	{
 		tempp.clear();
-		for (nlohmann::json& j : predicates)
+		for (const nlohmann::json& j : predicates)
 		{
 			for (std::string& s : enchantmentlevels)
 			{
@@ -504,7 +506,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (damages.size())
 	{
 		tempp.clear();
-		for (nlohmann::json& j : predicates)
+		for (const nlohmann::json& j : predicates)
 		{
 			for (std::string& s : damages)
 			{
@@ -518,7 +520,7 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 	if (stacksizes.size())
 	{
 		tempp.clear();
-		for (nlohmann::json& j : predicates)
+		for (const nlohmann::json& j : predicates)
 		{
 			for (std::string& s : stacksizes)
 			{
@@ -530,29 +532,29 @@ void cimprop(std::string& folder, std::string& path, bool& zip, std::filesystem:
 		predicates = tempp;
 	}
 	nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
-	for (std::string& c : items)
+	for (const std::string& c : items)
 	{
 		std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/"));
 		tempj = j;
-		std::ifstream fin(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + c + ".json"));
-		if (fin.good())
+		std::ifstream fin2(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + c + ".json"));
+		if (fin2.good())
 		{
-			fin >> tempj;
+			fin2 >> tempj;
 			std::vector<nlohmann::json> tempv = tempj["overrides"];
-			for (nlohmann::json& j : predicates)
+			for (const nlohmann::json& j2 : predicates)
 			{
-				tempv.push_back(j);
+				tempv.push_back(j2);
 			}
 			tempj["overrides"] = tempv;
 		}
-		fin.close();
+		fin2.close();
 		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/overrides/item/" + c + ".json"));
 		fout << tempj.dump(1, '\t') << std::endl;
 		fout.close();
 	}
 }
 
-void cim(std::string path, std::string filename, bool zip)
+inline void cim(const std::string& path, const std::string& filename, const bool& zip)
 {
 	// source: assets/minecraft/*/cit (recursive)
 	// destination: assets/minecraft/overrides/item
@@ -672,7 +674,7 @@ void cim(std::string path, std::string filename, bool zip)
 				filesize = png.file_size();
 				zed.resize(filesize);
 				fin.seekg(0, std::ios::beg);
-				fin.read((char*)(zed.data()), filesize);
+				fin.read(reinterpret_cast<char*>(zed.data()), filesize);
 				fin.close();
 				zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
 			}
@@ -701,7 +703,7 @@ void cim(std::string path, std::string filename, bool zip)
 				filesize = png.file_size();
 				zed.resize(filesize);
 				fin.seekg(0, std::ios::beg);
-				fin.read((char*)(zed.data()), filesize);
+				fin.read(reinterpret_cast<char*>(zed.data()), filesize);
 				fin.close();
 				zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
 			}

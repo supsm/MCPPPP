@@ -2,11 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//#define GUI
+ //#define GUI
 
+constexpr auto VERSION = "0.5.2"; // MCPPPP version
+
+#pragma once
+
+#ifdef _WIN32
 #define NOMINMAX
-
-#define VERSION "0.5.2" // MCPPPP version
+#endif
 
 #include <iostream>
 #include <filesystem>
@@ -15,14 +19,16 @@
 #include <sstream>
 #include <vector>
 
-#include "utility.cpp"
-
 #ifndef GUI
 #include "fsb.cpp"
 #include "vmt.cpp"
 #include "cim.cpp"
-#elif defined _WIN32
+#include "utility.cpp"
+#else
+#if defined(_WIN32)
 #include <Windows.h> // SetProcessDPIAware
+#endif
+#include "gui.cpp"
 #endif
 
 int main(int argc, char* argv[])
@@ -31,7 +37,6 @@ int main(int argc, char* argv[])
 	SetProcessDPIAware(); // fix blurriness
 #endif
 	std::string str, option, value, temp;
-	std::stringstream ss;
 	std::error_code ec;
 #ifdef GUI
 	Fl::get_system_colors();
@@ -58,13 +63,13 @@ int main(int argc, char* argv[])
 			try
 			{
 				str.resize(std::filesystem::file_size("mcpppp-config.json"));
-				configfile.read((char*)(str.c_str()), std::filesystem::file_size("mcpppp-config.json"));
+				configfile.read(&str.at(0), static_cast<std::streamsize>(std::filesystem::file_size("mcpppp-config.json")));
 				config = nlohmann::ordered_json::parse(str, nullptr, true, true);
 			}
-			catch (nlohmann::json::exception& e)
+			catch (const nlohmann::json::exception& e)
 			{
 				out(5) << e.what() << std::endl;
-				goto exit;
+				exit();
 			}
 			readconfig();
 		}
@@ -106,7 +111,7 @@ int main(int argc, char* argv[])
 		<< " (CLI)"
 #endif
 		<< std::endl;
-	out(5) << "Os: " << 
+	out(5) << "Os: " <<
 #ifdef _WIN64
 		"Win64"
 #elif defined(_WIN32)
@@ -146,7 +151,7 @@ int main(int argc, char* argv[])
 			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 			goto exit;
 #endif
-	}
+		}
 	}
 	for (const std::string& path : paths)
 	{
@@ -155,16 +160,13 @@ int main(int argc, char* argv[])
 			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
-		else
-		{
-			out(2) << "Path: " << path << std::endl;
-		}
-		for (auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+		out(2) << "Path: " << path << std::endl;
+		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
 #ifdef GUI
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
-				entries.push_back(std::make_pair(true, entry));
+				entries.emplace_back(std::make_pair(true, entry));
 				addpack(entry.path().filename().u8string(), true);
 				std::cout << entry.path().filename().u8string() << std::endl;
 			}
@@ -189,16 +191,5 @@ int main(int argc, char* argv[])
 	Fl::run();
 #endif
 	out(3) << "All Done!" << std::endl;
-exit:;
-#ifndef GUI
-	if (pauseonexit)
-	{
-#ifdef _WIN32
-		system("pause");
-#else
-		std::cout << "Press enter to continue . . .";
-		getline(std::cin, str);
-#endif
-}
-#endif
+	exit();
 }
