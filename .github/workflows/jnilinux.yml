@@ -26,7 +26,7 @@ jobs:
       with:
         java-version: 16
     - name: compile
-      run: clang++ -shared -std=c++17 -Ofast jni.cpp -o libmcpppp.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux
+      run: clang++ -shared -fPIC -std=c++17 -Ofast jni.cpp -o libmcpppp.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux
     - uses: EndBug/add-and-commit@v7
       with:
         add: 'libmcpppp.so'
