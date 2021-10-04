@@ -32,7 +32,7 @@ void vmtpng(std::string& name, const std::string& folder, const std::string& pat
 				if (numbers.size() == 0)
 				{
 					name = png.path().filename().u8string();
-					name.erase(name.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i), name.end());
+					name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
 					folderpath = png.path().u8string();
 					for (char& c : folderpath)
 					{
@@ -42,10 +42,10 @@ void vmtpng(std::string& name, const std::string& folder, const std::string& pat
 						}
 					}
 					folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-					folderpath.erase(folderpath.end() - static_cast<std::_String_iterator<std::string>::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+					folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 				}
 				curname = png.path().filename().u8string();
-				curname.erase(curname.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i), curname.end());
+				curname.erase(curname.begin() + static_cast<std::string::difference_type>(i), curname.end());
 				break;
 			}
 		}
@@ -60,7 +60,7 @@ void vmtpng(std::string& name, const std::string& folder, const std::string& pat
 				}
 			}
 			folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-			folderpath.erase(folderpath.end() - static_cast<std::_String_iterator<std::string>::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+			folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 			numbers.push_back(stoi(curnum));
 			supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
 			return;
@@ -101,7 +101,7 @@ void vmtprop(const std::string& folder, const std::string& path, const bool& new
 		}
 	}
 	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
-	folderpath.erase(folderpath.end() - static_cast<std::_String_iterator<std::string>::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+	folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 	name = png.path().filename().u8string();
 	name.erase(name.end() - 11, name.end());
 	std::string temp, option, value, time1, last, height1, tempnum;

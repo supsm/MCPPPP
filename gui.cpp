@@ -151,9 +151,9 @@ inline void editpath(Fl_Input* o, void* v)
 	while (str.find(" // ") != std::string::npos)
 	{
 		const size_t i = str.find(" // ");
-		paths.insert(std::string(str.begin(), str.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i)));
-		deletedpaths.erase(std::string(str.begin(), str.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i)));
-		str.erase(str.begin(), str.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i + 4));
+		paths.insert(std::string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
+		deletedpaths.erase(std::string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
+		str.erase(str.begin(), str.begin() + static_cast<std::string::difference_type>(i + 4));
 	}
 	if (!str.empty())
 	{
