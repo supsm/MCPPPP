@@ -13,7 +13,8 @@ import java.util.concurrent.TimeUnit;
 class jni
 {
 	private static void extract(String str) {
-		File file = new File(str);
+		String path = System.getProperty("java.library.path");
+		File file = new File(path + "/" + str);
 		InputStream stream = jni.class.getResourceAsStream("/" + str);
 		try {
 			FileUtils.copyInputStreamToFile(stream, file);
