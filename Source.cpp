@@ -23,7 +23,6 @@ constexpr auto VERSION = "0.5.2"; // MCPPPP version
 #include "fsb.cpp"
 #include "vmt.cpp"
 #include "cim.cpp"
-#include "utility.cpp"
 #else
 #if defined(_WIN32)
 #include <Windows.h> // SetProcessDPIAware
@@ -55,7 +54,7 @@ int main(int argc, char* argv[])
 			openhelp(nullptr, nullptr);
 #else
 			std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
-			goto exit;
+			exit();
 #endif
 		}
 		else
@@ -91,7 +90,7 @@ int main(int argc, char* argv[])
 		catch (nlohmann::json::exception& e)
 		{
 			out(5) << e.what() << std::endl;
-			goto exit;
+			exit();
 		}
 		readconfig();
 	}
@@ -149,7 +148,7 @@ int main(int argc, char* argv[])
 			ui->tempfound->show();
 #else
 			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
-			goto exit;
+			exit();
 #endif
 		}
 	}

@@ -13,7 +13,7 @@ void cim(const std::string& path, const std::string& filename, const bool& zip);
 void cimprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png); // convert cit properties to cim
 void cimother(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png); // converts everything else
 
-static void cimother(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
+void cimother(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	// png location (textures): assets/mcpppp/textures/item
 	// json location (models): assets/mcpppp/models/item
@@ -117,7 +117,7 @@ static void cimother(const std::string& folder, const std::string& path, const b
 	}
 }
 
-static void cimprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
+void cimprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	std::string folderpath = png.path().u8string();
 	for (char& c : folderpath)
@@ -127,8 +127,8 @@ static void cimprop(const std::string& folder, const std::string& path, const bo
 			c = '/';
 		}
 	}
-	folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind("/cit/") + 5);
-	folderpath.erase(folderpath.end() - png.path().filename().u8string().size(), folderpath.end());
+	folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(folderpath.rfind("/cit/") + 5));
+	folderpath.erase(folderpath.end() - static_cast<std::_String_iterator<std::string>::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 	std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 	std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 	std::vector<nlohmann::json> nbts, predicates, tempp;

@@ -18,7 +18,7 @@ void rgb2hsv(double& first, double& second, double& third) noexcept; // convert 
 void hsv2rgb(double& first, double& second, double& third) noexcept; // same thing as above, but in reverse
 void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h); // convert black to transparent
 
-static void rgb2hsv(double& first, double& second, double& third) noexcept
+void rgb2hsv(double& first, double& second, double& third) noexcept
 {
 	const double r = first * 20 / 51; // convert 0-255 to 0-100
 	const double g = second * 20 / 51;
@@ -60,7 +60,7 @@ static void rgb2hsv(double& first, double& second, double& third) noexcept
 	third = max; // value
 }
 
-static void hsv2rgb(double& first, double& second, double& third) noexcept
+void hsv2rgb(double& first, double& second, double& third) noexcept
 {
 	const double c = second * third / 10000;
 	const double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
@@ -104,7 +104,7 @@ static void hsv2rgb(double& first, double& second, double& third) noexcept
 	}
 }
 
-static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
+void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
 {
 	for (long long i = 0; i < (w * 4) / 3; i += 4)
 	{
@@ -129,7 +129,7 @@ static void convert(std::vector<uint8_t>& image, const unsigned int& w, const un
 	}
 }
 
-static void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const bool& zip, const std::filesystem::directory_entry& png)
+void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
 	unsigned int w, h, error;
@@ -141,18 +141,18 @@ static void fsbpng(const std::string& folder, const std::string& path, const std
 	state.info_raw.bitdepth = 8;
 	filename.erase(filename.end() - 4, filename.end());
 	error = lodepng::load_file(buffer, png.path().u8string());
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::decode(image, w, h, state, buffer);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
-	if (w % 3 == 0 || h % 2 == 0)
+	if (w % 3 != 0 || h % 2 != 0)
 	{
-		out(5) << "FSB: Wrong dimensions: " << png.path().u8string();
+		out(5) << "FSB: Wrong dimensions: " << png.path().u8string() << std::endl;
 		return;
 	}
 	image1.reserve(buffer.size() / 6);
@@ -192,34 +192,34 @@ static void fsbpng(const std::string& folder, const std::string& path, const std
 	buffer.clear();
 	std::filesystem::create_directories(std::filesystem::u8path(zip ? "mcpppp-temp/" + folder + output : path + output));
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_bottom.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, top, h / 2, w / 3, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_top.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_south.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
@@ -248,40 +248,40 @@ static void fsbpng(const std::string& folder, const std::string& path, const std
 
 	buffer.clear();
 	error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_west.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image2, w / 3, h / 2, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_north.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	buffer.clear();
 	error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 	error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_east.png");
-	if (error == 0)
+	if (error != 0)
 	{
 		out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 	}
 }
 
-static void fsbprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
+void fsbprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 	std::string name = png.path().filename().u8string(), source, option, value, temp;

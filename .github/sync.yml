@@ -1,9 +1,9 @@
 supsm/MCPPPP@mod:
   - source: gradle.properties
     dest: gradle.properties
-  - source: MCPPPP-windows-cli.exe
-    dest: src/main/resources/MCPPPP-windows-cli.exe
-  - source: MCPPPP-linux
-    dest: src/main/resources/MCPPPP-linux
-  - source: MCPPPP-mac-cli
-    dest: src/main/resources/MCPPPP-mac-cli
+  - source: mcpppp.dll
+    dest: src/main/resources/mcpppp.dll
+  - source: libmcpppp.so
+    dest: src/main/resources/libmcpppp.so
+  - source: libmcpppp.dylib
+    dest: src/main/resources/libmcpppp.dylib

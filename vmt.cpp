@@ -15,7 +15,7 @@ void vmt(const std::string& path, const std::string& filename, const bool& zip);
 void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, const std::filesystem::directory_entry& png); // converts optifine properties to vmt properties json
 void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, std::vector<int>& numbers, const std::filesystem::directory_entry& png); // moves vmt pngs to new location
 
-static void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
+void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
 {
 	std::string folderpath, curname, curnum;
 	while (true)
@@ -87,7 +87,7 @@ static void vmtpng(std::string& name, const std::string& folder, const std::stri
 	}
 }
 
-static void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, const std::filesystem::directory_entry& png)
+void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, const std::filesystem::directory_entry& png)
 {
 	long long curnum;
 	std::string name, folderpath;
@@ -157,7 +157,7 @@ static void vmtprop(const std::string& folder, const std::string& path, const bo
 			continue;
 		}
 		curnum = stoi(tempnum);
-		if (curnum > textures.size())
+		if (static_cast<size_t>(curnum) > textures.size())
 		{
 			textures.resize(curnum);
 			weights.resize(curnum);
@@ -519,12 +519,12 @@ inline void vmt(const std::string& path, const std::string& filename, const bool
 		{
 			if (autoreconvert)
 			{
-				out(3) << "std::string{VMT}: Reconverting " << filename << std::endl;
+				out(3) << "VMT: Reconverting " << filename << std::endl;
 				zipa.DeleteEntry("assets/minecraft/varied/");
 			}
 			else
 			{
-				out(2) << "std::string{VMT}: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
+				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
 				return;
 			}
 		}
@@ -544,13 +544,13 @@ inline void vmt(const std::string& path, const std::string& filename, const bool
 		}
 		else
 		{
-			out(2) << "std::string{VMT}: Nothing to convert in " << filename << ", skipping" << std::endl;
+			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
 		folder = filename;
 		folder.erase(folder.end() - 4, folder.end());
 		std::filesystem::create_directories("mcpppp-temp/" + folder);
-		out(3) << "std::string{VMT}: Extracting " << filename << std::endl;
+		out(3) << "VMT: Extracting " << filename << std::endl;
 		zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"), "mcpppp-temp/" + folder + '/');
 	}
 	else
@@ -559,12 +559,12 @@ inline void vmt(const std::string& path, const std::string& filename, const bool
 		{
 			if (autoreconvert)
 			{
-				out(3) << "std::string{VMT}: Reconverting " << filename << std::endl;
+				out(3) << "VMT: Reconverting " << filename << std::endl;
 				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
 			}
 			else
 			{
-				out(2) << "std::string{VMT}: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
+				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
 				return;
 			}
 		}
@@ -584,16 +584,16 @@ inline void vmt(const std::string& path, const std::string& filename, const bool
 		}
 		else
 		{
-			out(2) << "std::string{VMT}: Nothing to convert in " << filename << ", skipping" << std::endl;
+			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
 			return;
 		}
-		out(3) << "std::string{VMT}: Converting Pack " << filename << std::endl;
+		out(3) << "VMT: Converting Pack " << filename << std::endl;
 	}
 	for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 	{
 		if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 		{
-			out(1) << "std::string{VMT}: Converting " + png.path().filename().u8string() << std::endl;
+			out(1) << "VMT: Converting " + png.path().filename().u8string() << std::endl;
 		}
 		if (png.path().filename().extension() == ".png")
 		{
@@ -626,7 +626,7 @@ inline void vmt(const std::string& path, const std::string& filename, const bool
 	numbers.shrink_to_fit();
 	if (zip)
 	{
-		out(3) << "std::string{VMT}: Compressing " + filename << std::endl;
+		out(3) << "VMT: Compressing " + filename << std::endl;
 		std::string temp;
 		Zippy::ZipEntryData zed;
 		long long filesize;
