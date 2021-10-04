@@ -1,4 +1,4 @@
-name: Compile Linux JNI Library
+name: Compile Mac JNI Library
 
 on:
   workflow_run:
