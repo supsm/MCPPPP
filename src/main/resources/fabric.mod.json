@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "mcpppp",
   "version": "${version}",
 
   "name": "MCPPPP",
@@ -9,11 +9,11 @@
     "supsm"
   ],
   "contact": {
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/supsm/mcpppp"
   },
 
   "license": "MPL-2.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/mcpppp/icon.png",
 
   "environment": "client",
   "entrypoints": {
