@@ -74,6 +74,7 @@ inline void exit() noexcept
 #ifdef _WIN32
 		system("pause");
 #else
+		std::string str;
 		std::cout << "Press enter to continue . . .";
 		getline(std::cin, str);
 #endif
