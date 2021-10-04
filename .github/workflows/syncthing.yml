@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows:
     - Compile Mac
+    - Compile Mac JNI Library
     types:
     - completed
     branches:

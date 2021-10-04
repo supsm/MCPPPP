@@ -1,0 +1,34 @@
+name: Compile Linux JNI Library
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'MCPPPP-linux'
+  workflow_run:
+    workflows:
+    - Compile Linux
+    types:
+    - completed
+    branches:
+    - master
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup jdk
+      uses: actions/setup-java@v1
+      with:
+        java-version: 16
+    - name: compile
+      run: clang++ -shared -std=c++17 -Ofast jni.cpp -o libmcpppp.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux
+    - uses: EndBug/add-and-commit@v7
+      with:
+        add: 'libmcpppp.so'
+        message: 'add linux jni library'
+        push: true
