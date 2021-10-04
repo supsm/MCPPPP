@@ -341,7 +341,7 @@ void fsbprop(const std::string& folder, const std::string& path, const bool& zip
 			{
 				if (temp.at(i) == ':')
 				{
-					temp.erase(temp.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i));
+					temp.erase(temp.begin() + static_cast<std::string::difference_type>(i));
 					i--;
 				}
 			}
@@ -420,8 +420,8 @@ void fsbprop(const std::string& folder, const std::string& path, const bool& zip
 					if (height.at(i) == '-')
 					{
 						minheight = height;
-						minheight.erase(minheight.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i), minheight.end());
-						height.erase(height.begin(), height.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(i));
+						minheight.erase(minheight.begin() + static_cast<std::string::difference_type>(i), minheight.end());
+						height.erase(height.begin(), height.begin() + static_cast<std::string::difference_type>(i));
 						heightlist.push_back({ {"min", stod(minheight)}, {"max", stod(height)} });
 					}
 				}
@@ -476,7 +476,7 @@ void fsbprop(const std::string& folder, const std::string& path, const bool& zip
 		{
 			sourcefolder.erase(sourcefolder.end() - 1);
 		}
-		sourcefile = std::string(source.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(sourcefolder.size()), source.end());
+		sourcefile = std::string(source.begin() + static_cast<std::string::difference_type>(sourcefolder.size()), source.end());
 		if (sourcefolder.front() != '/')
 		{
 			sourcefolder.insert(sourcefolder.begin(), '/');

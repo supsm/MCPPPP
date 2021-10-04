@@ -127,8 +127,8 @@ void cimprop(const std::string& folder, const std::string& path, const bool& zip
 			c = '/';
 		}
 	}
-	folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::_String_iterator<std::string>::difference_type>(folderpath.rfind("/cit/") + 5));
-	folderpath.erase(folderpath.end() - static_cast<std::_String_iterator<std::string>::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+	folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind("/cit/") + 5));
+	folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 	std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 	std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 	std::vector<nlohmann::json> nbts, predicates, tempp;
