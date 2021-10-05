@@ -6,8 +6,6 @@
 
 constexpr auto VERSION = "0.5.3"; // MCPPPP version
 
-#pragma once
-
 #ifdef _WIN32
 #define NOMINMAX
 #endif
