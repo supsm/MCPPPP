@@ -15,6 +15,7 @@ task publishModrinth (type: TaskModrinthUpload) {
 	versionNumber = project.mod_version;
 	versionName = "MCPPPP ${project.mod_version}";
 	uploadFile = remapJar // This links to a task that builds your mod jar and sets "uploadFile" to the mod jar.
+	changelog = "Changelog can be found on [github](http://github.com/supsm/MCPPPP/releases/tag/${project.mod_version})";
 	addGameVersion(project.minecraft_version);
 	addLoader("fabric")
 }
