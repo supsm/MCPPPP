@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.2"; // MCPPPP version
+constexpr auto VERSION = "0.5.3"; // MCPPPP version
 
 #pragma once
 

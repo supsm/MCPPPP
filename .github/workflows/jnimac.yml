@@ -5,7 +5,7 @@ on:
     workflows:
     - Compile Linux JNI Library
     types:
-    - completed
+    - requested
     branches:
     - master
   workflow_dispatch:

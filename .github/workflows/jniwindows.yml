@@ -1,9 +1,14 @@
-name: Compile Linux JNI Library
+name: Compile Windows JNI Library
 
 on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'MCPPPP-mac.tar.gz'
   workflow_run:
     workflows:
-    - Compile Windows JNI Library
+    - Compile Mac
     types:
     - requested
     branches:
@@ -21,9 +26,9 @@ jobs:
       with:
         java-version: 16
     - name: compile
-      run: clang++ -shared -fPIC -std=c++17 -Ofast jni.cpp -o libmcpppp.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux
+      run: clang++ -shared -std=c++17 -Ofast jni.cpp -o mcpppp.dll -I$JAVA_HOME/include -I$JAVA_HOME/include/win32
     - uses: EndBug/add-and-commit@v7
       with:
-        add: 'libmcpppp.so'
+        add: 'mcpppp.dll'
         message: 'add linux jni library'
         push: true

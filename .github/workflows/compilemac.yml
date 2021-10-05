@@ -10,7 +10,7 @@ on:
     workflows:
     - Compile Linux
     types:
-    - completed
+    - requested
     branches:
     - master
 
