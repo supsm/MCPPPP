@@ -1,9 +1,14 @@
 name: Compile Linux JNI Library
 
 on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'MCPPPP-mac.tar.gz'
   workflow_run:
     workflows:
-    - Compile Windows JNI Library
+    - Compile Mac
     types:
     - requested
     branches:
