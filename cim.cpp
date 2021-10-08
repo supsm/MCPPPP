@@ -39,7 +39,7 @@ void cimother(const std::string& folder, const std::string& path, const bool& zi
 	else
 	{
 		std::ifstream fin(png.path());
-		nlohmann::json j;
+		nlohmann::ordered_json j;
 		std::string temp;
 		fin >> j;
 		fin.close();
@@ -194,7 +194,7 @@ void cimprop(const std::string& folder, const std::string& path, const bool& zip
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/textures/extra/" + texture + ".png"));
 				texture = "mcpppp:extra/" + texture;
 			}
-			else if (texture.at(0) == '.')
+			else if (texture.at(0) == '.' && texture.at(1) == '/')
 			{
 				texture.erase(texture.begin(), texture.begin() + 2);
 				texture = "mcpppp:item/" + folderpath + texture;
@@ -224,7 +224,7 @@ void cimprop(const std::string& folder, const std::string& path, const bool& zip
 				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/mcpppp/models/extra/" + model + ".png"));
 				model = "mcpppp:extra/" + model;
 			}
-			else if (model.at(0) == '.')
+			else if (model.at(0) == '.' && model.at(1) == '/')
 			{
 				model.erase(model.begin(), model.begin() + 2);
 				model = "mcpppp:item/" + folderpath + model;

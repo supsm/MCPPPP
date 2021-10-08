@@ -317,8 +317,14 @@ namespace supsm
 {
 	inline void copy(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
-		if (std::filesystem::is_directory(to))
+		if (!std::filesystem::exists(from))
 		{
+			out(5) << "Error: tried to copy nonexistent file" << std::endl << from.u8string() << std::endl;
+			return;
+		}
+		if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
+		{
+			out(5) << "Error: tried to copy a file to a directory (or vice versa)" << std::endl << from.u8string() << std::endl << to.u8string() << std::endl;
 			return;
 		}
 		if (std::filesystem::exists(to))
@@ -331,7 +337,7 @@ namespace supsm
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			out(5) << "Error creating directory: " << e.what() << std::endl;
+			out(5) << "Error creating directory:" << std::endl << e.what() << std::endl;
 		}
 		try
 		{
@@ -339,7 +345,7 @@ namespace supsm
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			out(5) << "Error copying file: " << e.what() << std::endl;
+			out(5) << "Error copying file:" << std::endl << e.what() << std::endl;
 		}
 	}
 }

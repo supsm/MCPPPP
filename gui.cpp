@@ -24,6 +24,7 @@ void updatepathconfig();
 std::string winfilebrowser();
 
 inline void guirun()
+try
 {
 	for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
 	{
@@ -65,6 +66,22 @@ inline void guirun()
 	running = false;
 	out(3) << "All Done!" << std::endl;
 }
+catch (const nlohmann::json::exception& e)
+{
+	out(5) << "JSON EXCEPTION:" << std::endl << e.what() << std::endl;
+}
+catch (const std::filesystem::filesystem_error& e)
+{
+	out(5) << "FILESYSTEM EXCEPTION:" << std::endl << e.what() << std::endl;
+}
+catch (const std::exception& e)
+{
+	out(5) << "EXCEPTION:" << std::endl << e.what() << std::endl;
+}
+catch (...)
+{
+	out(5) << "UNKNOWN EXCEPTION" << std::endl;
+}
 
 // callback for run button
 inline void run(Fl_Button* o, void* v)
@@ -99,9 +116,9 @@ void conversion(Fl_Check_Button* o, void* v) // NOLINT
 // callback for resourcepack checkboxes
 inline void resourcepack(Fl_Check_Button* o, void* v)
 {
-	entries.at(*static_cast<uintptr_t*>(v)).first = static_cast<bool>(o->value());
+	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).first = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
-	std::cout << o->label() << " " << *static_cast<uintptr_t*>(v) << " " << static_cast<int>(o->value()) << std::endl;
+	std::cout << o->label() << " " << *static_cast<int*>(v) << " " << static_cast<int>(o->value()) << std::endl;
 }
 
 // callback for browse button
@@ -182,6 +199,7 @@ inline void addrespath(Fl_Button* o, void* v)
 		updatepathconfig();
 		std::cout << str << std::endl;
 	}
+	ui->edit_paths->redraw();
 	reload(nullptr, nullptr);
 }
 
@@ -200,6 +218,7 @@ inline void deleterespath(Fl_Button* o, void* v)
 	ui->paths->hide();
 	ui->paths->show();
 	updatepathconfig();
+	ui->edit_paths->redraw();
 	reload(nullptr, nullptr);
 }
 
@@ -328,6 +347,7 @@ inline void selectall(Fl_Check_Button* o, void* v)
 		addpack(entry.second.path().filename().u8string(), static_cast<bool>(o->value()));
 		entry.first = static_cast<bool>(o->value());
 	}
+	ui->scroll->redraw();
 	Fl::wait();
 }
 
@@ -352,15 +372,17 @@ inline void addpack(const std::string& name, bool selected)
 	int w = 0, h = 0, dx = 0, dy = 0;
 	fl_text_extents(name.c_str(), dx, dy, w, h);
 	std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
+	std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
 	o->copy_label(name.c_str());
 	o->copy_tooltip(name.c_str());
 	o->down_box(FL_DOWN_BOX);
 	o->value(static_cast<int>(selected));
-	o->user_data(static_cast<void*>(&numbuttons));
+	o->user_data(static_cast<void*>(temp.get()));
 	o->callback(reinterpret_cast<Fl_Callback*>(resourcepack));
 	o->when(FL_WHEN_CHANGED);
 	ui->scroll->add(o.get());
 	o.release();
+	temp.release();
 	numbuttons++;
 }
 
