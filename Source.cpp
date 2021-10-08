@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.3"; // MCPPPP version
+constexpr auto VERSION = "0.5.4"; // MCPPPP version
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -29,6 +29,7 @@ constexpr auto VERSION = "0.5.3"; // MCPPPP version
 #endif
 
 int main(int argc, char* argv[])
+try
 {
 #if defined _WIN32 && defined GUI
 	SetProcessDPIAware(); // fix blurriness
@@ -189,4 +190,20 @@ int main(int argc, char* argv[])
 #endif
 	out(3) << "All Done!" << std::endl;
 	exit();
+}
+catch (const nlohmann::json::exception& e)
+{
+	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const std::filesystem::filesystem_error& e)
+{
+	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const std::exception& e)
+{
+	out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (...)
+{
+	out(5) << "UNKNOWN FATAL ERROR" << std::endl;
 }
