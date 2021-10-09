@@ -66,7 +66,7 @@ inline std::unique_ptr<UI> ui = std::make_unique<UI>();
 #endif
 
 
-inline void exit() noexcept
+[[noreturn]] inline void exit() noexcept
 {
 #ifndef GUI
 	if (pauseonexit)
@@ -188,14 +188,14 @@ inline std::string oftoregex(std::string of)
 	return of;
 }
 
-static bool cout, file;
+static bool cout, file, err;
 
 class outstream
 {
 public:
 	bool first = false;
 	template<typename T>
-	outstream operator<<(const T& value)
+	outstream operator<<(const T& value) const
 	{
 		if (cout)
 		{
@@ -211,9 +211,23 @@ public:
 #else
 			if (first)
 			{
-				std::cout << (dotimestamp ? timestamp() : "");
+				if (err)
+				{
+					std::cerr << (dotimestamp ? timestamp() : "");
+				}
+				else
+				{
+					std::cout << (dotimestamp ? timestamp() : "");
+				}
 			}
-			std::cout << value;
+			if (err)
+			{
+				std::cerr << value;
+			}
+			else
+			{
+				std::cout << value;
+			}
 #endif
 		}
 		if (file && logfile.good())
@@ -226,7 +240,7 @@ public:
 		}
 		return outstream();
 	}
-	outstream operator<<(const std::string& str)
+	outstream operator<<(const std::string& str) const
 	{
 		if (cout)
 		{
@@ -242,9 +256,23 @@ public:
 #else
 			if (first)
 			{
-				std::cout << (dotimestamp ? timestamp() : "");
+				if (err)
+				{
+					std::cerr << (dotimestamp ? timestamp() : "");
+				}
+				else
+				{
+					std::cout << (dotimestamp ? timestamp() : "");
+				}
 			}
-			std::cout << str;
+			if (err)
+			{
+				std::cerr << str;
+			}
+			else
+			{
+				std::cout << str;
+			}
 #endif
 		}
 		if (file && logfile.good())
@@ -257,7 +285,7 @@ public:
 		}
 		return outstream();
 	}
-	outstream operator<<(std::ostream& (*f)(std::ostream&))
+	outstream operator<<(std::ostream& (*f)(std::ostream&)) const
 	{
 		if (cout)
 		{
@@ -273,9 +301,23 @@ public:
 #else
 			if (first)
 			{
-				std::cout << (dotimestamp ? timestamp() : "");
+				if (err)
+				{
+					std::cerr << (dotimestamp ? timestamp() : "");
+				}
+				else
+				{
+					std::cout << (dotimestamp ? timestamp() : "");
+				}
 			}
-			std::cout << f;
+			if (err)
+			{
+				std::cerr << f;
+			}
+			else
+			{
+				std::cout << f;
+			}
 #endif
 		}
 		if (file && logfile.good())
@@ -294,22 +336,9 @@ inline outstream out(const int level) noexcept
 {
 	outstream o;
 	o.first = true;
-	if (level >= outputlevel)
-	{
-		cout = true; // NOLINT
-	}
-	else
-	{
-		cout = false;
-	}
-	if (level >= loglevel)
-	{
-		file = true; // NOLINT
-	}
-	else
-	{
-		file = false;
-	}
+	err = (level == 5);
+	cout = (level >= outputlevel);
+	file = (level >= loglevel);
 	return o;
 }
 
