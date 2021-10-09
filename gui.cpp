@@ -2,6 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#ifdef GUI
 #include "fsb.cpp"
 #include "vmt.cpp"
 #include "cim.cpp"
@@ -377,7 +378,7 @@ inline void addpack(const std::string& name, bool selected)
 	o->copy_tooltip(name.c_str());
 	o->down_box(FL_DOWN_BOX);
 	o->value(static_cast<int>(selected));
-	o->user_data(static_cast<void*>(temp.get()));
+	o->user_data(temp.get());
 	o->callback(reinterpret_cast<Fl_Callback*>(resourcepack));
 	o->when(FL_WHEN_CHANGED);
 	ui->scroll->add(o.get());
@@ -545,4 +546,5 @@ inline std::string winfilebrowser()
 	}
 	return wtomb(str);
 }
+#endif
 #endif

@@ -24,6 +24,22 @@ void run(std::string path, std::string os)
 		}
 	}
 }
+catch (const nlohmann::json::exception& e)
+{
+	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const std::filesystem::filesystem_error& e)
+{
+	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const std::exception& e)
+{
+	out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (...)
+{
+	out(5) << "UNKNOWN FATAL ERROR" << std::endl;
+}
 
 std::string tostring(JNIEnv* env, jstring str)
 {
