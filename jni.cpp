@@ -4,7 +4,7 @@
 #include "supsm_mcpppp_jni.h"
 
 
-void run(std::string path, std::string os)
+void run(std::string path, std::string os) try
 {
 	out(5) << "MCPPPP mod" << std::endl;
 	out(5) << "Os: " << os << std::endl << std::endl;
