@@ -10,13 +10,13 @@ on:
     - mod
     paths:
     #- 'src/main/java/**'
-    - 'src/main/resources/MCPPPP-mac-cli'
+    - 'src/main/resources/libmcpppp.dylib'
   pull_request:
     branches:
     - mod
     paths:
     #- 'src/main/java/**'
-    - 'src/main/resources/MCPPPP-mac-cli'
+    - 'src/main/resources/libmcpppp.dylib'
   workflow_dispatch:
 
 jobs:
