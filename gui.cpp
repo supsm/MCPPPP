@@ -317,7 +317,7 @@ inline void savesettings(Fl_Button* o, void* v)
 	}
 
 	std::ofstream fout("mcpppp-config.json");
-	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl << "{}" << std::endl;
+	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 	fout << config.dump(1, '\t') << std::endl;
 	fout.close();
 
