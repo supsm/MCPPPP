@@ -20,9 +20,9 @@ jobs:
       with:
         java-version: 16
     - name: compile
-      run: clang++ -shared -fPIC -std=c++17 -Ofast jni.cpp -o libmcpppp.dylib -I$JAVA_HOME/include -I$JAVA_HOME/include/darwin
+      run: clang++ -shared -fPIC -std=c++17 -Ofast jni.cpp -o bin/libmcpppp.dylib -I$JAVA_HOME/include -I$JAVA_HOME/include/darwin
     - uses: EndBug/add-and-commit@v7
       with:
-        add: 'libmcpppp.dylib'
+        add: 'bin/libmcpppp.dylib'
         message: 'add mac jni library'
         push: true

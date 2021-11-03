@@ -3,9 +3,9 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 #ifdef GUI
-#include "fsb.cpp"
-#include "vmt.cpp"
-#include "cim.cpp"
+#include "fsb.h"
+#include "vmt.h"
+#include "cim.h"
 
 #ifdef _WIN32
 #define WIN32 // fltk wants this for some reason

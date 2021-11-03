@@ -1,10 +1,11 @@
-#include "fsb.cpp"
-#include "vmt.cpp"
-#include "cim.cpp"
+#include "fsb.h"
+#include "vmt.h"
+#include "cim.h"
 #include "supsm_mcpppp_jni.h"
 
 
-void run(std::string path, std::string os) try
+void run(std::string path, std::string os)
+try
 {
 	out(5) << "MCPPPP mod" << std::endl;
 	out(5) << "Os: " << os << std::endl << std::endl;

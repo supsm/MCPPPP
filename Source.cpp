@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.4"; // MCPPPP version
+constexpr auto VERSION = "0.5.5"; // MCPPPP version
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -18,14 +18,14 @@ constexpr auto VERSION = "0.5.4"; // MCPPPP version
 #include <vector>
 
 #ifndef GUI
-#include "fsb.cpp"
-#include "vmt.cpp"
-#include "cim.cpp"
+#include "fsb.h"
+#include "vmt.h"
+#include "cim.h"
 #else
 #if defined(_WIN32)
 #include <Windows.h> // SetProcessDPIAware
 #endif
-#include "gui.cpp"
+#include "gui.h"
 #endif
 
 int main(int argc, char* argv[])
