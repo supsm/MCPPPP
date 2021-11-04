@@ -130,7 +130,7 @@ private:
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
-	static void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const bool& zip, const std::filesystem::directory_entry& png)
+	static void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const std::filesystem::directory_entry& png)
 	{
 		out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
 		unsigned int w, h, error;
@@ -191,13 +191,13 @@ private:
 			}
 		}
 		buffer.clear();
-		std::filesystem::create_directories(std::filesystem::u8path(zip ? "mcpppp-temp/" + folder + output : path + output));
+		std::filesystem::create_directories(std::filesystem::u8path(path + output));
 		error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_bottom.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_bottom.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -208,7 +208,7 @@ private:
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_top.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_top.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -219,7 +219,7 @@ private:
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_south.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_south.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -253,7 +253,7 @@ private:
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_west.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_west.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -264,7 +264,7 @@ private:
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_north.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_north.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -275,7 +275,7 @@ private:
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
 		}
-		error = lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + output + filename + "_east.png");
+		error = lodepng::save_file(buffer, path + output + filename + "_east.png");
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -283,7 +283,7 @@ private:
 	}
 
 	// convert optifine properties files into fsb properties json
-	static void fsbprop(const std::string& folder, const std::string& path, const bool& zip, const std::filesystem::directory_entry& png)
+	static void fsbprop(const std::string& folder, const std::string& path, const std::filesystem::directory_entry& png)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		std::string name = png.path().filename().u8string(), source, option, value, temp;
@@ -445,8 +445,8 @@ private:
 		{
 			source.erase(source.begin());
 			std::string origsource = source;
-			temp = png.path().parent_path().u8string();
-			if (temp.back() == '/' || temp.back() == '\\')
+			temp = png.path().parent_path().generic_u8string();
+			if (temp.back() == '/')
 			{
 				temp.erase(temp.end() - 1);
 			}
@@ -455,18 +455,18 @@ private:
 			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(folder, path, "/assets/fabricskyboxes/sky/", zip, entry);
+				fsbpng(folder, path, "/assets/fabricskyboxes/sky/", entry);
 			}
 			else
 			{
 				out(4) << "FSB: File not found: " << temp + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_top.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_bottom.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_north.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_south.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_west.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + origsource + "_east.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_top.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_bottom.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_north.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_south.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_west.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + origsource + "_east.png");
 				buffer.clear();
 				buffer.shrink_to_fit();
 			}
@@ -483,21 +483,21 @@ private:
 			{
 				sourcefolder.insert(sourcefolder.begin(), '/');
 			}
-			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + (source.front() == '/' ? "" : "/") + source + ".png"));
+			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(folder, path, "/assets/fabricskyboxes/sky" + sourcefolder, zip, entry);
+				fsbpng(folder, path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
 			}
 			else
 			{
 				out(4) << "FSB: File not found: " << sourcefolder + sourcefile + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_top.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_bottom.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_north.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_south.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_west.png");
-				lodepng::save_file(buffer, (zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_east.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_top.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_bottom.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_north.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_south.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_west.png");
+				lodepng::save_file(buffer, path + "/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + "_east.png");
 				buffer.clear();
 				buffer.shrink_to_fit();
 			}
@@ -509,120 +509,58 @@ private:
 		j["textures"]["south"] = source + "_south.png";
 		j["textures"]["west"] = source + "_west.png";
 		j["textures"]["east"] = source + "_east.png";
-		if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/")))
+		if (!std::filesystem::exists(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky/")))
 		{
-			std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky"));
+			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky"));
 		}
-		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/fabricskyboxes/sky/" + name + ".json"));
+		std::ofstream fout(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky/" + name + ".json"));
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
 	}
 
 public:
+	bool success = false;
+
 	// main fsb function
-	inline fsb(const std::string& path, const std::string& filename, const bool& zip)
+	inline fsb(const std::string& path, const std::string& filename)
 	{
 		std::string folder;
 		bool optifine;
-		Zippy::ZipArchive zipa;
-		if (zip)
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky")))
 		{
-			zipa.Open(path);
-			if (zipa.HasEntry("assets/fabricskyboxes/sky/"))
+			if (autoreconvert)
 			{
-				if (autoreconvert)
-				{
-					out(3) << "FSB: Reconverting " << filename << std::endl;
-					zipa.DeleteEntry("assets/fabricskyboxes/");
-				}
-				else
-				{
-					out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-					return;
-				}
-			}
-			if (zipa.HasEntry("assets/minecraft/optifine/sky/"))
-			{
-				optifine = true;
-			}
-			else if (zipa.HasEntry("assets/minecraft/mcpatcher/sky/"))
-			{
-				optifine = false;
+				out(3) << "FSB: Reconverting " << filename << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/fabricskyboxes"));
 			}
 			else
 			{
-				out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+				out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
 				return;
 			}
-			folder = filename;
-			folder.erase(folder.end() - 4, folder.end());
-			std::filesystem::create_directories("mcpppp-temp/" + folder);
-			out(3) << "FSB: Extracting " << filename << std::endl;
-			zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/", "mcpppp-temp/" + folder + '/');
+		}
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
+		{
+			optifine = true;
+		}
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/sky")))
+		{
+			optifine = false;
 		}
 		else
 		{
-			if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky")))
-			{
-				if (autoreconvert)
-				{
-					out(3) << "FSB: Reconverting " << filename << std::endl;
-					std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/fabricskyboxes"));
-				}
-				else
-				{
-					out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-					return;
-				}
-			}
-			if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
-			{
-				optifine = true;
-			}
-			else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/sky")))
-			{
-				optifine = false;
-			}
-			else
-			{
-				out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-				return;
-			}
-			out(3) << "FSB: Converting Pack " << filename << std::endl;
+			out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
+			return;
 		}
-		for (auto& png : std::filesystem::directory_iterator(std::filesystem::u8path(zip ? "mcpppp-temp/" + folder + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0/" : path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
+		out(3) << "FSB: Converting Pack " << filename << std::endl;
+		for (auto& png : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
 		{
 			if (png.path().extension() == ".properties")
 			{
 				out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-				fsbprop(folder, path, zip, png);
+				fsbprop(folder, path, png);
 			}
 		}
-		if (zip)
-		{
-			out(3) << "FSB: Compressing " + filename << std::endl;
-			Zippy::ZipEntryData zed;
-			size_t filesize;
-			for (auto& png : std::filesystem::directory_iterator("mcpppp-temp/" + folder + "/assets/fabricskyboxes/sky"))
-			{
-				if (png.is_directory())
-				{
-					continue;
-				}
-				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
-				zed.clear();
-				filesize = png.file_size();
-				zed.resize(filesize);
-				fin.seekg(0, std::ios::beg);
-				fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
-				fin.close();
-				zipa.AddEntry("assets/fabricskyboxes/sky/" + png.path().filename().u8string(), zed);
-			}
-			zed.clear();
-			zed.shrink_to_fit();
-			zipa.Save();
-		}
-		zipa.Close();
-		std::filesystem::remove_all("mcpppp-temp");
+		success = true;
 	}
 };

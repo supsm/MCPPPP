@@ -19,7 +19,7 @@ Some websites have been stealing this project (you'll know what I mean if you se
 **Linux**: download `MCPPPP-linux` (no gui) or `MCPPPP-linux-gui`. Make it executable and run it.  
 
 ## Use
-Newly compiled binaries for linux, windows, and mac can be found in the repo as `MCPPPP-linux`, `MCPPPP-windows.exe`, and `MCPPPP-mac.tar.gz` respectively. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
+Newly compiled binaries for linux, windows, and mac can be found in the repo in the `bin` directory. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
 `MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux-gui` will contain a gui.
 `MCPPPP-linux`, `MCPPPP-windows-cli`, and `MCPPPP-mac-cli` do not contain a gui. There is additional information below (Section **CLI**)  
   
@@ -77,6 +77,7 @@ My mac build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRA
 #### Mod
 To build the mod there are 2 basic steps. First you will need to build the libraries for JNI, then you will need to build the actual mod itself.  
 ##### JNI
+If you do not want to compile this yourself, there are prebuilt libraries located in the `lib` directory of the main branch.
 Prerequisites: compiler, JDK  
 1. Download or clone the **master branch** of MCPPPP  
 2. Add the java includes as include paths (This will be `%JAVA_HOME%\include` and `%JAVA_HOME%\include\win32` on windows. On linux it will be `$JAVA_HOME/include` and `$JAVA_HOME/include/linux`, and on mac replace `linux` with `darwin`)  

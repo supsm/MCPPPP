@@ -379,6 +379,49 @@ namespace supsm
 	}
 }
 
+inline void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
+{
+	zipa.Open(path.u8string());
+	std::string folder = path.stem().u8string();
+	std::filesystem::create_directories("mcpppp-temp/" + folder);
+	out(3) << "Extracting " << path.filename().u8string() << std::endl;
+	zipa.ExtractAll("mcpppp-temp/" + folder + '/');
+}
+
+inline void rezip(const std::string& folder, Zippy::ZipArchive& zipa)
+{
+	out(3) << "Compressing " + folder << std::endl;
+	Zippy::ZipEntryData zed;
+	const size_t length = 13 + folder.size();
+	size_t filesize;
+	for (const auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder))
+	{
+		if (png.is_directory())
+		{
+			continue;
+		}
+		std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
+		zed.clear();
+		filesize = png.file_size();
+		zed.resize(filesize);
+		fin.seekg(0, std::ios::beg);
+		fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
+		fin.close();
+		std::string temp = png.path().generic_u8string();
+		temp.erase(temp.begin(), temp.begin() + length);
+		if (temp.front() == '/')
+		{
+			temp.erase(temp.begin());
+		}
+		zipa.AddEntry(temp, zed);
+	}
+	zed.clear();
+	zed.shrink_to_fit();
+	zipa.Save();
+	zipa.Close();
+	std::filesystem::remove_all("mcpppp-temp");
+}
+
 inline void setting(const std::string& option, const nlohmann::json& j)
 {
 	if (settings.find(lowercase(option)) == settings.end())

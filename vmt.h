@@ -16,7 +16,7 @@ private:
 	static constexpr auto VMT = "reselect";
 
 	// moves vmt pngs to new location
-	static void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
+	static void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
 	{
 		std::string folderpath, curname, curnum;
 		while (true)
@@ -34,14 +34,7 @@ private:
 					{
 						name = png.path().filename().u8string();
 						name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
-						folderpath = png.path().u8string();
-						for (char& c : folderpath)
-						{
-							if (c == '\\')
-							{
-								c = '/';
-							}
-						}
+						folderpath = png.path().generic_u8string();
 						folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
 						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 					}
@@ -52,18 +45,11 @@ private:
 			}
 			if (curname == name && curnum != "")
 			{
-				folderpath = png.path().u8string();
-				for (char& c : folderpath)
-				{
-					if (c == '\\')
-					{
-						c = '/';
-					}
-				}
+				folderpath = png.path().generic_u8string();
 				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
 				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 				numbers.push_back(stoi(curnum));
-				supsm::copy(png.path(), std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
+				supsm::copy(png.path(), std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
 				return;
 			}
 			if (numbers.empty())
@@ -77,10 +63,10 @@ private:
 				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers.at(i)) + ".png"}}} });
 			}
 			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
-			if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
+			if (!std::filesystem::exists(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 			{
-				std::filesystem::create_directories(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath));
-				std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+				std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath));
+				std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 				fout << j.dump(1, '\t') << std::endl;
 				fout.close();
 			}
@@ -89,19 +75,12 @@ private:
 	}
 
 	// converts optifine properties to vmt properties json
-	static void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const bool& zip, const std::filesystem::directory_entry& png)
+	static void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& png)
 	{
 		long long curnum;
 		std::string name, folderpath;
 		std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
-		folderpath = png.path().u8string();
-		for (char& c : folderpath)
-		{
-			if (c == '\\')
-			{
-				c = '/';
-			}
-		}
+		folderpath = png.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 		name = png.path().filename().u8string();
@@ -498,14 +477,16 @@ private:
 			tempv.push_back({ {"below", i + 1}, {"then", v.at(i)} });
 		}
 		j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", tempv}}} };
-		std::filesystem::create_directories((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath);
-		std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+		std::filesystem::create_directories(path + "/assets/minecraft/varied/textures/entity/" + folderpath);
+		std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 		fout << j.dump(1, '\t') << std::endl;
 	}
 
 public:
+	bool success = false;
+
 	// main vmt function
-	inline vmt(const std::string& path, const std::string& filename, const bool& zip)
+	inline vmt(const std::string& path, const std::string& filename)
 	{
 		// source: assets/minecraft/*/mob/		< this can be of or mcpatcher, but the one below is of only
 		// source: assets/minecraft/optifine/random/entity/
@@ -514,86 +495,41 @@ public:
 
 		bool optifine, newlocation;
 		std::string name, folder, folderpath;
-		Zippy::ZipArchive zipa;
 		std::vector<int> numbers;
-		if (zip)
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
 		{
-			zipa.Open(path);
-			if (zipa.HasEntry("assets/minecraft/varied/textures/entity/"))
+			if (autoreconvert)
 			{
-				if (autoreconvert)
-				{
-					out(3) << "VMT: Reconverting " << filename << std::endl;
-					zipa.DeleteEntry("assets/minecraft/varied/");
-				}
-				else
-				{
-					out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
-					return;
-				}
-			}
-			if (zipa.HasEntry("assets/minecraft/optifine/random/entity/"))
-			{
-				optifine = true;
-				newlocation = true;
-			}
-			else if (zipa.HasEntry("assets/minecraft/optifine/mob/"))
-			{
-				optifine = true;
-				newlocation = false;
-			}
-			else if (zipa.HasEntry("assets/minecraft/mcpatcher/mob/"))
-			{
-				optifine = false;
+				out(3) << "VMT: Reconverting " << filename << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
 			}
 			else
 			{
-				out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
 				return;
 			}
-			folder = filename;
-			folder.erase(folder.end() - 4, folder.end());
-			std::filesystem::create_directories("mcpppp-temp/" + folder);
-			out(3) << "VMT: Extracting " << filename << std::endl;
-			zipa.ExtractEntry(std::string("assets/minecraft/") + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"), "mcpppp-temp/" + folder + '/');
+		}
+		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
+		{
+			optifine = true;
+			newlocation = true;
+		}
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/mob")))
+		{
+			optifine = true;
+			newlocation = false;
+		}
+		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/mob")))
+		{
+			optifine = false;
 		}
 		else
 		{
-			if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
-			{
-				if (autoreconvert)
-				{
-					out(3) << "VMT: Reconverting " << filename << std::endl;
-					std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
-				}
-				else
-				{
-					out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
-					return;
-				}
-			}
-			if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
-			{
-				optifine = true;
-				newlocation = true;
-			}
-			else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/mob")))
-			{
-				optifine = true;
-				newlocation = false;
-			}
-			else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/mob")))
-			{
-				optifine = false;
-			}
-			else
-			{
-				out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-				return;
-			}
-			out(3) << "VMT: Converting Pack " << filename << std::endl;
+			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
+			return;
 		}
-		for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
+		out(3) << "VMT: Converting Pack " << filename << std::endl;
+		for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 		{
 			if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 			{
@@ -601,11 +537,11 @@ public:
 			}
 			if (png.path().filename().extension() == ".png")
 			{
-				vmtpng(name, folder, path, newlocation, zip, numbers, png);
+				vmtpng(name, folder, path, newlocation, numbers, png);
 			}
 			else if (png.path().filename().extension() == ".properties")
 			{
-				vmtprop(folder, path, newlocation, zip, png);
+				vmtprop(folder, path, newlocation, png);
 			}
 		}
 		if (!numbers.empty())
@@ -617,55 +553,14 @@ public:
 			}
 			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
 
-			if (!std::filesystem::exists(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
+			if (!std::filesystem::exists(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
 			{
-				std::ofstream fout(std::filesystem::u8path((zip ? "mcpppp-temp/" + folder : path) + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+				std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
 				fout << j.dump(1, '\t') << std::endl;
 				fout.close();
 			}
 			numbers.clear();
 		}
-		folderpath.clear();
-		numbers.clear();
-		numbers.shrink_to_fit();
-		if (zip)
-		{
-			out(3) << "VMT: Compressing " + filename << std::endl;
-			std::string temp;
-			Zippy::ZipEntryData zed;
-			long long filesize;
-			for (auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder + "/assets/minecraft/varied/textures/entity/"))
-			{
-				if (png.is_directory())
-				{
-					continue;
-				}
-				temp = png.path().u8string();
-				temp.erase(temp.begin(), temp.begin() + folder.size() + 13);
-				temp.erase(temp.end() - png.path().filename().u8string().size() - 1, temp.end()); // zippy doesnt like mixing \\ and /
-				temp += '/';
-				for (char& c : temp)
-				{
-					if (c == '\\')
-					{
-						c = '/';
-					}
-				}
-				std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
-				zed.clear();
-				filesize = png.file_size();
-				zed.resize(filesize);
-				fin.seekg(0, std::ios::beg);
-				fin.read(reinterpret_cast<char*>(zed.data()), filesize);
-				fin.close();
-				zipa.AddEntry(temp + png.path().filename().u8string() + (png.is_directory() ? "/" : ""), zed);
-			}
-			temp.clear();
-			zed.clear();
-			zed.shrink_to_fit();
-			zipa.Save();
-		}
-		zipa.Close();
-		std::filesystem::remove_all("mcpppp-temp");
+		success = true;
 	}
 };
