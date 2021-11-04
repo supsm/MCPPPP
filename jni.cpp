@@ -29,6 +29,14 @@ catch (const nlohmann::json::exception& e)
 {
 	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
 }
+catch (const Zippy::ZipLogicError& e)
+{
+	out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+}
+catch (const Zippy::ZipRuntimeError& e)
+{
+	out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
+}
 catch (const std::filesystem::filesystem_error& e)
 {
 	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;

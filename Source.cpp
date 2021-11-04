@@ -171,15 +171,32 @@ try
 #else
 			if (entry.is_directory())
 			{
-				fsb(entry.path().u8string(), entry.path().filename().u8string(), false);
-				vmt(entry.path().u8string(), entry.path().filename().u8string(), false);
-				cim(entry.path().u8string(), entry.path().filename().u8string(), false);
+				fsb(entry.path().u8string(), entry.path().filename().u8string());
+				vmt(entry.path().u8string(), entry.path().filename().u8string());
+				cim(entry.path().u8string(), entry.path().filename().u8string());
 			}
 			else if (entry.path().extension() == ".zip")
 			{
-				fsb(entry.path().u8string(), entry.path().filename().u8string(), true);
-				vmt(entry.path().u8string(), entry.path().filename().u8string(), true);
-				cim(entry.path().u8string(), entry.path().filename().u8string(), true);
+				bool success = false;
+				Zippy::ZipArchive zipa;
+				unzip(entry, zipa);
+				std::string folder = entry.path().stem().u8string();
+				if (fsb("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
+				if (vmt("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
+				if (cim("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
+				if (success)
+				{
+					rezip(folder, zipa);
+				}
 			}
 #endif
 		}
@@ -194,6 +211,14 @@ try
 catch (const nlohmann::json::exception& e)
 {
 	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const Zippy::ZipLogicError& e)
+{
+	out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+}
+catch (const Zippy::ZipRuntimeError& e)
+{
+	out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
 }
 catch (const std::filesystem::filesystem_error& e)
 {

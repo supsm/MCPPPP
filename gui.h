@@ -37,30 +37,47 @@ try
 		{
 			if (dofsb)
 			{
-				fsb(p.second.path().u8string(), p.second.path().filename().u8string(), false);
+				fsb(p.second.path().u8string(), p.second.path().filename().u8string());
 			}
 			if (dovmt)
 			{
-				vmt(p.second.path().u8string(), p.second.path().filename().u8string(), false);
+				vmt(p.second.path().u8string(), p.second.path().filename().u8string());
 			}
 			if (docim)
 			{
-				cim(p.second.path().u8string(), p.second.path().filename().u8string(), false);
+				cim(p.second.path().u8string(), p.second.path().filename().u8string());
 			}
 		}
 		else if (p.second.path().extension() == ".zip")
 		{
+			bool success = false;
+			Zippy::ZipArchive zipa;
+			unzip(p.second, zipa);
+			std::string folder = p.second.path().stem().u8string();
 			if (dofsb)
 			{
-				fsb(p.second.path().u8string(), p.second.path().filename().u8string(), true);
+				if (fsb("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
 			}
 			if (dovmt)
 			{
-				vmt(p.second.path().u8string(), p.second.path().filename().u8string(), true);
+				if (vmt("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
 			}
 			if (docim)
 			{
-				cim(p.second.path().u8string(), p.second.path().filename().u8string(), true);
+				if (cim("mcpppp-temp/" + folder, folder).success)
+				{
+					success = true;
+				}
+			}
+			if (success)
+			{
+				rezip(folder, zipa);
 			}
 		}
 	}
@@ -69,19 +86,27 @@ try
 }
 catch (const nlohmann::json::exception& e)
 {
-	out(5) << "JSON EXCEPTION:" << std::endl << e.what() << std::endl;
+	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+}
+catch (const Zippy::ZipLogicError& e)
+{
+	out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+}
+catch (const Zippy::ZipRuntimeError& e)
+{
+	out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
 }
 catch (const std::filesystem::filesystem_error& e)
 {
-	out(5) << "FILESYSTEM EXCEPTION:" << std::endl << e.what() << std::endl;
+	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
 }
 catch (const std::exception& e)
 {
-	out(5) << "EXCEPTION:" << std::endl << e.what() << std::endl;
+	out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
 }
 catch (...)
 {
-	out(5) << "UNKNOWN EXCEPTION" << std::endl;
+	out(5) << "UNKNOWN FATAL ERROR" << std::endl;
 }
 
 // callback for run button

@@ -550,7 +550,7 @@ namespace Zippy
         }
 
         /**
-         * @brief Extract the entry with the provided name to the destination path.
+         * @brief Recursively extracts the entry with the provided name to the destination path.
          * @param name The name of the entry to extract.
          * @param dest The path to extract the entry to.
          */
@@ -562,7 +562,7 @@ namespace Zippy
 
             // ===== If the entry is a directory, create the directory as a subdirectory to dest
             if (entry.IsDirectory()) {
-                std::filesystem::create_directories((dest + entry.Filename()).c_str());
+                std::filesystem::create_directories(dest + entry.Filename());
                 for (auto it = m_ZipEntries.begin(); it != m_ZipEntries.end(); it++) // recursively extract for folders (don't know why this wasn't in original)
                 {
                     std::string entry = it->GetName();
@@ -581,9 +581,43 @@ namespace Zippy
 
             // ===== If the entry is a file, stream the entry data to a file.
             else {
+                if (!std::filesystem::exists(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path()))
+                {
+                    std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
+                }
                 std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
-                for (auto ch : entry.GetData())
-                    output << static_cast<unsigned char>(ch);
+                output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
+                output.close();
+            }
+        }
+
+        /**
+         * @brief Non-recursively extracts the entry with the provided name to the destination path.
+         * @param name The name of the entry to extract.
+         * @param dest The path to extract the entry to.
+         */
+        void ExtractSingleEntry(const std::string& name, const std::string& dest)
+        {
+
+            if (!IsOpen()) throw ZipLogicError("Cannot call ExtractEntry on empty ZipArchive object!");
+
+            auto entry = GetEntry(name);
+
+            // ===== If the entry is a directory, create the directory as a subdirectory to dest
+            if (entry.IsDirectory())
+            {
+                std::filesystem::create_directories(dest + entry.Filename());
+            }
+
+            // ===== If the entry is a file, stream the entry data to a file.
+            else
+            {
+                if (!std::filesystem::exists(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path()))
+                {
+                    std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
+                }
+                std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
+                output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
                 output.close();
             }
         }
@@ -603,12 +637,15 @@ namespace Zippy
         /**
          * @brief Extract all archive contents to the destination path.
          * @param dest The path to extract the entry to.
-         * @todo To be implemented
          */
-        /*void ExtractAll(const std::string& dest) {
+        void ExtractAll(const std::string& dest) {
 
             if (!IsOpen()) throw ZipLogicError("Cannot call ExtractAll on empty ZipArchive object!");
-        }*/
+            for (const auto& it : m_ZipEntries)
+            {
+                ExtractSingleEntry(it.GetName(), dest);
+            }
+        }
 
         /**
          * @brief Add a new entry to the archive.
