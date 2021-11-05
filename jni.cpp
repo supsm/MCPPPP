@@ -9,19 +9,19 @@ try
 {
 	out(5) << "MCPPPP mod" << std::endl;
 	out(5) << "Os: " << os << std::endl << std::endl;
-	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+	for (const auto& entry : std::filesystem::directory_iterator(mbtoc8(path)))
 	{
 		if (entry.is_directory())
 		{
-			fsb(entry.path().u8string(), entry.path().filename().u8string(), false);
-			vmt(entry.path().u8string(), entry.path().filename().u8string(), false);
-			cim(entry.path().u8string(), entry.path().filename().u8string(), false);
+			fsb(entry.path().u8string(), entry.path().filename().u8string());
+			vmt(entry.path().u8string(), entry.path().filename().u8string());
+			cim(entry.path().u8string(), entry.path().filename().u8string());
 		}
 		else if (entry.path().extension() == ".zip")
 		{
-			fsb(entry.path().u8string(), entry.path().filename().u8string(), true);
-			vmt(entry.path().u8string(), entry.path().filename().u8string(), true);
-			cim(entry.path().u8string(), entry.path().filename().u8string(), true);
+			fsb(entry.path().u8string(), entry.path().filename().u8string());
+			vmt(entry.path().u8string(), entry.path().filename().u8string());
+			cim(entry.path().u8string(), entry.path().filename().u8string());
 		}
 	}
 }

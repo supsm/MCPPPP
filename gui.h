@@ -14,15 +14,15 @@
 static bool dofsb = true, dovmt = true, docim = true, running = false;
 static int numbuttons = 0;
 inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
-static std::set<std::string> deletedpaths;
+static std::set<std::u8string> deletedpaths;
 static std::unique_ptr<Fl_Widget> selectedwidget;
 
-void addpack(const std::string& name, bool selected);
-void addpath(const std::string& name);
+void addpack(const std::u8string& name, bool selected);
+void addpath(const std::u8string& name);
 void addpaths();
 void updatepaths();
 void updatepathconfig();
-std::string winfilebrowser();
+std::u8string winfilebrowser();
 
 inline void guirun()
 try
@@ -53,24 +53,24 @@ try
 			bool success = false;
 			Zippy::ZipArchive zipa;
 			unzip(p.second, zipa);
-			std::string folder = p.second.path().stem().u8string();
+			std::u8string folder = p.second.path().stem().u8string();
 			if (dofsb)
 			{
-				if (fsb("mcpppp-temp/" + folder, folder).success)
+				if (fsb(u8"mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
 			}
 			if (dovmt)
 			{
-				if (vmt("mcpppp-temp/" + folder, folder).success)
+				if (vmt(u8"mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
 			}
 			if (docim)
 			{
-				if (cim("mcpppp-temp/" + folder, folder).success)
+				if (cim(u8"mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
@@ -136,7 +136,6 @@ void conversion(Fl_Check_Button* o, void* v) // NOLINT
 	{
 		docim = static_cast<bool>(o->value());
 	}
-	std::cout << o->label() << static_cast<int>(o->value()) << std::endl;
 }
 
 // callback for resourcepack checkboxes
@@ -144,7 +143,6 @@ inline void resourcepack(Fl_Check_Button* o, void* v)
 {
 	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).first = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
-	std::cout << o->label() << " " << *static_cast<int*>(v) << " " << static_cast<int>(o->value()) << std::endl;
 }
 
 // callback for browse button
@@ -166,17 +164,16 @@ inline void reload(Fl_Button* o, void* v) // NOLINT
 	pad->hide();
 	pad->deactivate();
 	ui->scroll->end();
-	for (const std::string& path : paths)
+	for (const std::u8string& path : paths)
 	{
-		if (std::filesystem::is_directory(std::filesystem::u8path(path)))
+		if (std::filesystem::is_directory(path))
 		{
-			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+			for (const auto& entry : std::filesystem::directory_iterator(path))
 			{
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
 					entries.emplace_back(std::make_pair(true, entry));
 					addpack(entry.path().filename().u8string(), true);
-					std::cout << entry.path().filename().u8string() << std::endl;
 				}
 			}
 		}
@@ -194,14 +191,14 @@ inline void editpath(Fl_Input* o, void* v)
 	while (str.find(" // ") != std::string::npos)
 	{
 		const size_t i = str.find(" // ");
-		paths.insert(std::string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
-		deletedpaths.erase(std::string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
+		paths.insert(std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
+		deletedpaths.erase(std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
 		str.erase(str.begin(), str.begin() + static_cast<std::string::difference_type>(i + 4));
 	}
 	if (!str.empty())
 	{
-		paths.insert(str);
-		deletedpaths.erase(str);
+		paths.insert(mbtoc8(str));
+		deletedpaths.erase(mbtoc8(str));
 	}
 	addpaths();
 	updatepathconfig();
@@ -210,20 +207,19 @@ inline void editpath(Fl_Input* o, void* v)
 // callback for "Add" button in "Edit Paths"
 inline void addrespath(Fl_Button* o, void* v)
 {
-	std::string str;
+	std::u8string str;
 #ifdef _WIN32
 	str = winfilebrowser();
 #else
 	std::unique_ptr<Fl_Native_File_Chooser> chooser = std::make_unique<Fl_Native_File_Chooser>(1); // browse directory
 	str = chooser->show();
 #endif
-	if (!str.empty() && paths.find(str) == paths.end())
+	if (!str.empty() && !paths.contains(str))
 	{
 		addpath(str);
 		deletedpaths.erase(str);
 		updatepaths();
 		updatepathconfig();
-		std::cout << str << std::endl;
 	}
 	ui->edit_paths->redraw();
 	reload(nullptr, nullptr);
@@ -236,8 +232,8 @@ inline void deleterespath(Fl_Button* o, void* v)
 	{
 		return;
 	}
-	paths.erase(selectedwidget->label());
-	deletedpaths.insert(selectedwidget->label());
+	paths.erase(mbtoc8(selectedwidget->label()));
+	deletedpaths.insert(mbtoc8(selectedwidget->label()));
 	selectedwidget.reset();
 	addpaths();
 	updatepaths();
@@ -393,14 +389,14 @@ inline void dontdeletetemp(Fl_Button* o, void* v)
 }
 
 // add resourcepack to checklist
-inline void addpack(const std::string& name, bool selected)
+inline void addpack(const std::u8string& name, bool selected)
 {
 	int w = 0, h = 0, dx = 0, dy = 0;
-	fl_text_extents(name.c_str(), dx, dy, w, h);
+	fl_text_extents(c8tomb(name.c_str()), dx, dy, w, h);
 	std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 	std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
-	o->copy_label(name.c_str());
-	o->copy_tooltip(name.c_str());
+	o->copy_label(c8tomb(name.c_str()));
+	o->copy_tooltip(c8tomb(name.c_str()));
 	o->down_box(FL_DOWN_BOX);
 	o->value(static_cast<int>(selected));
 	o->user_data(temp.get());
@@ -415,16 +411,16 @@ inline void addpack(const std::string& name, bool selected)
 // update paths from "Edit Paths" to path_input
 inline void updatepaths()
 {
-	std::string pstr;
-	for (const std::string& str : paths)
+	std::u8string pstr;
+	for (const std::u8string& str : paths)
 	{
-		pstr += str + " // ";
+		pstr += str + u8" // ";
 	}
 	if (!paths.empty())
 	{
 		pstr.erase(pstr.end() - 4, pstr.end()); // erase the last " // "
 	}
-	ui->path_input->value(pstr.c_str());
+	ui->path_input->value(c8tomb(pstr.c_str()));
 }
 
 // update settings in "Settings"
@@ -445,7 +441,7 @@ inline void updatesettings()
 // update config file to include paths
 inline void updatepathconfig()
 {
-	std::set<std::string> temppaths = paths;
+	std::set<std::u8string> temppaths = paths;
 
 	// input stuff from file
 	std::ifstream configfile("mcpppp-config.json");
@@ -475,9 +471,9 @@ inline void updatepathconfig()
 				{
 					for (const std::string& path : j["gui"]["paths"].get<std::vector<std::string>>())
 					{
-						if (deletedpaths.find(path) != deletedpaths.end()) // we don't need to delete paths which are in gui (we can override)
+						if (deletedpaths.contains(mbtoc8(path))) // we don't need to delete paths which are in gui (we can override)
 						{
-							deletedpaths.erase(path);
+							deletedpaths.erase(mbtoc8(path));
 						}
 					}
 				}
@@ -492,16 +488,16 @@ inline void updatepathconfig()
 		{
 			for (const std::string& path : j["paths"].get<std::vector<std::string>>())
 			{
-				if (temppaths.find(path) != temppaths.end()) // we only need to add paths which haven't already been added (outside of gui)
+				if (temppaths.contains(mbtoc8(path))) // we only need to add paths which haven't already been added (outside of gui)
 				{
-					temppaths.erase(path);
+					temppaths.erase(mbtoc8(path));
 				}
 			}
 		}
 	}
 
-	config["gui"]["paths"] = std::vector<std::string>(temppaths.begin(), temppaths.end());
-	config["gui"]["excludepaths"] = std::vector<std::string>(deletedpaths.begin(), deletedpaths.end());
+	config["gui"]["paths"] = std::vector<std::u8string>(temppaths.begin(), temppaths.end());
+	config["gui"]["excludepaths"] = std::vector<std::u8string>(deletedpaths.begin(), deletedpaths.end());
 	std::ofstream fout("mcpppp-config.json");
 	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 	fout << config.dump(1, '\t') << std::endl;
@@ -513,11 +509,11 @@ inline void addpaths()
 {
 	int i = 0, dx = 0, dy = 0, w = 0, h = 0;
 	ui->paths->clear();
-	for (const std::string& str : paths)
+	for (const std::u8string& str : paths)
 	{
-		fl_text_extents(str.c_str(), dx, dy, w, h);
+		fl_text_extents(c8tomb(str.c_str()), dx, dy, w, h);
 		std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(w + 30, 250), 15);
-		o->copy_label(str.c_str());
+		o->copy_label(c8tomb(str.c_str()));
 		o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
 		ui->paths->add(o.get());
 		o.release();
@@ -527,16 +523,16 @@ inline void addpaths()
 }
 
 // add path to "Edit Paths" and paths
-inline void addpath(const std::string& name)
+inline void addpath(const std::u8string& name)
 {
-	if (paths.find(name) != paths.end())
+	if (paths.contains(name))
 	{
 		return;
 	}
 	int w, h, dx, dy;
-	fl_text_extents(name.c_str(), dx, dy, w, h);
+	fl_text_extents(c8tomb(name.c_str()), dx, dy, w, h);
 	std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * paths.size(), std::max(w + 30, 250), 15);
-	o->copy_label(name.c_str());
+	o->copy_label(c8tomb(name.c_str()));
 	o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
 	ui->paths->add(o.get());
 	o.release();
@@ -544,7 +540,7 @@ inline void addpath(const std::string& name)
 }
 
 #ifdef _WIN32
-inline std::string winfilebrowser()
+inline std::u8string winfilebrowser()
 {
 	LPWSTR path = nullptr;
 	std::wstring str;
@@ -569,7 +565,7 @@ inline std::string winfilebrowser()
 		}
 		pfd->Release();
 	}
-	return wtomb(str);
+	return mbtoc8(wtomb(str));
 }
 #endif
 #endif
