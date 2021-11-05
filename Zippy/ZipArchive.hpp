@@ -488,8 +488,8 @@ namespace Zippy
 
             // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
             Close();
-            std::filesystem::remove(std::filesystem::u8path(filename.c_str()));
-            std::filesystem::rename(tempPath.c_str(), std::filesystem::u8path(filename.c_str()));
+            std::filesystem::remove(mbtoc8(filename));
+            std::filesystem::rename(tempPath.c_str(), mbtoc8(filename.c_str()));
             Open(filename);
 
         }
@@ -581,9 +581,9 @@ namespace Zippy
 
             // ===== If the entry is a file, stream the entry data to a file.
             else {
-                if (!std::filesystem::exists(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path()))
+                if (!std::filesystem::exists(std::filesystem::path(mbtoc8(dest + "/" + entry.Filename())).parent_path()))
                 {
-                    std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
+                    std::filesystem::create_directories(std::filesystem::path(mbtoc8(dest + "/" + entry.Filename())).parent_path());
                 }
                 std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
                 output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
@@ -612,9 +612,9 @@ namespace Zippy
             // ===== If the entry is a file, stream the entry data to a file.
             else
             {
-                if (!std::filesystem::exists(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path()))
+                if (!std::filesystem::exists(std::filesystem::path(mbtoc8(dest + "/" + entry.Filename())).parent_path()))
                 {
-                    std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
+                    std::filesystem::create_directories(std::filesystem::path(mbtoc8(dest + "/" + entry.Filename())).parent_path());
                 }
                 std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
                 output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
@@ -687,6 +687,26 @@ namespace Zippy
         }
 
     private:
+
+        std::string c8tomb(const std::u8string& s)
+        {
+            return std::string(s.begin(), s.end());
+        }
+
+        const char* c8tomb(const char8_t* s)
+        {
+            return reinterpret_cast<const char*>(s);
+        }
+
+        std::u8string mbtoc8(const std::string& s)
+        {
+            return std::u8string(s.begin(), s.end());
+        }
+
+        const char8_t* mbtoc8(const char* s)
+        {
+            return reinterpret_cast<const char8_t*>(s);
+        }
 
         /**
          * @brief Add a new entry to the archive.
