@@ -562,7 +562,7 @@ namespace Zippy
 
             // ===== If the entry is a directory, create the directory as a subdirectory to dest
             if (entry.IsDirectory()) {
-                std::filesystem::create_directories(dest + entry.Filename());
+                std::filesystem::create_directories(std::filesystem::u8path(dest + entry.Filename()));
                 for (auto it = m_ZipEntries.begin(); it != m_ZipEntries.end(); it++) // recursively extract for folders (don't know why this wasn't in original)
                 {
                     std::string entry = it->GetName();
@@ -585,7 +585,7 @@ namespace Zippy
                 {
                     std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
                 }
-                std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
+                std::ofstream output(std::filesystem::u8path(dest + "/" + entry.Filename()), std::ios::binary);
                 output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
                 output.close();
             }
@@ -606,7 +606,7 @@ namespace Zippy
             // ===== If the entry is a directory, create the directory as a subdirectory to dest
             if (entry.IsDirectory())
             {
-                std::filesystem::create_directories(dest + entry.Filename());
+                std::filesystem::create_directories(std::filesystem::u8path(dest + entry.Filename()));
             }
 
             // ===== If the entry is a file, stream the entry data to a file.
@@ -616,7 +616,7 @@ namespace Zippy
                 {
                     std::filesystem::create_directories(std::filesystem::u8path(dest + "/" + entry.Filename()).parent_path());
                 }
-                std::ofstream output(dest + "/" + entry.Filename(), std::ios::binary);
+                std::ofstream output(std::filesystem::u8path(dest + "/" + entry.Filename()), std::ios::binary);
                 output.write(reinterpret_cast<char*>(entry.GetData().data()), entry.GetData().size());
                 output.close();
             }
