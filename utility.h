@@ -383,7 +383,7 @@ inline void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 {
 	zipa.Open(path.u8string());
 	std::string folder = path.stem().u8string();
-	std::filesystem::create_directories("mcpppp-temp/" + folder);
+	std::filesystem::create_directories(std::filesystem::u8path("mcpppp-temp/" + folder));
 	out(3) << "Extracting " << path.filename().u8string() << std::endl;
 	zipa.ExtractAll("mcpppp-temp/" + folder + '/');
 }
@@ -394,7 +394,7 @@ inline void rezip(const std::string& folder, Zippy::ZipArchive& zipa)
 	Zippy::ZipEntryData zed;
 	const size_t length = 13 + folder.size();
 	size_t filesize;
-	for (const auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder))
+	for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path("mcpppp-temp/" + folder)))
 	{
 		if (png.is_directory())
 		{
