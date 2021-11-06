@@ -31,7 +31,7 @@ inline int outputlevel = 3, loglevel = 1;
 inline std::ofstream logfile("mcpppp-log.txt");
 static std::string logfilename = "mcpppp-log.txt";
 
-inline std::set<std::u8string> paths = {};
+inline std::set<std::string> paths = {};
 inline nlohmann::ordered_json config;
 
 enum class type { boolean, integer, string };
@@ -146,16 +146,6 @@ inline void findreplace(std::string& source, const std::string& find, const std:
 	}
 }
 
-inline void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace)
-{
-	long long pos = -static_cast<long long>(replace.size());
-	while (source.find(find, static_cast<size_t>(pos) + replace.size()) != std::string::npos)
-	{
-		pos = static_cast<long long>(source.find(find, static_cast<size_t>(pos) + replace.size()));
-		source.replace(static_cast<size_t>(pos), find.length(), replace);
-	}
-}
-
 inline std::string oftoregex(std::string of)
 {
 	findreplace(of, ".", "\\.");
@@ -196,26 +186,6 @@ inline std::string oftoregex(std::string of)
 		}
 	}
 	return of;
-}
-
-std::string c8tomb(const std::u8string& s)
-{
-	return std::string(s.begin(), s.end());
-}
-
-const char* c8tomb(const char8_t* s)
-{
-	return reinterpret_cast<const char*>(s);
-}
-
-std::u8string mbtoc8(const std::string& s)
-{
-	return std::u8string(s.begin(), s.end());
-}
-
-const char8_t* mbtoc8(const char* s)
-{
-	return reinterpret_cast<const char8_t*>(s);
 }
 
 static bool cout, file, err;
@@ -315,10 +285,6 @@ public:
 		}
 		return outstream();
 	}
-	outstream operator<<(const std::u8string& str) const
-	{
-		return operator<<(c8tomb(str));
-	}
 	outstream operator<<(std::ostream& (*f)(std::ostream&)) const
 	{
 		if (cout)
@@ -415,20 +381,20 @@ namespace supsm
 
 inline void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 {
-	zipa.Open(c8tomb(path.u8string()));
-	std::u8string folder = path.stem().u8string();
-	std::filesystem::create_directories(u8"mcpppp-temp/" + folder);
+	zipa.Open(path.u8string());
+	std::string folder = path.stem().u8string();
+	std::filesystem::create_directories("mcpppp-temp/" + folder);
 	out(3) << "Extracting " << path.filename().u8string() << std::endl;
-	zipa.ExtractAll("mcpppp-temp/" + c8tomb(folder) + '/');
+	zipa.ExtractAll("mcpppp-temp/" + folder + '/');
 }
 
-inline void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
+inline void rezip(const std::string& folder, Zippy::ZipArchive& zipa)
 {
-	out(3) << u8"Compressing " + folder << std::endl;
+	out(3) << "Compressing " + folder << std::endl;
 	Zippy::ZipEntryData zed;
 	const size_t length = 13 + folder.size();
 	size_t filesize;
-	for (const auto& png : std::filesystem::recursive_directory_iterator(u8"mcpppp-temp/" + folder))
+	for (const auto& png : std::filesystem::recursive_directory_iterator("mcpppp-temp/" + folder))
 	{
 		if (png.is_directory())
 		{
@@ -441,13 +407,13 @@ inline void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 		fin.seekg(0, std::ios::beg);
 		fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
 		fin.close();
-		std::u8string temp = png.path().generic_u8string();
+		std::string temp = png.path().generic_u8string();
 		temp.erase(temp.begin(), temp.begin() + length);
 		if (temp.front() == '/')
 		{
 			temp.erase(temp.begin());
 		}
-		zipa.AddEntry(c8tomb(temp), zed);
+		zipa.AddEntry(temp, zed);
 	}
 	zed.clear();
 	zed.shrink_to_fit();
@@ -458,7 +424,7 @@ inline void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 
 inline void setting(const std::string& option, const nlohmann::json& j)
 {
-	if (!settings.contains(lowercase(option)))
+	if (settings.find(lowercase(option)) == settings.end())
 	{
 		out(4) << "Unknown setting: " << option << std::endl;
 		return;
@@ -539,11 +505,7 @@ inline void readconfig()
 	}
 	else
 	{
-		std::vector<std::string> temp = config["paths"].get<std::vector<std::string>>();
-		for (const auto& path : temp)
-		{
-			paths.insert(mbtoc8(path));
-		}
+		paths.insert(config["paths"].begin(), config["paths"].end());
 	}
 	if (config.contains("gui"))
 	{
@@ -563,11 +525,7 @@ inline void readconfig()
 			{
 				if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
 				{
-					std::vector<std::string> temp = config["paths"].get<std::vector<std::string>>();
-					for (const auto& path : temp)
-					{
-						paths.insert(mbtoc8(path));
-					}
+					paths.insert(config["gui"]["paths"].begin(), config["gui"]["paths"].end());
 				}
 			}
 			if (config["gui"].contains("excludepaths"))
@@ -576,7 +534,7 @@ inline void readconfig()
 				{
 					for (const std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
 					{
-						paths.erase(mbtoc8(path));
+						paths.erase(path);
 					}
 				}
 			}
