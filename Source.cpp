@@ -151,21 +151,22 @@ try
 #endif
 		}
 	}
-	for (const std::u8string& path : paths)
+	for (const std::string& path : paths)
 	{
-		if (!std::filesystem::is_directory(path, ec))
+		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
 			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
 			continue;
 		}
 		out(2) << "Path: " << path << std::endl;
-		for (const auto& entry : std::filesystem::directory_iterator(path))
+		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
 #ifdef GUI
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
 				entries.emplace_back(std::make_pair(true, entry));
 				addpack(entry.path().filename().u8string(), true);
+				std::cout << entry.path().filename().u8string() << std::endl;
 			}
 #else
 			if (entry.is_directory())
@@ -179,16 +180,16 @@ try
 				bool success = false;
 				Zippy::ZipArchive zipa;
 				unzip(entry, zipa);
-				std::u8string folder = entry.path().stem().u8string();
-				if (fsb(u8"mcpppp-temp/" + folder, folder).success)
+				std::string folder = entry.path().stem().u8string();
+				if (fsb("mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
-				if (vmt(u8"mcpppp-temp/" + folder, folder).success)
+				if (vmt("mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
-				if (cim(u8"mcpppp-temp/" + folder, folder).success)
+				if (cim("mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
 				}
