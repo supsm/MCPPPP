@@ -13,6 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+    - name: install libc++
+      run: sudo apt update && sudo apt install libc++-12-dev -y
     - name: cli
       run: clang++ Source.cpp -Ofast -std=c++20 -stdlib=libc++ -o bin/MCPPPP-linux
     - name: gui

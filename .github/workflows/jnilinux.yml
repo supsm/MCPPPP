@@ -25,6 +25,8 @@ jobs:
       uses: actions/setup-java@v1
       with:
         java-version: 16
+    - name: install libc++
+      run: sudo apt update && sudo apt install libc++-12-dev -y
     - name: compile
       run: clang++ -shared -fPIC -std=c++20 -stdlib=libc++ -Ofast jni.cpp -o bin/libmcpppp.so -I$JAVA_HOME/include -I$JAVA_HOME/include/linux
     - uses: EndBug/add-and-commit@v7
