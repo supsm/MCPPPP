@@ -166,7 +166,6 @@ try
 			{
 				entries.emplace_back(std::make_pair(true, entry));
 				addpack(entry.path().filename().u8string(), true);
-				std::cout << entry.path().filename().u8string() << std::endl;
 			}
 #else
 			if (entry.is_directory())

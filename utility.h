@@ -5,7 +5,6 @@
 #pragma once
 
 #include <algorithm>
-#include <codecvt>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -128,12 +127,6 @@ inline std::string ununderscore(std::string& str)
 		}
 	}
 	return str2;
-}
-
-inline std::string wtomb(const std::wstring& str)
-{
-	std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-	return converter.to_bytes(str);
 }
 
 inline void findreplace(std::string& source, const std::string& find, const std::string& replace)
@@ -408,7 +401,7 @@ inline void rezip(const std::string& folder, Zippy::ZipArchive& zipa)
 		fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
 		fin.close();
 		std::string temp = png.path().generic_u8string();
-		temp.erase(temp.begin(), temp.begin() + length);
+		temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(length));
 		if (temp.front() == '/')
 		{
 			temp.erase(temp.begin());

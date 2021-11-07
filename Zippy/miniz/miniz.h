@@ -4517,18 +4517,25 @@ extern "C" {
 
 #include <sys/stat.h>
 
-#include <codecvt>
-
-    std::wstring mbtow2(std::string str)
-    {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        return converter.from_bytes(str);
-    }
-
 #if defined(_MSC_VER) || defined(__MINGW64__)
+#define NOMINMAX
+#include <windows.h>
+
+wchar_t* mbtow(const char* in)
+{
+    const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
+    wchar_t* out = new wchar_t[len];
+    MultiByteToWideChar(CP_UTF8, 0, in, -1, out, len);
+    return out;
+}
+
 static FILE *mz_fopen(const char *pFilename, const char *pMode)
 {
-    FILE *pFile = _wfopen(mbtow2(pFilename).c_str(), mbtow2(pMode).c_str());
+    wchar_t* wpFilename = mbtow(pFilename);
+    wchar_t* wpMode = mbtow(pMode);
+    FILE *pFile = _wfopen(wpFilename, wpMode);
+    delete wpFilename;
+    delete wpMode;
     return pFile;
 }
 static FILE *mz_freopen(const char *pPath, const char *pMode, FILE *pStream)

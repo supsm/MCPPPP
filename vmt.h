@@ -16,7 +16,7 @@ private:
 	static constexpr auto VMT = "reselect";
 
 	// moves vmt pngs to new location
-	static void vmtpng(std::string& name, const std::string& folder, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
+	static void vmtpng(std::string& name, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
 	{
 		std::string folderpath, curname, curnum;
 		while (true)
@@ -30,12 +30,12 @@ private:
 				}
 				else
 				{
-					if (numbers.size() == 0)
+					if (numbers.empty())
 					{
 						name = png.path().filename().u8string();
 						name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
 						folderpath = png.path().generic_u8string();
-						folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+						folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
 						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 					}
 					curname = png.path().filename().u8string();
@@ -43,10 +43,10 @@ private:
 					break;
 				}
 			}
-			if (curname == name && curnum != "")
+			if (curname == name && !curnum.empty())
 			{
 				folderpath = png.path().generic_u8string();
-				folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+				folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
 				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 				numbers.push_back(stoi(curnum));
 				supsm::copy(png.path(), std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
@@ -75,13 +75,13 @@ private:
 	}
 
 	// converts optifine properties to vmt properties json
-	static void vmtprop(const std::string& folder, const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& png)
+	static void vmtprop(const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& png)
 	{
 		long long curnum;
 		std::string name, folderpath;
 		std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 		folderpath = png.path().generic_u8string();
-		folderpath.erase(folderpath.begin(), folderpath.begin() + folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5));
+		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
 		name = png.path().filename().u8string();
 		name.erase(name.end() - 11, name.end());
@@ -102,7 +102,7 @@ private:
 			option.clear();
 			value.clear();
 			bool isvalue = false;
-			if (temp == "" || temp.at(0) == '#')
+			if (temp.empty() || temp.front() == '#')
 			{
 				continue;
 			}
@@ -133,23 +133,23 @@ private:
 					break;
 				}
 			}
-			if (tempnum == "")
+			if (tempnum.empty())
 			{
 				continue;
 			}
 			curnum = stoi(tempnum);
 			if (static_cast<size_t>(curnum) > textures.size())
 			{
-				textures.resize(curnum);
-				weights.resize(curnum);
-				biomes.resize(curnum);
-				times.resize(curnum);
-				baby.resize(curnum, -1);
-				heights.resize(curnum);
-				names.resize(curnum, std::make_pair("", -1));
-				weather.resize(curnum, { false, false, false, false });
-				minheight.resize(curnum, INT_MIN);
-				maxheight.resize(curnum, INT_MIN);
+				textures.resize(static_cast<size_t>(curnum));
+				weights.resize(static_cast<size_t>(curnum));
+				biomes.resize(static_cast<size_t>(curnum));
+				times.resize(static_cast<size_t>(curnum));
+				baby.resize(static_cast<size_t>(curnum), -1);
+				heights.resize(static_cast<size_t>(curnum));
+				names.resize(static_cast<size_t>(curnum), std::make_pair("", -1));
+				weather.resize(static_cast<size_t>(curnum), { false, false, false, false });
+				minheight.resize(static_cast<size_t>(curnum), INT_MIN);
+				maxheight.resize(static_cast<size_t>(curnum), INT_MIN);
 			}
 			if (option.find("textures.") == 0 || option.find("skins.") == 0)
 			{
@@ -159,15 +159,15 @@ private:
 				{
 					temp = "";
 					ss >> temp;
-					if (temp != "")
+					if (!temp.empty())
 					{
 						if (temp == "1")
 						{
-							textures.at(curnum - 1).push_back("minecraft:textures/entity/" + folderpath + name + ".png");
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:textures/entity/" + folderpath + name + ".png");
 						}
 						else
 						{
-							textures.at(curnum - 1).push_back("minecraft:varied/textures/entity/" + folderpath + name + temp + ".png");
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:varied/textures/entity/" + folderpath + name + temp + ".png");
 						}
 					}
 				}
@@ -180,9 +180,9 @@ private:
 				{
 					temp = "";
 					ss >> temp;
-					if (temp != "")
+					if (!temp.empty())
 					{
-						weights.at(curnum - 1).push_back(stoi(temp));
+						weights.at(static_cast<size_t>(curnum - 1)).push_back(stoi(temp));
 					}
 				}
 			}
@@ -194,22 +194,22 @@ private:
 				{
 					temp = "";
 					ss >> temp;
-					if (temp != "")
+					if (!temp.empty())
 					{
-						if (temp.find(":") == std::string::npos) // does not contain a namespace
+						if (temp.find(':') == std::string::npos) // does not contain a namespace
 						{
 							for (std::string& s : biomelist)
 							{
 								if (ununderscore(s) == lowercase(temp))
 								{
-									biomes.at(curnum - 1).push_back("minecraft:" + s);
+									biomes.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:" + s);
 									break;
 								}
 							}
 						}
 						else // contains a namespace
 						{
-							biomes.at(curnum - 1).push_back(temp);
+							biomes.at(static_cast<size_t>(curnum - 1)).push_back(temp);
 						}
 					}
 				}
@@ -222,29 +222,29 @@ private:
 				{
 					temp = "";
 					ss >> temp;
-					if (temp != "")
+					if (!temp.empty())
 					{
 						height1.clear();
 						for (size_t i = 0; i < temp.size(); i++)
 						{
 							if (temp.at(i) == '-')
 							{
-								temp.erase(temp.begin(), temp.begin() + i);
+								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
 								break;
 							}
 							height1 += temp.at(i);
 						}
-						heights.at(curnum - 1).push_back(std::make_pair(height1, temp));
+						heights.at(static_cast<size_t>(curnum - 1)).emplace_back(std::make_pair(height1, temp));
 					}
 				}
 			}
 			else if (option.find("minHeight") == 0)
 			{
-				minheight.at(curnum - 1) = stoi(value);
+				minheight.at(static_cast<size_t>(curnum - 1)) = stoi(value);
 			}
 			else if (option.find("maxHeight") == 0)
 			{
-				maxheight.at(curnum - 1) = stoi(value);
+				maxheight.at(static_cast<size_t>(curnum - 1)) = stoi(value);
 			}
 			else if (option.find("name.") == 0)
 			{
@@ -254,44 +254,30 @@ private:
 				bool insensitive = false;
 				if (temp.find("regex:") != std::string::npos)
 				{
-					if (temp.find("iregex:") != std::string::npos)
-					{
-						insensitive = true;
-					}
-					else
-					{
-						insensitive = false;
-					}
+					insensitive = (temp.find("iregex:") != std::string::npos);
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
 						{
-							temp.erase(temp.begin(), temp.begin() + i + 1);
+							temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i + 1));
 							break;
 						}
 					}
 				}
 				else if (temp.find("pattern:") != std::string::npos)
 				{
-					if (temp.find("ipattern:") != std::string::npos)
-					{
-						insensitive = true;
-					}
-					else
-					{
-						insensitive = false;
-					}
+					insensitive = (temp.find("ipattern:") != std::string::npos);
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
 						{
-							temp.erase(temp.begin(), temp.begin() + i + 1);
+							temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i + 1));
 							break;
 						}
 					}
 					temp = oftoregex(temp);
 				}
-				names.at(curnum - 1) = std::make_pair(temp, insensitive);
+				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, insensitive);
 			}
 			else if (option.find("professions.") == 0)
 			{
@@ -305,11 +291,11 @@ private:
 			{
 				if (value == "true")
 				{
-					baby.at(curnum - 1) = 1;
+					baby.at(static_cast<size_t>(curnum - 1)) = 1;
 				}
 				else if (value == "false")
 				{
-					baby.at(curnum - 1) = 0;
+					baby.at(static_cast<size_t>(curnum - 1)) = 0;
 				}
 			}
 			else if (option.find("health.") == 0)
@@ -328,19 +314,19 @@ private:
 				{
 					temp = "";
 					ss >> temp;
-					if (temp != "")
+					if (!temp.empty())
 					{
 						time1.clear();
 						for (size_t i = 0; i < temp.size(); i++)
 						{
 							if (temp.at(i) == '-')
 							{
-								temp.erase(temp.begin(), temp.begin() + i);
+								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
 								break;
 							}
 							time1 += temp.at(i);
 						}
-						times.at(curnum - 1).push_back(std::make_pair(time1, temp));
+						times.at(static_cast<size_t>(curnum - 1)).emplace_back(std::make_pair(time1, temp));
 					}
 				}
 			}
@@ -354,18 +340,18 @@ private:
 					ss >> temp;
 					if (temp == "clear")
 					{
-						weather.at(curnum).at(1) = true;
-						weather.at(curnum).at(0) = true;
+						weather.at(static_cast<size_t>(curnum)).at(1) = true;
+						weather.at(static_cast<size_t>(curnum)).at(0) = true;
 					}
 					if (temp == "rain")
 					{
-						weather.at(curnum).at(2) = true;
-						weather.at(curnum).at(0) = true;
+						weather.at(static_cast<size_t>(curnum)).at(2) = true;
+						weather.at(static_cast<size_t>(curnum)).at(0) = true;
 					}
 					if (temp == "thunder")
 					{
-						weather.at(curnum).at(3) = true;
-						weather.at(curnum).at(0) = true;
+						weather.at(static_cast<size_t>(curnum)).at(3) = true;
+						weather.at(static_cast<size_t>(curnum)).at(0) = true;
 					}
 				}
 			}
@@ -376,7 +362,7 @@ private:
 			{
 				continue;
 			}
-			if (weights.at(i).size())
+			if (!weights.at(i).empty())
 			{
 				int weightsum = 0;
 				tempv.clear();
@@ -396,7 +382,7 @@ private:
 				}
 				tempj = { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", textures.at(i).size()}}}, {"options", tempv} };
 			}
-			if (biomes.at(i).size())
+			if (!biomes.at(i).empty())
 			{
 				tempj = { {"type", std::string{VMT} + ":string"}, {"when", {{"type", std::string{VMT} + ":entity_biome"}}}, {"options", {{{"match", biomes.at(i)}, {"then", tempj}}}} };
 			}
@@ -412,7 +398,7 @@ private:
 					tempj = { {"type", "varied-mobs:not"}, {"value", {{"type", "varied-mobs:seq"}, {"choices", {nlohmann::json({{"type", "varied-mobs:baby"}, {"value", ""}}), tempj}}}} };
 				}*/
 			}
-			if (times.at(i).size())
+			if (!times.at(i).empty())
 			{
 				// TODO: no daytime prop?
 				/*for (int j = 0; j < times[i].size(); j++)
@@ -421,7 +407,7 @@ private:
 				}
 				tempj = { {"type", "varied-mobs:seq"}, {"choices", tempv} };*/
 			}
-			if (heights.at(i).size())
+			if (!heights.at(i).empty())
 			{
 				tempv.clear();
 				for (std::pair<std::string, std::string>& p : heights.at(i))
@@ -450,7 +436,7 @@ private:
 				// TODO: no weather prop?
 				/*tempj = {{"type", "varied-mobs:weather-prop"}, {"positions", {0, 1, 2, 2}}, {"choices", {weather[i][1] ? tempj : nlohmann::json(), weather[i][2] ? tempj : nlohmann::json(), weather[i][3] ? tempj : nlohmann::json()}}};*/
 			}
-			if (names.at(i).first != "")
+			if (!names.at(i).first.empty())
 			{
 				std::string type;
 				switch (names.at(i).second)
@@ -493,7 +479,7 @@ public:
 		// destination: assets/minecraft/varied/textures/entity/
 
 
-		bool optifine, newlocation;
+		bool optifine, newlocation = false;
 		std::string name, folder, folderpath;
 		std::vector<int> numbers;
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
@@ -529,7 +515,7 @@ public:
 			return;
 		}
 		out(3) << "VMT: Converting Pack " << filename << std::endl;
-		for (auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
+		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 		{
 			if (png.path().extension() == ".png" || png.path().extension() == ".properties")
 			{
@@ -537,11 +523,11 @@ public:
 			}
 			if (png.path().filename().extension() == ".png")
 			{
-				vmtpng(name, folder, path, newlocation, numbers, png);
+				vmtpng(name, path, newlocation, numbers, png);
 			}
 			else if (png.path().filename().extension() == ".properties")
 			{
-				vmtprop(folder, path, newlocation, png);
+				vmtprop(path, newlocation, png);
 			}
 		}
 		if (!numbers.empty())
