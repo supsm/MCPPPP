@@ -6,6 +6,7 @@
 #include <cmath>
 #include <filesystem>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "utility.h"
@@ -15,6 +16,12 @@
 class fsb
 {
 private:
+	template<class T>
+	static bool compare(T first, T second) noexcept
+	{
+		return std::abs(first - second) < std::numeric_limits<T>::epsilon();
+	}
+
 	// convert red-green-blue color to hue-saturation-value color
 	static void rgb2hsv(double& first, double& second, double& third) noexcept
 	{
@@ -26,17 +33,17 @@ private:
 		const double d = max - std::min(std::min(r, g), b);
 
 		// hue
-		if (d == 0)
+		if (compare(d, 0.0))
 		{
 			// if r, g, and b are equal, set the hue to 0
 			// to prevent dividing by 0
 			first = 0;
 		}
-		else if (max == r)
+		else if (compare(max, r))
 		{
 			first = std::fmod((60 * ((g - b) / d) + 360), 360);
 		}
-		else if (max == g)
+		else if (compare(max, g))
 		{
 			first = std::fmod((60 * ((b - r) / d) + 120), 360);
 		}
@@ -46,7 +53,7 @@ private:
 		}
 
 		// saturation
-		if (max == 0)
+		if (compare(max, 0.0))
 		{
 			second = 0;
 		}
@@ -130,7 +137,7 @@ private:
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
-	static void fsbpng(const std::string& folder, const std::string& path, const std::string& output, const std::filesystem::directory_entry& png)
+	static void fsbpng(const std::string& path, const std::string& output, const std::filesystem::directory_entry& png)
 	{
 		out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
 		unsigned int w, h, error;
@@ -283,7 +290,7 @@ private:
 	}
 
 	// convert optifine properties files into fsb properties json
-	static void fsbprop(const std::string& folder, const std::string& path, const std::filesystem::directory_entry& png)
+	static void fsbprop(const std::string& path, const std::filesystem::directory_entry& png)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		std::string name = png.path().filename().u8string(), source, option, value, temp;
@@ -325,7 +332,7 @@ private:
 			{
 				value.erase(value.begin());
 			}
-			if (temp == "")
+			if (temp.empty())
 			{
 				continue;
 			}
@@ -455,7 +462,7 @@ private:
 			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(folder, path, "/assets/fabricskyboxes/sky/", entry);
+				fsbpng(path, "/assets/fabricskyboxes/sky/", entry);
 			}
 			else
 			{
@@ -486,7 +493,7 @@ private:
 			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(folder, path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
+				fsbpng(path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
 			}
 			else
 			{
@@ -553,12 +560,12 @@ public:
 			return;
 		}
 		out(3) << "FSB: Converting Pack " << filename << std::endl;
-		for (auto& png : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
+		for (const auto& png : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
 		{
 			if (png.path().extension() == ".properties")
 			{
 				out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-				fsbprop(folder, path, png);
+				fsbprop(path, png);
 			}
 		}
 		success = true;

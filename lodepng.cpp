@@ -44,14 +44,6 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #pragma warning( disable : 4996 ) /*VS does not like fopen, but fopen_s is not standard C so unusable here*/
 #endif /*_MSC_VER */
 
-#include <codecvt>
-
-std::wstring mbtow(std::string str)
-{
-    std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-    return converter.from_bytes(str);
-}
-
 const char* LODEPNG_VERSION_STRING = "20201017";
 
 /*
@@ -354,7 +346,16 @@ static long lodepng_filesize(const char* filename) {
   FILE* file;
   long size;
 #ifdef _WIN32
-  file = _wfopen(mbtow(filename).c_str(), L"rb");
+  const auto mbtow = [](const char* in) -> wchar_t*
+  {
+      const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
+      wchar_t* out = new wchar_t[len];
+      MultiByteToWideChar(CP_UTF8, 0, in, -1, out, len);
+      return out;
+  };
+  wchar_t* wfilename = mbtow(filename);
+  file = _wfopen(wfilename, L"rb");
+  delete wfilename;
 #else
   file = fopen(filename, "rb");
 #endif
@@ -378,7 +379,16 @@ static unsigned lodepng_buffer_file(unsigned char* out, size_t size, const char*
   FILE* file;
   size_t readsize;
 #ifdef _WIN32
-  file = _wfopen(mbtow(filename).c_str(), L"rb");
+  const auto mbtow = [](const char* in) -> wchar_t*
+  {
+      const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
+      wchar_t* out = new wchar_t[len];
+      MultiByteToWideChar(CP_UTF8, 0, in, -1, out, len);
+      return out;
+  };
+  wchar_t* wfilename = mbtow(filename);
+  file = _wfopen(wfilename, L"rb");
+  delete wfilename;
 #else
   file = fopen(filename, "rb");
 #endif
@@ -406,7 +416,16 @@ unsigned lodepng_load_file(unsigned char** out, size_t* outsize, const char* fil
 unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const char* filename) {
   FILE* file;
 #ifdef _WIN32
-  file = _wfopen(mbtow(filename).c_str(), L"wb");
+  const auto mbtow = [](const char* in) -> wchar_t*
+  {
+      const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
+      wchar_t* out = new wchar_t[len];
+      MultiByteToWideChar(CP_UTF8, 0, in, -1, out, len);
+      return out;
+};
+  wchar_t* wfilename = mbtow(filename);
+  file = _wfopen(wfilename, L"wb");
+  delete wfilename;
 #else
   file = fopen(filename, "wb");
 #endif

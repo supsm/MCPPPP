@@ -136,7 +136,6 @@ void conversion(Fl_Check_Button* o, void* v) // NOLINT
 	{
 		docim = static_cast<bool>(o->value());
 	}
-	std::cout << o->label() << static_cast<int>(o->value()) << std::endl;
 }
 
 // callback for resourcepack checkboxes
@@ -144,7 +143,6 @@ inline void resourcepack(Fl_Check_Button* o, void* v)
 {
 	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).first = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
-	std::cout << o->label() << " " << *static_cast<int*>(v) << " " << static_cast<int>(o->value()) << std::endl;
 }
 
 // callback for browse button
@@ -176,7 +174,6 @@ inline void reload(Fl_Button* o, void* v) // NOLINT
 				{
 					entries.emplace_back(std::make_pair(true, entry));
 					addpack(entry.path().filename().u8string(), true);
-					std::cout << entry.path().filename().u8string() << std::endl;
 				}
 			}
 		}
@@ -223,7 +220,6 @@ inline void addrespath(Fl_Button* o, void* v)
 		deletedpaths.erase(str);
 		updatepaths();
 		updatepathconfig();
-		std::cout << str << std::endl;
 	}
 	ui->edit_paths->redraw();
 	reload(nullptr, nullptr);
@@ -546,8 +542,15 @@ inline void addpath(const std::string& name)
 #ifdef _WIN32
 inline std::string winfilebrowser()
 {
+	auto wtomb = [](LPWSTR in)
+	{
+		const int len = WideCharToMultiByte(CP_UTF8, 0, in, -1, 0, 0, 0, 0);
+		std::string out(static_cast<size_t>(len), 0);
+		WideCharToMultiByte(CP_UTF8, 0, in, -1, &out.front(), len, 0, 0);
+		return out;
+	};
 	LPWSTR path = nullptr;
-	std::wstring str;
+	std::string str;
 	IFileDialog* pfd = nullptr;
 	if (SUCCEEDED(CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&pfd))))
 	{
@@ -563,13 +566,13 @@ inline std::string winfilebrowser()
 			{
 				psi->GetDisplayName(SIGDN_DESKTOPABSOLUTEPARSING, &path);
 				psi->Release();
-				str = path;
+				str = wtomb(path);
 				CoTaskMemFree(path);
 			}
 		}
 		pfd->Release();
 	}
-	return wtomb(str);
+	return str;
 }
 #endif
 #endif
