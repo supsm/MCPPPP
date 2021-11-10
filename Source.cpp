@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.5"; // MCPPPP version
+constexpr auto VERSION = "0.5.6"; // MCPPPP version
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -25,8 +25,10 @@ constexpr auto VERSION = "0.5.5"; // MCPPPP version
 #if defined(_WIN32)
 #include <Windows.h> // SetProcessDPIAware
 #endif
-#include "gui.h"
+#include "fl_impl.h"
 #endif
+
+using mcpppp::out;
 
 int main(int argc, char* argv[])
 try
@@ -38,7 +40,7 @@ try
 	std::error_code ec;
 #ifdef GUI
 	Fl::get_system_colors();
-	ui->show();
+	mcpppp::ui->show();
 	Fl::wait();
 #endif
 	if (argc < 2) // skip file settings if there are command line settings
@@ -62,14 +64,14 @@ try
 			{
 				str.resize(std::filesystem::file_size("mcpppp-config.json"));
 				configfile.read(&str.at(0), static_cast<std::streamsize>(std::filesystem::file_size("mcpppp-config.json")));
-				config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+				mcpppp::config = nlohmann::ordered_json::parse(str, nullptr, true, true);
 			}
 			catch (const nlohmann::json::exception& e)
 			{
 				out(5) << e.what() << std::endl;
-				exit();
+				mcpppp::exit();
 			}
-			readconfig();
+			mcpppp::readconfig();
 		}
 	}
 #ifndef GUI // gui doenst need command line options
@@ -96,10 +98,10 @@ try
 #endif
 
 #ifdef GUI
-	addpaths();
-	updatepaths();
-	dotimestamp = true;
-	updatesettings();
+	mcpppp::addpaths();
+	mcpppp::updatepaths();
+	mcpppp::dotimestamp = true;
+	mcpppp::updatesettings();
 #endif
 
 	out(5) << "MCPPPP " << VERSION
@@ -126,17 +128,17 @@ try
 		"Other"
 #endif
 		<< std::endl << std::endl;
-	out(5) << "pauseOnExit     " << (pauseonexit ? "true" : "false") << std::endl;
-	out(5) << "log             " << logfilename << std::endl;
-	out(5) << "timestamp       " << (dotimestamp ? "true" : "false") << std::endl;
-	out(5) << "autoDeleteTemp  " << (dotimestamp ? "true" : "false") << std::endl;
-	out(5) << "outputLevel     " << outputlevel << std::endl;
-	out(5) << "logLevel        " << loglevel << std::endl;
-	out(5) << "autoReconvert   " << autoreconvert << std::endl << std::endl << std::endl;
+	out(5) << "pauseOnExit     " << (mcpppp::pauseonexit ? "true" : "false") << std::endl;
+	out(5) << "log             " << mcpppp::logfilename << std::endl;
+	out(5) << "timestamp       " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
+	out(5) << "autoDeleteTemp  " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
+	out(5) << "outputLevel     " << mcpppp::outputlevel << std::endl;
+	out(5) << "logLevel        " << mcpppp::loglevel << std::endl;
+	out(5) << "autoReconvert   " << mcpppp::autoreconvert << std::endl << std::endl << std::endl;
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
-		if (autodeletetemp)
+		if (mcpppp::autodeletetemp)
 		{
 			out(4) << "Folder named \"mcpppp-temp\" found. Removing..." << std::endl;
 			std::filesystem::remove_all("mcpppp-temp");
@@ -144,14 +146,14 @@ try
 		else
 		{
 #ifdef GUI
-			ui->tempfound->show();
+			mcpppp::ui->tempfound->show();
 #else
 			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 			exit();
 #endif
 		}
 	}
-	for (const std::string& path : paths)
+	for (const std::string& path : mcpppp::paths)
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
@@ -164,8 +166,8 @@ try
 #ifdef GUI
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
-				entries.emplace_back(std::make_pair(true, entry));
-				addpack(entry.path().filename().u8string(), true);
+				mcpppp::entries.emplace_back(std::make_pair(true, entry));
+				mcpppp::addpack(entry.path().filename().u8string(), true);
 			}
 #else
 			if (entry.is_directory())
@@ -201,11 +203,11 @@ try
 		}
 	}
 #ifdef GUI
-	ui->scroll->redraw();
+	mcpppp::ui->scroll->redraw();
 	Fl::run();
 #endif
 	out(3) << "All Done!" << std::endl;
-	exit();
+	mcpppp::exit();
 }
 catch (const nlohmann::json::exception& e)
 {

@@ -9,30 +9,31 @@
 
 #include "utility.h"
 
+using mcpppp::out;
 
 class cim
 {
 private:
 	// converts non-properties (models and textures) to cim
-	static void cimother(const std::string& path, const std::filesystem::directory_entry& png)
+	static void other(const std::string& path, const std::filesystem::directory_entry& entry)
 	{
 		// png location (textures): assets/mcpppp/textures/item
 		// json location (models): assets/mcpppp/models/item
 		// mcpppp:item/
 
-		std::string folderpath = png.path().generic_u8string();
+		std::string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind("/cit/") + 5));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
-		if (png.path().extension() == ".png")
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		if (entry.path().extension() == ".png")
 		{
 			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/mcpppp/textures/item/" + folderpath));
-			std::string filename = png.path().filename().u8string();
-			findreplace(filename, " ", "_");
-			copy(png.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/item/" + folderpath + filename));
+			std::string filename = entry.path().filename().u8string();
+			mcpppp::findreplace(filename, " ", "_");
+			copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/item/" + folderpath + filename));
 		}
 		else
 		{
-			std::ifstream fin(png.path());
+			std::ifstream fin(entry.path());
 			nlohmann::ordered_json j;
 			std::string temp;
 			fin >> j;
@@ -69,10 +70,10 @@ private:
 						if (temp.find(' ') != std::string::npos)
 						{
 							std::string origtemp = temp;
-							findreplace(temp, " ", "_");
+							mcpppp::findreplace(temp, " ", "_");
 							if (temp.find(':') == std::string::npos)
 							{
-								supsm::copy(std::filesystem::u8path(path + "/assets/minecraft/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::u8path(path + "/assets/minecraft/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
 								it.value() = "mcpppp:extra/minecraft/" + temp;
 							}
 							else
@@ -87,7 +88,7 @@ private:
 									}
 									ns.push_back(origtemp.at(i));
 								}
-								supsm::copy(std::filesystem::u8path(path + "/assets/" + ns + "/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::u8path(path + "/assets/" + ns + "/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
 								it.value() = "mcpppp:extra/" + ns + "/" + temp;
 							}
 						}
@@ -103,8 +104,8 @@ private:
 				}
 			}
 			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/mcpppp/models/item/" + folderpath));
-			std::string filename = png.path().filename().u8string();
-			findreplace(filename, " ", "_");
+			std::string filename = entry.path().filename().u8string();
+			mcpppp::findreplace(filename, " ", "_");
 			std::ofstream fout(std::filesystem::u8path(path + "/assets/mcpppp/models/item/" + folderpath + filename));
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
@@ -112,17 +113,17 @@ private:
 	}
 
 	// converts cit properties to cim
-	static void cimprop(const std::string& path, const std::filesystem::directory_entry& png)
+	static void prop(const std::string& path, const std::filesystem::directory_entry& entry)
 	{
-		std::string folderpath = png.path().generic_u8string();
+		std::string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind("/cit/") + 5));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 		std::vector<nlohmann::json> nbts, predicates, tempp;
 		std::stack<std::string> nbt;
 		nlohmann::json tempj;
-		std::ifstream fin(png.path());
+		std::ifstream fin(entry.path());
 		while (fin)
 		{
 			getline(fin, temp);
@@ -169,7 +170,7 @@ private:
 			else if (option == "texture")
 			{
 				texture = value;
-				findreplace(texture, " ", "_");
+				mcpppp::findreplace(texture, " ", "_");
 				if (texture.find(".png") != std::string::npos)
 				{
 					texture.erase(texture.end() - 4, texture.end());
@@ -179,7 +180,7 @@ private:
 					// assets/mcpppp/textures/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					supsm::copy(png.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + texture + ".png"));
+					mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + texture + ".png"));
 					texture.insert(0, "mcpppp:extra/");
 				}
 				else if (texture.at(0) == '.' && texture.at(1) == '/')
@@ -199,7 +200,7 @@ private:
 			else if (option == "model")
 			{
 				model = value;
-				findreplace(model, " ", "_");
+				mcpppp::findreplace(model, " ", "_");
 				if (model.find(".json") != std::string::npos)
 				{
 					model.erase(model.end() - 5, model.end());
@@ -209,7 +210,7 @@ private:
 					// assets/mcpppp/models/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					supsm::copy(png.path(), std::filesystem::u8path(path + "/assets/mcpppp/models/extra/" + model + ".png"));
+					mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/models/extra/" + model + ".png"));
 					model.insert(0, "mcpppp:extra/");
 				}
 				else if (model.at(0) == '.' && model.at(1) == '/')
@@ -403,9 +404,9 @@ private:
 							break;
 						}
 					}
-					temp = std::string("/") + (insensitive ? "(?i)" : "") + oftoregex(temp) + "/";
+					temp = std::string("/") + (insensitive ? "(?i)" : "") + mcpppp::oftoregex(temp) + "/";
 				}
-				if (lowercase(option) == "nbt.display.name")
+				if (mcpppp::lowercase(option) == "nbt.display.name")
 				{
 					name = temp;
 				}
@@ -555,7 +556,7 @@ public:
 		bool optifine;
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/overrides")))
 		{
-			if (autoreconvert)
+			if (mcpppp::autoreconvert)
 			{
 				out(3) << "CIM: Reconverting " << filename << std::endl;
 				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/mcpppp"));
@@ -581,19 +582,19 @@ public:
 			return;
 		}
 		out(3) << "CIM: Converting Pack " << filename << std::endl;
-		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit")))
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit")))
 		{
-			if (png.path().extension() == ".png" || png.path().extension() == ".properties" || png.path().extension() == ".json")
+			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties" || entry.path().extension() == ".json")
 			{
-				out(1) << "CIM: Converting " + png.path().filename().u8string() << std::endl;
+				out(1) << "CIM: Converting " + entry.path().filename().u8string() << std::endl;
 			}
-			if (png.path().extension() == ".json" || png.path().extension() == ".png")
+			if (entry.path().extension() == ".json" || entry.path().extension() == ".png")
 			{
-				cimother(path, png);
+				other(path, entry);
 			}
-			else if (png.path().extension() == ".properties")
+			else if (entry.path().extension() == ".properties")
 			{
-				cimprop(path, png);
+				prop(path, entry);
 			}
 		}
 		success = true;

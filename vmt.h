@@ -9,6 +9,7 @@
 
 #include "utility.h"
 
+using mcpppp::out;
 
 class vmt
 {
@@ -16,40 +17,40 @@ private:
 	static constexpr auto VMT = "reselect";
 
 	// moves vmt pngs to new location
-	static void vmtpng(std::string& name, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& png)
+	static void png(std::string& name, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& entry)
 	{
 		std::string folderpath, curname, curnum;
 		while (true)
 		{
 			curnum.clear();
-			for (size_t i = png.path().filename().u8string().size() - 4; i >= 1; i--)
+			for (size_t i = entry.path().filename().u8string().size() - 4; i >= 1; i--)
 			{
-				if (png.path().filename().u8string().at(i - 1) >= '0' && png.path().filename().u8string().at(i - 1) <= '9')
+				if (entry.path().filename().u8string().at(i - 1) >= '0' && entry.path().filename().u8string().at(i - 1) <= '9')
 				{
-					curnum.insert(curnum.begin(), png.path().filename().u8string().at(i - 1));
+					curnum.insert(curnum.begin(), entry.path().filename().u8string().at(i - 1));
 				}
 				else
 				{
 					if (numbers.empty())
 					{
-						name = png.path().filename().u8string();
+						name = entry.path().filename().u8string();
 						name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
-						folderpath = png.path().generic_u8string();
+						folderpath = entry.path().generic_u8string();
 						folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
-						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 					}
-					curname = png.path().filename().u8string();
+					curname = entry.path().filename().u8string();
 					curname.erase(curname.begin() + static_cast<std::string::difference_type>(i), curname.end());
 					break;
 				}
 			}
 			if (curname == name && !curnum.empty())
 			{
-				folderpath = png.path().generic_u8string();
+				folderpath = entry.path().generic_u8string();
 				folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
-				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
+				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 				numbers.push_back(stoi(curnum));
-				supsm::copy(png.path(), std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + png.path().filename().u8string()));
+				mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + entry.path().filename().u8string()));
 				return;
 			}
 			if (numbers.empty())
@@ -75,15 +76,15 @@ private:
 	}
 
 	// converts optifine properties to vmt properties json
-	static void vmtprop(const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& png)
+	static void prop(const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
 		long long curnum;
 		std::string name, folderpath;
 		std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
-		folderpath = png.path().generic_u8string();
+		folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(png.path().filename().u8string().size()), folderpath.end());
-		name = png.path().filename().u8string();
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		name = entry.path().filename().u8string();
 		name.erase(name.end() - 11, name.end());
 		std::string temp, option, value, time1, last, height1, tempnum;
 		nlohmann::json j, tempj;
@@ -95,7 +96,7 @@ private:
 		std::vector<std::pair<std::string, signed char>> names; // -1 = normal string, 0 = regex, 1 = iregex
 		std::vector<int> baby, minheight, maxheight;
 		std::stringstream ss;
-		std::ifstream fin(png.path());
+		std::ifstream fin(entry.path());
 		while (fin)
 		{
 			std::getline(fin, temp);
@@ -200,7 +201,7 @@ private:
 						{
 							for (std::string& s : biomelist)
 							{
-								if (ununderscore(s) == lowercase(temp))
+								if (mcpppp::ununderscore(s) == mcpppp::lowercase(temp))
 								{
 									biomes.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:" + s);
 									break;
@@ -275,7 +276,7 @@ private:
 							break;
 						}
 					}
-					temp = oftoregex(temp);
+					temp = mcpppp::oftoregex(temp);
 				}
 				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, insensitive);
 			}
@@ -484,7 +485,7 @@ public:
 		std::vector<int> numbers;
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
 		{
-			if (autoreconvert)
+			if (mcpppp::autoreconvert)
 			{
 				out(3) << "VMT: Reconverting " << filename << std::endl;
 				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
@@ -515,19 +516,19 @@ public:
 			return;
 		}
 		out(3) << "VMT: Converting Pack " << filename << std::endl;
-		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 		{
-			if (png.path().extension() == ".png" || png.path().extension() == ".properties")
+			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties")
 			{
-				out(1) << "VMT: Converting " + png.path().filename().u8string() << std::endl;
+				out(1) << "VMT: Converting " + entry.path().filename().u8string() << std::endl;
 			}
-			if (png.path().filename().extension() == ".png")
+			if (entry.path().filename().extension() == ".png")
 			{
-				vmtpng(name, path, newlocation, numbers, png);
+				png(name, path, newlocation, numbers, entry);
 			}
-			else if (png.path().filename().extension() == ".properties")
+			else if (entry.path().filename().extension() == ".properties")
 			{
-				vmtprop(path, newlocation, png);
+				prop(path, newlocation, entry);
 			}
 		}
 		if (!numbers.empty())
