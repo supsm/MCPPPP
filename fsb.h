@@ -12,6 +12,7 @@
 #include "utility.h"
 #include "lodepng.cpp"
 
+using mcpppp::out;
 
 class fsb
 {
@@ -137,18 +138,18 @@ private:
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
-	static void fsbpng(const std::string& path, const std::string& output, const std::filesystem::directory_entry& png)
+	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry)
 	{
-		out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
+		out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
 		unsigned int w, h, error;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
-		std::string filename = png.path().filename().u8string();
+		std::string filename = entry.path().filename().u8string();
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
 		filename.erase(filename.end() - 4, filename.end());
-		error = lodepng::load_file(buffer, png.path().u8string());
+		error = lodepng::load_file(buffer, entry.path().u8string());
 		if (error != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
@@ -160,7 +161,7 @@ private:
 		}
 		if (w % 3 != 0 || h % 2 != 0)
 		{
-			out(5) << "FSB: Wrong dimensions: " << png.path().u8string() << std::endl;
+			out(5) << "FSB: Wrong dimensions: " << entry.path().u8string() << std::endl;
 			return;
 		}
 		image1.reserve(buffer.size() / 6);
@@ -290,10 +291,10 @@ private:
 	}
 
 	// convert optifine properties files into fsb properties json
-	static void fsbprop(const std::string& path, const std::filesystem::directory_entry& png)
+	static void prop(const std::string& path, const std::filesystem::directory_entry& entry)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
-		std::string name = png.path().filename().u8string(), source, option, value, temp;
+		std::string name = entry.path().filename().u8string(), source, option, value, temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
@@ -302,7 +303,7 @@ private:
 		source = name;
 		std::stringstream ss;
 		nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {"minecraft:overworld"}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"rotation", {{"axis", {0.0, 180.0, 0.0}}}}, {"sunSkyTint", false}} } };
-		std::ifstream fin(png.path());
+		std::ifstream fin(entry.path());
 		while (fin)
 		{
 			std::getline(fin, temp);
@@ -345,7 +346,7 @@ private:
 			{
 				temp = value;
 				// apparently \: is valid syntax
-				findreplace(temp, "\\:", ":");
+				mcpppp::findreplace(temp, "\\:", ":");
 				for (size_t i = 0; i < temp.size(); i++)
 				{
 					if (temp.at(i) == ':')
@@ -365,7 +366,7 @@ private:
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "Error: " << e.what() << "\n\tIn file \"" << png.path().u8string() << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
+					out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -452,7 +453,7 @@ private:
 		{
 			source.erase(source.begin());
 			std::string origsource = source;
-			temp = png.path().parent_path().generic_u8string();
+			temp = entry.path().parent_path().generic_u8string();
 			if (temp.back() == '/')
 			{
 				temp.erase(temp.end() - 1);
@@ -462,7 +463,7 @@ private:
 			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(path, "/assets/fabricskyboxes/sky/", entry);
+				png(path, "/assets/fabricskyboxes/sky/", entry);
 			}
 			else
 			{
@@ -493,7 +494,7 @@ private:
 			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
 			if (entry.exists())
 			{
-				fsbpng(path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
+				png(path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
 			}
 			else
 			{
@@ -535,7 +536,7 @@ public:
 		bool optifine;
 		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky")))
 		{
-			if (autoreconvert)
+			if (mcpppp::autoreconvert)
 			{
 				out(3) << "FSB: Reconverting " << filename << std::endl;
 				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/fabricskyboxes"));
@@ -560,12 +561,12 @@ public:
 			return;
 		}
 		out(3) << "FSB: Converting Pack " << filename << std::endl;
-		for (const auto& png : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
+		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
 		{
-			if (png.path().extension() == ".properties")
+			if (entry.path().extension() == ".properties")
 			{
-				out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-				fsbprop(path, png);
+				out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
+				prop(path, entry);
 			}
 		}
 		success = true;
