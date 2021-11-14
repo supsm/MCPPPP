@@ -23,7 +23,7 @@ constexpr auto VERSION = "0.5.6"; // MCPPPP version
 #include "cim.h"
 #else
 #if defined(_WIN32)
-#include <Windows.h> // SetProcessDPIAware
+#include <Windows.h> // SetProcessDpiAwarenessContext
 #endif
 #include "fl_impl.h"
 #endif
@@ -33,8 +33,10 @@ using mcpppp::out;
 int main(int argc, char* argv[])
 try
 {
-#if defined _WIN32 && defined GUI
-	SetProcessDPIAware(); // fix blurriness
+	// we don't need this if running cli version, or if unaware_gdiscaled is not available
+	// other dpi awareness settings make the window too small, it's probably better if blurry
+#if defined _WIN32 && defined GUI && defined DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED
+	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED); // fix blurriness
 #endif
 	std::string str, option, value, temp;
 	std::error_code ec;
