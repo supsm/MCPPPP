@@ -114,6 +114,11 @@ private:
 	// convert black to transparent
 	static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
 	{
+		// don't convert transparency if setting is false
+		if (!mcpppp::fsbtransparent)
+		{
+			return;
+		}
 		for (long long i = 0; i < (w * 4) / 3; i += 4)
 		{
 			for (long long j = 0; j < h / 2; j++)

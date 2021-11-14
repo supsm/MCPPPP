@@ -3,7 +3,7 @@
 #ifndef mcpppp_h
 #define mcpppp_h
 #include <FL/Fl.H>
-#include <FL/Fl_Window.H>
+#include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 extern void run(Fl_Button*, void*);
 #include <FL/Fl_Text_Display.H>
@@ -23,6 +23,7 @@ extern void deleterespath(Fl_Button*, void*);
 #include <FL/Fl_Group.H>
 #include <FL/Fl_Counter.H>
 extern void savesettings(Fl_Button*, void*);
+#include <FL/Fl_Window.H>
 #include <FL/Fl_Help_View.H>
 extern void deletetemp(Fl_Button*, void*);
 extern void dontdeletetemp(Fl_Button*, void*);
@@ -30,16 +31,16 @@ extern void dontdeletetemp(Fl_Button*, void*);
 class UI {
 public:
   UI();
-  Fl_Window *window;
+  Fl_Double_Window *window;
   Fl_Text_Display *text_display;
   Fl_Scroll *scroll;
   Fl_Input *path_input;
   Fl_Box *box1;
   Fl_Box *box2;
   Fl_Check_Button *allpacks;
-  Fl_Window *edit_paths;
+  Fl_Double_Window *edit_paths;
   Fl_Scroll *paths;
-  Fl_Window *settings;
+  Fl_Double_Window *settings;
   Fl_Input *log;
 private:
   inline void cb_log_i(Fl_Input*, void*);
@@ -75,9 +76,25 @@ private:
   inline void cb_autoreconvertfalse_i(Fl_Button*, void*);
   static void cb_autoreconvertfalse(Fl_Button*, void*);
 public:
+  Fl_Button *fsbtransparenttrue;
+private:
+  inline void cb_fsbtransparenttrue_i(Fl_Button*, void*);
+  static void cb_fsbtransparenttrue(Fl_Button*, void*);
+public:
+  Fl_Button *fsbtransparentfalse;
+private:
+  inline void cb_fsbtransparentfalse_i(Fl_Button*, void*);
+  static void cb_fsbtransparentfalse(Fl_Button*, void*);
+public:
   Fl_Box *savewarning;
   Fl_Window *help;
   Fl_Window *tempfound;
+  Fl_Window *path_warning;
+private:
+  inline void cb_Close_i(Fl_Button*, void*);
+  static void cb_Close(Fl_Button*, void*);
+public:
+  Fl_Check_Button *dontshowwarning;
   void show();
 };
 extern void settingchanged(Fl_Widget*, void*);

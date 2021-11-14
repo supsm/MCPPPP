@@ -51,8 +51,29 @@ void UI::cb_autoreconvertfalse(Fl_Button* o, void* v) {
   ((UI*)(o->parent()->parent()->user_data()))->cb_autoreconvertfalse_i(o,v);
 }
 
+void UI::cb_fsbtransparenttrue_i(Fl_Button* o, void* v) {
+  settingchanged(o, v);
+}
+void UI::cb_fsbtransparenttrue(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_fsbtransparenttrue_i(o,v);
+}
+
+void UI::cb_fsbtransparentfalse_i(Fl_Button* o, void* v) {
+  settingchanged(o, v);
+}
+void UI::cb_fsbtransparentfalse(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_fsbtransparentfalse_i(o,v);
+}
+
+void UI::cb_Close_i(Fl_Button*, void*) {
+  path_warning->hide();
+}
+void UI::cb_Close(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->user_data()))->cb_Close_i(o,v);
+}
+
 UI::UI() {
-  { window = new Fl_Window(660, 420, "MCPPPP");
+  { window = new Fl_Double_Window(660, 420, "MCPPPP");
     window->color((Fl_Color)48);
     window->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(445, 370, 190, 30, "Run");
@@ -158,8 +179,8 @@ UI::UI() {
       allpacks->when(FL_WHEN_CHANGED);
     } // Fl_Check_Button* allpacks
     window->end();
-  } // Fl_Window* window
-  { edit_paths = new Fl_Window(270, 300, "Edit Paths");
+  } // Fl_Double_Window* window
+  { edit_paths = new Fl_Double_Window(269, 300, "Edit Paths");
     edit_paths->color((Fl_Color)48);
     edit_paths->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(10, 270, 120, 20, "Add");
@@ -185,39 +206,44 @@ UI::UI() {
       paths->end();
     } // Fl_Scroll* paths
     edit_paths->end();
-  } // Fl_Window* edit_paths
-  { settings = new Fl_Window(300, 240, "Settings");
+  } // Fl_Double_Window* edit_paths
+  { settings = new Fl_Double_Window(300, 260, "Settings");
     settings->user_data((void*)(this));
-    { Fl_Box* o = new Fl_Box(20, 15, 100, 20, "log");
+    { Fl_Box* o = new Fl_Box(10, 10, 120, 20, "log");
       o->tooltip("A log file where logs will be stored");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(20, 45, 100, 20, "timestamp");
+    { Fl_Box* o = new Fl_Box(10, 40, 120, 20, "timestamp");
       o->tooltip("Whether to add timestamp to console");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(20, 75, 100, 20, "outputLevel");
+    { Fl_Box* o = new Fl_Box(10, 70, 120, 20, "outputLevel");
       o->tooltip("How much info should be outputted \\n1 Spam\\n2 Info\\n3 Important\\n4 Warnin\
 g\\n5 Error");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(20, 105, 100, 20, "logLevel");
+    { Fl_Box* o = new Fl_Box(10, 100, 120, 20, "logLevel");
       o->tooltip("Same as outputLevel, but for logs");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(20, 135, 100, 20, "autoReconvert");
+    { Fl_Box* o = new Fl_Box(10, 130, 120, 20, "autoReconvert");
       o->tooltip("Automatically reconvert resourcepacks instead of skipping. Could lose data if\
  a pack isn\'t converted with MCPPPP");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { log = new Fl_Input(130, 15, 150, 20);
+    { Fl_Box* o = new Fl_Box(10, 160, 120, 20, "fsbTransparent");
+      o->tooltip("Make Fabricskyboxes skyboxes partially transparent to match with optifine. FS\
+B has minor issues with transparency, some parts may not show");
+      o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
+    } // Fl_Box* o
+    { log = new Fl_Input(140, 10, 150, 20);
       log->box(FL_BORDER_BOX);
       log->labeltype(FL_NO_LABEL);
       log->callback((Fl_Callback*)cb_log);
       log->when(FL_WHEN_CHANGED);
     } // Fl_Input* log
-    { Fl_Group* o = new Fl_Group(130, 45, 150, 20);
-      { timestamptrue = new Fl_Button(130, 45, 75, 20, "True");
+    { Fl_Group* o = new Fl_Group(140, 40, 150, 20);
+      { timestamptrue = new Fl_Button(140, 40, 75, 20, "True");
         timestamptrue->type(102);
         timestamptrue->box(FL_FLAT_BOX);
         timestamptrue->down_box(FL_BORDER_BOX);
@@ -226,7 +252,7 @@ g\\n5 Error");
         timestamptrue->selection_color((Fl_Color)43);
         timestamptrue->callback((Fl_Callback*)cb_timestamptrue);
       } // Fl_Button* timestamptrue
-      { timestampfalse = new Fl_Button(205, 45, 75, 20, "False");
+      { timestampfalse = new Fl_Button(215, 40, 75, 20, "False");
         timestampfalse->type(102);
         timestampfalse->box(FL_FLAT_BOX);
         timestampfalse->down_box(FL_BORDER_BOX);
@@ -236,7 +262,7 @@ g\\n5 Error");
       } // Fl_Button* timestampfalse
       o->end();
     } // Fl_Group* o
-    { outputlevel = new Fl_Counter(130, 75, 150, 20);
+    { outputlevel = new Fl_Counter(140, 70, 150, 20);
       outputlevel->box(FL_BORDER_BOX);
       outputlevel->labeltype(FL_NO_LABEL);
       outputlevel->minimum(1);
@@ -245,7 +271,7 @@ g\\n5 Error");
       outputlevel->value(3);
       outputlevel->callback((Fl_Callback*)cb_outputlevel);
     } // Fl_Counter* outputlevel
-    { loglevel = new Fl_Counter(130, 105, 150, 20);
+    { loglevel = new Fl_Counter(140, 100, 150, 20);
       loglevel->box(FL_BORDER_BOX);
       loglevel->labeltype(FL_NO_LABEL);
       loglevel->minimum(1);
@@ -254,8 +280,8 @@ g\\n5 Error");
       loglevel->value(2);
       loglevel->callback((Fl_Callback*)cb_loglevel);
     } // Fl_Counter* loglevel
-    { Fl_Group* o = new Fl_Group(130, 135, 150, 20);
-      { autoreconverttrue = new Fl_Button(130, 135, 75, 20, "True");
+    { Fl_Group* o = new Fl_Group(140, 125, 150, 25);
+      { autoreconverttrue = new Fl_Button(140, 130, 75, 20, "True");
         autoreconverttrue->type(102);
         autoreconverttrue->box(FL_FLAT_BOX);
         autoreconverttrue->down_box(FL_BORDER_BOX);
@@ -263,7 +289,7 @@ g\\n5 Error");
         autoreconverttrue->selection_color((Fl_Color)43);
         autoreconverttrue->callback((Fl_Callback*)cb_autoreconverttrue);
       } // Fl_Button* autoreconverttrue
-      { autoreconvertfalse = new Fl_Button(205, 135, 75, 20, "False");
+      { autoreconvertfalse = new Fl_Button(215, 130, 75, 20, "False");
         autoreconvertfalse->type(102);
         autoreconvertfalse->box(FL_FLAT_BOX);
         autoreconvertfalse->down_box(FL_BORDER_BOX);
@@ -274,7 +300,27 @@ g\\n5 Error");
       } // Fl_Button* autoreconvertfalse
       o->end();
     } // Fl_Group* o
-    { Fl_Button* o = new Fl_Button(20, 185, 260, 25, "Save");
+    { Fl_Group* o = new Fl_Group(140, 155, 150, 25);
+      { fsbtransparenttrue = new Fl_Button(140, 160, 75, 20, "True");
+        fsbtransparenttrue->type(102);
+        fsbtransparenttrue->box(FL_FLAT_BOX);
+        fsbtransparenttrue->down_box(FL_BORDER_BOX);
+        fsbtransparenttrue->color(FL_DARK2);
+        fsbtransparenttrue->selection_color((Fl_Color)43);
+        fsbtransparenttrue->callback((Fl_Callback*)cb_fsbtransparenttrue);
+      } // Fl_Button* fsbtransparenttrue
+      { fsbtransparentfalse = new Fl_Button(215, 160, 75, 20, "False");
+        fsbtransparentfalse->type(102);
+        fsbtransparentfalse->box(FL_FLAT_BOX);
+        fsbtransparentfalse->down_box(FL_BORDER_BOX);
+        fsbtransparentfalse->value(1);
+        fsbtransparentfalse->color(FL_DARK2);
+        fsbtransparentfalse->selection_color((Fl_Color)43);
+        fsbtransparentfalse->callback((Fl_Callback*)cb_fsbtransparentfalse);
+      } // Fl_Button* fsbtransparentfalse
+      o->end();
+    } // Fl_Group* o
+    { Fl_Button* o = new Fl_Button(10, 200, 280, 25, "Save");
       o->tooltip("Save settings");
       o->box(FL_BORDER_BOX);
       o->down_box(FL_BORDER_BOX);
@@ -282,13 +328,13 @@ g\\n5 Error");
       o->selection_color((Fl_Color)43);
       o->callback((Fl_Callback*)savesettings);
     } // Fl_Button* o
-    { savewarning = new Fl_Box(20, 215, 260, 20, "Warning: unsaved changes");
+    { savewarning = new Fl_Box(10, 230, 280, 20, "Warning: unsaved changes");
       savewarning->labelfont(1);
       savewarning->labelcolor((Fl_Color)1);
       savewarning->hide();
     } // Fl_Box* savewarning
     settings->end();
-  } // Fl_Window* settings
+  } // Fl_Double_Window* settings
   { help = new Fl_Window(400, 320, "Help");
     help->user_data((void*)(this));
     { Fl_Help_View* o = new Fl_Help_View(0, 0, 400, 320);
@@ -321,6 +367,24 @@ ated it yourself. Do you want to delete it?");
     } // Fl_Button* o
     tempfound->end();
   } // Fl_Window* tempfound
+  { path_warning = new Fl_Window(200, 160, "Warning");
+    path_warning->user_data((void*)(this));
+    { Fl_Box* o = new Fl_Box(10, 10, 180, 100, "Potentially incorrect path detected. Make sure the path inputted is the path \
+of the resourcepacks folder, instead of any individual resource pack.");
+      o->align(Fl_Align(FL_ALIGN_WRAP));
+    } // Fl_Box* o
+    { Fl_Button* o = new Fl_Button(10, 125, 85, 20, "Close");
+      o->box(FL_BORDER_BOX);
+      o->down_box(FL_BORDER_BOX);
+      o->color(FL_DARK2);
+      o->selection_color((Fl_Color)43);
+      o->callback((Fl_Callback*)cb_Close);
+    } // Fl_Button* o
+    { dontshowwarning = new Fl_Check_Button(100, 125, 90, 20, "Don\'t show");
+      dontshowwarning->down_box(FL_DOWN_BOX);
+    } // Fl_Check_Button* dontshowwarning
+    path_warning->end();
+  } // Fl_Window* path_warning
 }
 
 void UI::show() {
