@@ -247,6 +247,21 @@ namespace mcpppp
 		{
 			return;
 		}
+
+		// if name does not end in .minecraft/resourcepacks
+		const size_t find1 = name.rfind(".minecraft/resourcepacks");
+		const size_t find2 = name.rfind(".minecraft\\resourcepacks");
+		if (!ui->dontshowwarning->value() && (find1 < name.size() - 24 || find1 == std::string::npos) && (find2 < name.size() - 24 || find2 == std::string::npos))
+		{
+			// don't let user do anything until they close window lol
+			ui->path_warning->set_modal();
+			ui->path_warning->show();
+			while (ui->path_warning->shown())
+			{
+				Fl::wait();
+			}
+		}
+
 		int w, h, dx, dy;
 		fl_text_extents(name.c_str(), dx, dy, w, h);
 		std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * paths.size(), std::max(w + 30, 250), 15);
@@ -260,11 +275,15 @@ namespace mcpppp
 #ifdef _WIN32
 	inline std::string winfilebrowser()
 	{
-		auto wtomb = [](LPWSTR in)
+		const auto wtomb = [](LPWSTR in)
 		{
-			const int len = WideCharToMultiByte(CP_UTF8, 0, in, -1, 0, 0, 0, 0);
+			const int len = WideCharToMultiByte(CP_UTF8, 0, in, -1, nullptr, 0, nullptr, nullptr);
 			std::string out(static_cast<size_t>(len), 0);
-			WideCharToMultiByte(CP_UTF8, 0, in, -1, &out.front(), len, 0, 0);
+			WideCharToMultiByte(CP_UTF8, 0, in, -1, &out.front(), len, nullptr, nullptr);
+			while (len > 0 && out.back() == '\0')
+			{
+				out.pop_back();
+			}
 			return out;
 		};
 		LPWSTR path = nullptr;

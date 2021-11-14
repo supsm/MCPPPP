@@ -13,6 +13,7 @@
 #include <string>
 #include <thread>
 #include <tuple>
+#include <utility>
 #include <unordered_map>
 #include <variant>
 #include <vector>
@@ -41,13 +42,13 @@ namespace mcpppp
 {
 	static std::stringstream sstream;
 	static Fl_Text_Buffer textbuffer;
-	inline std::unique_ptr<UI> ui = std::make_unique<UI>();
+	inline std::unique_ptr<UI> ui;
 }
 #endif
 
 namespace mcpppp
 {
-	inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false;
+	inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false, fsbtransparent = true;
 	inline int outputlevel = 3, loglevel = 1;
 	inline std::ofstream logfile("mcpppp-log.txt");
 	static std::string logfilename = "mcpppp-log.txt";
@@ -57,16 +58,25 @@ namespace mcpppp
 
 	enum class type { boolean, integer, string };
 
-	// type, pointer to variable to modify, default value
-	const std::unordered_map<std::string, std::tuple<type, std::variant<bool*, int*, std::string*>, nlohmann::json>> settings =
+	struct setting_item
 	{
-		{"pauseonexit", {type::boolean, &pauseonexit, pauseonexit}},
-		{"log", {type::string, &logfilename, logfilename}},
-		{"timestamp", {type::boolean, &dotimestamp, dotimestamp}},
-		{"autodeletetemp", {type::boolean, &autodeletetemp, autodeletetemp}},
-		{"outputlevel", {type::integer, &outputlevel, outputlevel}},
-		{"loglevel", {type::integer, &loglevel, loglevel}},
-		{"autoreconvert", {type::boolean, &autoreconvert, autoreconvert}}
+		type setting_type;
+		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<int>, std::reference_wrapper<std::string>> var;
+		// json since it is compared with another json value in save_settings
+		nlohmann::json default_val;
+		void* fl_widget;
+	};
+
+	const std::unordered_map<std::string, setting_item> settings =
+	{
+		{"pauseonexit", {type::boolean, pauseonexit, pauseonexit}},
+		{"log", {type::string, logfilename, logfilename}},
+		{"timestamp", {type::boolean, dotimestamp, dotimestamp}},
+		{"autodeletetemp", {type::boolean, autodeletetemp, autodeletetemp}},
+		{"outputlevel", {type::integer, outputlevel, outputlevel}},
+		{"loglevel", {type::integer, loglevel, loglevel}},
+		{"autoreconvert", {type::boolean, autoreconvert, autoreconvert}},
+		{"fsbtransparent", {type::boolean, fsbtransparent, fsbtransparent}}
 	};
 
 
@@ -424,13 +434,13 @@ namespace mcpppp
 			out(4) << "Unknown setting: " << option << std::endl;
 			return;
 		}
-		const type t = std::get<0>(settings.at(lowercase(option)));
-		const auto var = std::get<1>(settings.at(lowercase(option)));
+		const type t = settings.at(lowercase(option)).setting_type;
+		const auto var = settings.at(lowercase(option)).var;
 		if (t == type::boolean)
 		{
 			try
 			{
-				*(std::get<bool*>(var)) = j.get<bool>();
+				std::get<std::reference_wrapper<bool>>(var).get() = j.get<bool>();
 			}
 			catch (const nlohmann::json::exception&)
 			{
@@ -441,7 +451,7 @@ namespace mcpppp
 		{
 			try
 			{
-				*(std::get<int*>(var)) = j.get<int>();
+				std::get<std::reference_wrapper<int>>(var).get() = j.get<int>();
 			}
 			catch (const nlohmann::json::exception&)
 			{
@@ -452,7 +462,7 @@ namespace mcpppp
 		{
 			try
 			{
-				*(std::get<std::string*>(var)) = j.get<std::string>();
+				std::get<std::reference_wrapper<std::string>>(var).get() = j.get<std::string>();
 				if (option == "log")
 				{
 					dolog = (j.get<std::string>().empty());

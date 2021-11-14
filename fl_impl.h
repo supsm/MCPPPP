@@ -174,23 +174,14 @@ inline void savesettings(Fl_Button* o, void* v)
 {
 	using mcpppp::config;
 
-	mcpppp::logfilename = ui->log->value();
-	mcpppp::dolog = (mcpppp::logfilename.empty());
-	if (mcpppp::dolog)
-	{
-		mcpppp::logfile.close();
-		mcpppp::logfile.open(mcpppp::logfilename);
-	}
-	mcpppp::dotimestamp = static_cast<bool>(ui->timestamptrue->value());
-	mcpppp::outputlevel = static_cast<int>(ui->outputlevel->value());
-	mcpppp::loglevel = static_cast<int>(ui->loglevel->value());
-	mcpppp::autoreconvert = static_cast<bool>(ui->autoreconverttrue->value());
-
-	config["gui"]["settings"]["log"] = mcpppp::logfilename;
-	config["gui"]["settings"]["timestamp"] = mcpppp::dotimestamp;
-	config["gui"]["settings"]["outputLevel"] = mcpppp::outputlevel;
-	config["gui"]["settings"]["logLevel"] = mcpppp::loglevel;
-	config["gui"]["settings"]["autoReconvert"] = mcpppp::autoreconvert;
+	// TODO: automate addition of settings here?
+	// find some way to store pointer to widgets/value() functions in gui but not cli
+	config["gui"]["settings"]["log"] = ui->log->value();
+	config["gui"]["settings"]["timestamp"] = ui->timestamptrue->value();
+	config["gui"]["settings"]["outputLevel"] = ui->outputlevel->value();
+	config["gui"]["settings"]["logLevel"] = ui->loglevel->value();
+	config["gui"]["settings"]["autoReconvert"] = ui->autoreconverttrue->value();
+	config["gui"]["settings"]["fsbTransparent"] = ui->fsbtransparenttrue->value();
 
 	// remove excess settings
 	std::vector<std::string> toremove;
@@ -209,6 +200,7 @@ inline void savesettings(Fl_Button* o, void* v)
 		throw e;
 	}
 	configfile.close();
+	// remove duplicate settings (settings that are the same in gui and non-gui config)
 	if (j.contains("settings"))
 	{
 		if (j["settings"].type() == nlohmann::json::value_t::object)
@@ -229,9 +221,10 @@ inline void savesettings(Fl_Button* o, void* v)
 			}
 		}
 	}
+	// remove default settings
 	for (const auto& setting : config["gui"]["settings"].items())
 	{
-		if (std::get<2>(mcpppp::settings.at(mcpppp::lowercase(setting.key()))) == nlohmann::json(setting.value()))
+		if (mcpppp::settings.at(mcpppp::lowercase(setting.key())).default_val == nlohmann::json(setting.value()))
 		{
 			toremove.push_back(setting.key());
 		}
@@ -245,6 +238,8 @@ inline void savesettings(Fl_Button* o, void* v)
 	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 	fout << config.dump(1, '\t') << std::endl;
 	fout.close();
+
+	mcpppp::readconfig();
 
 	ui->savewarning->hide();
 }

@@ -41,6 +41,7 @@ try
 	std::string str, option, value, temp;
 	std::error_code ec;
 #ifdef GUI
+	ui = std::make_unique<UI>();
 	Fl::get_system_colors();
 	mcpppp::ui->show();
 	Fl::wait();
@@ -56,8 +57,8 @@ try
 #ifdef GUI
 			openhelp(nullptr, nullptr);
 #else
-			std::cerr << (dotimestamp ? timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
-			exit();
+			std::cerr << (mcpppp::dotimestamp ? mcpppp::timestamp() : "") << "Config file not found, look for mcpppp.properties" << std::endl;
+			mcpppp::exit();
 #endif
 		}
 		else
@@ -88,14 +89,14 @@ try
 		}
 		try
 		{
-			config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+			mcpppp::config = nlohmann::ordered_json::parse(str, nullptr, true, true);
 		}
 		catch (nlohmann::json::exception& e)
 		{
 			out(5) << e.what() << std::endl;
-			exit();
+			mcpppp::exit();
 		}
-		readconfig();
+		mcpppp::readconfig();
 	}
 #endif
 
@@ -151,7 +152,7 @@ try
 			mcpppp::ui->tempfound->show();
 #else
 			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
-			exit();
+			mcpppp::exit();
 #endif
 		}
 	}
@@ -182,7 +183,7 @@ try
 			{
 				bool success = false;
 				Zippy::ZipArchive zipa;
-				unzip(entry, zipa);
+				mcpppp::unzip(entry, zipa);
 				std::string folder = entry.path().stem().u8string();
 				if (fsb("mcpppp-temp/" + folder, folder).success)
 				{
@@ -198,7 +199,7 @@ try
 				}
 				if (success)
 				{
-					rezip(folder, zipa);
+					mcpppp::rezip(folder, zipa);
 				}
 			}
 #endif
