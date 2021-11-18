@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.5"; // MCPPPP version
+constexpr auto VERSION = "0.5.6"; // MCPPPP version
 
 #ifdef _WIN32
 #define NOMINMAX
