@@ -6,7 +6,7 @@
 #include <FL/Fl_Double_Window.H>
 #include <FL/Fl_Button.H>
 extern void run(Fl_Button*, void*);
-#include <FL/Fl_Text_Display.H>
+#include <FL/Fl_Browser.H>
 #include <FL/Fl_Check_Button.H>
 extern void conversion(Fl_Check_Button*, void*);
 #include <FL/Fl_Scroll.H>
@@ -32,7 +32,7 @@ class UI {
 public:
   UI();
   Fl_Double_Window *window;
-  Fl_Text_Display *text_display;
+  Fl_Browser *output;
   Fl_Scroll *scroll;
   Fl_Input *path_input;
   Fl_Box *box1;
