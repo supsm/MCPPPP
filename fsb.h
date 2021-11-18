@@ -136,7 +136,7 @@ private:
 		}
 	}
 
-	static constexpr void check(const unsigned int& i)
+	static constexpr void checkError(const unsigned int& i)
 	{
 		if (i)
 		{
@@ -148,7 +148,7 @@ private:
 	static void fsbpng(const std::string& path, const std::string& output, const std::filesystem::directory_entry& png)
 	{
 		out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-		unsigned int w, h, error;
+		unsigned int w, h;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 		std::string filename = png.path().filename().u8string();
@@ -156,16 +156,13 @@ private:
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
 		filename.erase(filename.end() - 4, filename.end());
-		error = lodepng::load_file(buffer, png.path().u8string());
-		check(error);
-		error = lodepng::decode(image, w, h, state, buffer);
-		check(error);
+		checkError(lodepng::load_file(buffer, png.path().u8string()));
+		checkError(lodepng::decode(image, w, h, state, buffer));
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
 		image3.reserve(buffer.size() / 6);
-		unsigned int outw, outh;
-		outw = w / 3 * 4;
-		outh = h / 2;
+		const unsigned int outw = w / 3 * 4;
+		const unsigned int outh = h / 2;
 		for (size_t i = 0; i < (w * 4) * outh; i++)
 		{
 			if (i % (w * 4) < outw)
@@ -199,20 +196,14 @@ private:
 		}
 		buffer.clear();
 		std::filesystem::create_directories(std::filesystem::u8path(path + output));
-		error = lodepng::encode(buffer, image1, outw / 4, outh, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_bottom.png");
-		check(error);
+		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_bottom.png"));
 		buffer.clear();
-		error = lodepng::encode(buffer, top, outh, outw / 4, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_top.png");
-		check(error);
+		checkError(lodepng::encode(buffer, top, outh, outw / 4, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_top.png"));
 		buffer.clear();
-		error = lodepng::encode(buffer, image3, outw / 4, outh, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_south.png");
-		check(error);
+		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_south.png"));
 		image1.clear();
 		image2.clear();
 		image3.clear();
@@ -236,20 +227,14 @@ private:
 		convert(image2, outw, outh);
 		convert(image3, outw, outh);
 		buffer.clear();
-		error = lodepng::encode(buffer, image1, outw / 4, outh, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_west.png");
-		check(error);
+		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_west.png"));
 		buffer.clear();
-		error = lodepng::encode(buffer, image2, outw / 4, outh, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_north.png");
-		check(error);
+		checkError(lodepng::encode(buffer, image2, outw / 4, outh, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_north.png"));
 		buffer.clear();
-		error = lodepng::encode(buffer, image3, outw / 4, outh, state);
-		check(error);
-		error = lodepng::save_file(buffer, path + output + filename + "_east.png");
-		check(error);
+		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
+		checkError(lodepng::save_file(buffer, path + output + filename + "_east.png"));
 	}
 
 	// convert optifine properties files into fsb properties json
