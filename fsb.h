@@ -113,26 +113,34 @@ private:
 	// convert black to transparent
 	static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
 	{
-		for (long long i = 0; i < (w * 4) / 3; i += 4)
+		for (long long i = 0; i < w; i += 4)
 		{
-			for (long long j = 0; j < h / 2; j++)
+			for (long long j = 0; j < h; j++)
 			{
 				// if completely opaque
-				if (image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)) == 255)
+				if (image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 3)) == 255)
 				{
-					double first = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i));
-					double second = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1));
-					double third = image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2));
+					double first = image.at(static_cast<size_t>(w * h - (j + 1) * w + i));
+					double second = image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 1));
+					double third = image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 2));
 					rgb2hsv(first, second, third);
 					const double alpha = third * 51 / 20; // convert 0-100 to 0-255
 					third = 100;
 					hsv2rgb(first, second, third);
-					image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)) = static_cast<uint8_t>(first);
-					image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1)) = static_cast<uint8_t>(second);
-					image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2)) = static_cast<uint8_t>(third);
-					image.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)) = static_cast<uint8_t>(alpha);
+					image.at(static_cast<size_t>(w * h - (j + 1) * w + i)) = static_cast<uint8_t>(first);
+					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 1)) = static_cast<uint8_t>(second);
+					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 2)) = static_cast<uint8_t>(third);
+					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 3)) = static_cast<uint8_t>(alpha);
 				}
 			}
+		}
+	}
+
+	static constexpr void check(const unsigned int& i)
+	{
+		if (i)
+		{
+			out(5) << "FSB: png error: " << lodepng_error_text(i) << std::endl;
 		}
 	}
 
@@ -149,144 +157,99 @@ private:
 		state.info_raw.bitdepth = 8;
 		filename.erase(filename.end() - 4, filename.end());
 		error = lodepng::load_file(buffer, png.path().u8string());
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		error = lodepng::decode(image, w, h, state, buffer);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
-		if (w % 3 != 0 || h % 2 != 0)
-		{
-			out(5) << "FSB: Wrong dimensions: " << png.path().u8string() << std::endl;
-			return;
-		}
+		check(error);
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
 		image3.reserve(buffer.size() / 6);
-		for (size_t i = 0; i < (w * 4) * h / 2; i++)
+		unsigned int outw, outh;
+		outw = w / 3 * 4;
+		outh = h / 2;
+		for (size_t i = 0; i < (w * 4) * outh; i++)
 		{
-			if (i % (w * 4) < (w * 4) / 3)
+			if (i % (w * 4) < outw)
 			{
 				image1.push_back(image.at(i));
 			}
-			else if (i % (w * 4) < 2 * (w * 4) / 3)
+			else if (i % (w * 4) < 2 * outw)
 			{
 				image2.push_back(image.at(i));
 			}
-			else
+			else if (i % (w * 4) < 3 * outw)
 			{
 				image3.push_back(image.at(i));
 			}
 		}
 
-		convert(image1, w, h);
-		convert(image2, w, h);
-		convert(image3, w, h);
+		convert(image1, outw, outh);
+		convert(image2, outw, outh);
+		convert(image3, outw, outh);
 
 		top.reserve(image.size() / 6);
-		for (long long i = 0; i < (w * 4) / 3; i += 4)
+		for (long long i = 0; i < outw; i += 4)
 		{
-			for (long long j = 0; j < h / 2; j++)
+			for (long long j = 0; j < outh; j++)
 			{
-				top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i)));
-				top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 1)));
-				top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 2)));
-				top.push_back(image2.at(static_cast<size_t>((w * 4) / 3 * h / 2 - (j + 1) * (w * 4) / 3 + i + 3)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 1)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 2)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 3)));
 			}
 		}
 		buffer.clear();
 		std::filesystem::create_directories(std::filesystem::u8path(path + output));
-		error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, image1, outw / 4, outh, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_bottom.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		buffer.clear();
-		error = lodepng::encode(buffer, top, h / 2, w / 3, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, top, outh, outw / 4, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_top.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		buffer.clear();
-		error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, image3, outw / 4, outh, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_south.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		image1.clear();
 		image2.clear();
 		image3.clear();
-		for (size_t i = (w * 4) * h / 2; i < (w * 4) * h; i++)
+		for (size_t i = (w * 4) * outh; i < (w * 4) * 2 * outh; i++)
 		{
-			if (i % (w * 4) < (w * 4) / 3)
+			if (i % (w * 4) < outw)
 			{
 				image1.push_back(image.at(i));
 			}
-			else if (i % (w * 4) < 2 * (w * 4) / 3)
+			else if (i % (w * 4) < 2 * outw)
 			{
 				image2.push_back(image.at(i));
 			}
-			else
+			else if(i % (w * 4) < 3 * outw)
 			{
 				image3.push_back(image.at(i));
 			}
 		}
 
-		convert(image1, w, h);
-		convert(image2, w, h);
-		convert(image3, w, h);
-
+		convert(image1, outw, outh);
+		convert(image2, outw, outh);
+		convert(image3, outw, outh);
 		buffer.clear();
-		error = lodepng::encode(buffer, image1, w / 3, h / 2, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, image1, outw / 4, outh, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_west.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		buffer.clear();
-		error = lodepng::encode(buffer, image2, w / 3, h / 2, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, image2, outw / 4, outh, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_north.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 		buffer.clear();
-		error = lodepng::encode(buffer, image3, w / 3, h / 2, state);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		error = lodepng::encode(buffer, image3, outw / 4, outh, state);
+		check(error);
 		error = lodepng::save_file(buffer, path + output + filename + "_east.png");
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
+		check(error);
 	}
 
 	// convert optifine properties files into fsb properties json
