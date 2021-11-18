@@ -130,7 +130,7 @@ private:
 			option.clear();
 			value.clear();
 			bool isvalue = false;
-			if (temp == "" || temp.at(0) == '#')
+			if (temp.empty() || temp.at(0) == '#')
 			{
 				continue;
 			}

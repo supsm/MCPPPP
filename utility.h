@@ -64,7 +64,7 @@ namespace mcpppp
 		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<int>, std::reference_wrapper<std::string>> var;
 		// json since it is compared with another json value in save_settings
 		nlohmann::json default_val;
-		void* fl_widget;
+		int min = 0, max = 0;
 	};
 
 	const std::unordered_map<std::string, setting_item> settings =
@@ -73,8 +73,8 @@ namespace mcpppp
 		{"log", {type::string, logfilename, logfilename}},
 		{"timestamp", {type::boolean, dotimestamp, dotimestamp}},
 		{"autodeletetemp", {type::boolean, autodeletetemp, autodeletetemp}},
-		{"outputlevel", {type::integer, outputlevel, outputlevel}},
-		{"loglevel", {type::integer, loglevel, loglevel}},
+		{"outputlevel", {type::integer, outputlevel, outputlevel, 1, 5}},
+		{"loglevel", {type::integer, loglevel, loglevel, 1, 5}},
 		{"autoreconvert", {type::boolean, autoreconvert, autoreconvert}},
 		{"fsbtransparent", {type::boolean, fsbtransparent, fsbtransparent}}
 	};
@@ -196,12 +196,18 @@ namespace mcpppp
 		return of;
 	}
 
-	static bool cout, file, err;
-
 	class outstream
 	{
+	private:
+#ifdef GUI
+		// couldn't find a good pre-defined color for warning
+		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
+#endif
+		friend outstream out(const short& level);
+		bool cout, file, err, first = false;
+		short level;
+		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept : cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
 	public:
-		bool first = false;
 		template<typename T>
 		outstream operator<<(const T& value) const
 		{
@@ -213,9 +219,6 @@ namespace mcpppp
 					sstream << (dotimestamp ? timestamp() : "");
 				}
 				sstream << value;
-				textbuffer.text(sstream.str().c_str());
-				ui->text_display->buffer(textbuffer);
-				Fl::wait();
 #else
 				if (first)
 				{
@@ -246,7 +249,7 @@ namespace mcpppp
 				}
 				logfile << value;
 			}
-			return outstream();
+			return outstream(false, cout, file, err, level);
 		}
 		outstream operator<<(const std::string& str) const
 		{
@@ -258,9 +261,6 @@ namespace mcpppp
 					sstream << (dotimestamp ? timestamp() : "");
 				}
 				sstream << str;
-				textbuffer.text(sstream.str().c_str());
-				ui->text_display->buffer(textbuffer);
-				Fl::wait();
 #else
 				if (first)
 				{
@@ -291,7 +291,7 @@ namespace mcpppp
 				}
 				logfile << str;
 			}
-			return outstream();
+			return outstream(false, cout, file, err, level);
 		}
 		outstream operator<<(std::ostream& (*f)(std::ostream&)) const
 		{
@@ -302,10 +302,22 @@ namespace mcpppp
 				{
 					sstream << (dotimestamp ? timestamp() : "");
 				}
-				sstream << f;
-				textbuffer.text(sstream.str().c_str());
-				ui->text_display->buffer(textbuffer);
-				Fl::wait();
+				if (f == std::endl<char, std::char_traits<char>>)
+				{
+					if (sstream.str().empty())
+					{
+						sstream.str(" "); // fltk won't print empty strings
+					}
+					// add color and output line
+					ui->output->add(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str()).c_str());
+					sstream.str(std::string());
+					sstream.clear();
+					Fl::wait();
+				}
+				else
+				{
+					sstream << f;
+				}
 #else
 				if (first)
 				{
@@ -336,18 +348,13 @@ namespace mcpppp
 				}
 				logfile << f;
 			}
-			return outstream();
+			return outstream(false, cout, file, err, level);
 		}
 	};
 
-	inline outstream out(const int level) noexcept
+	inline outstream out(const short& level)
 	{
-		outstream o;
-		o.first = true;
-		err = (level == 5);
-		cout = (level >= outputlevel);
-		file = (level >= loglevel);
-		return o;
+		return outstream(true, level >= outputlevel, level >= loglevel, level == 5, level);
 	}
 
 	inline void copy(const std::filesystem::path& from, const std::filesystem::path& to)
@@ -434,8 +441,9 @@ namespace mcpppp
 			out(4) << "Unknown setting: " << option << std::endl;
 			return;
 		}
-		const type t = settings.at(lowercase(option)).setting_type;
-		const auto var = settings.at(lowercase(option)).var;
+		const setting_item item = settings.at(lowercase(option));
+		const type t = item.setting_type;
+		const auto var = item.var;
 		if (t == type::boolean)
 		{
 			try
@@ -451,7 +459,12 @@ namespace mcpppp
 		{
 			try
 			{
-				std::get<std::reference_wrapper<int>>(var).get() = j.get<int>();
+				int temp = j.get<int>();
+				if (item.min && item.max && (temp < item.min || temp > item.max))
+				{
+					out(5) << "Not a valid value for " << option << ": " << temp << "; Expected integer between " << item.min << " and " << item.max << std::endl;
+				}
+				std::get<std::reference_wrapper<int>>(var).get() = temp;
 			}
 			catch (const nlohmann::json::exception&)
 			{

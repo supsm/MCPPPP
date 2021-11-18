@@ -87,10 +87,10 @@ UI::UI() {
       o->callback((Fl_Callback*)run);
     } // Fl_Button* o
     { // Output in place of stdout
-      text_display = new Fl_Text_Display(25, 40, 395, 275);
-      text_display->box(FL_BORDER_BOX);
-      text_display->textfont(4);
-    } // Fl_Text_Display* text_display
+      output = new Fl_Browser(25, 40, 395, 275);
+      output->box(FL_BORDER_BOX);
+      output->textfont(4);
+    } // Fl_Browser* output
     { Fl_Check_Button* o = new Fl_Check_Button(25, 380, 56, 16, "FSB");
       o->tooltip("FabricSkyboxes");
       o->down_box(FL_DOWN_BOX);

@@ -107,14 +107,14 @@ try
 	mcpppp::updatesettings();
 #endif
 
-	out(5) << "MCPPPP " << VERSION
+	out(6) << "MCPPPP " << VERSION
 #ifdef GUI
 		<< " (GUI)"
 #else
 		<< " (CLI)"
 #endif
 		<< std::endl;
-	out(5) << "Os: " <<
+	out(6) << "Os: " <<
 #ifdef _WIN64
 		"Win64"
 #elif defined(_WIN32)
@@ -131,13 +131,13 @@ try
 		"Other"
 #endif
 		<< std::endl << std::endl;
-	out(5) << "pauseOnExit     " << (mcpppp::pauseonexit ? "true" : "false") << std::endl;
-	out(5) << "log             " << mcpppp::logfilename << std::endl;
-	out(5) << "timestamp       " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
-	out(5) << "autoDeleteTemp  " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
-	out(5) << "outputLevel     " << mcpppp::outputlevel << std::endl;
-	out(5) << "logLevel        " << mcpppp::loglevel << std::endl;
-	out(5) << "autoReconvert   " << mcpppp::autoreconvert << std::endl << std::endl << std::endl;
+	out(6) << "pauseOnExit     " << (mcpppp::pauseonexit ? "true" : "false") << std::endl;
+	out(6) << "log             " << mcpppp::logfilename << std::endl;
+	out(6) << "timestamp       " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
+	out(6) << "outputLevel     " << mcpppp::outputlevel << std::endl;
+	out(6) << "logLevel        " << mcpppp::loglevel << std::endl;
+	out(6) << "autoReconvert   " << mcpppp::autoreconvert << std::endl;
+	out(6) << "fsbTransparent  " << mcpppp::fsbtransparent << std::endl << std::endl << std::endl;
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
@@ -208,9 +208,10 @@ try
 #ifdef GUI
 	mcpppp::ui->scroll->redraw();
 	Fl::run();
-#endif
+#else
 	out(3) << "All Done!" << std::endl;
 	mcpppp::exit();
+#endif
 }
 catch (const nlohmann::json::exception& e)
 {
