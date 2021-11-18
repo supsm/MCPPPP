@@ -14,3 +14,5 @@ desktop.ini
 
 mcpppp-temp/
 x64-Debug/
+/x64/Debug
+/bumpversion.exe
