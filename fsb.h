@@ -163,6 +163,10 @@ private:
 		image3.reserve(buffer.size() / 6);
 		const unsigned int outw = w / 3 * 4;
 		const unsigned int outh = h / 2;
+		if (w % 3 != 0 || h % 2 != 0)
+		{
+			out(4) << "FSB: Wrong dimensions: " << png.path().u8string() << std::endl << "will be cropped to proper dimensions" << std::endl;
+		}
 		for (size_t i = 0; i < (w * 4) * outh; i++)
 		{
 			if (i % (w * 4) < outw)
