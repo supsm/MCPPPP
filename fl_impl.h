@@ -138,7 +138,7 @@ inline void deleterespath(Fl_Button* o, void* v)
 	// erase spaces used for padding
 	s.erase(s.begin(), s.begin() + 4);
 	paths.erase(s);
-	deletedpaths.insert(selectedwidget->label());
+	deletedpaths.insert(s);
 	selectedwidget.reset();
 	mcpppp::addpaths();
 	mcpppp::updatepaths();
@@ -179,12 +179,13 @@ inline void savesettings(Fl_Button* o, void* v)
 
 	// TODO: automate addition of settings here?
 	// find some way to store pointer to widgets/value() functions in gui but not cli
+	config["gui"]["settings"]["autoDeleteTemp"] = static_cast<bool>(ui->autodeletetemptrue->value());
 	config["gui"]["settings"]["log"] = ui->log->value();
-	config["gui"]["settings"]["timestamp"] = ui->timestamptrue->value();
+	config["gui"]["settings"]["timestamp"] = static_cast<bool>(ui->timestamptrue->value());
 	config["gui"]["settings"]["outputLevel"] = ui->outputlevel->value();
 	config["gui"]["settings"]["logLevel"] = ui->loglevel->value();
-	config["gui"]["settings"]["autoReconvert"] = ui->autoreconverttrue->value();
-	config["gui"]["settings"]["fsbTransparent"] = ui->fsbtransparenttrue->value();
+	config["gui"]["settings"]["autoReconvert"] = static_cast<bool>(ui->autoreconverttrue->value());
+	config["gui"]["settings"]["fsbTransparent"] = static_cast<bool>(ui->fsbtransparenttrue->value());
 
 	// remove excess settings
 	std::vector<std::string> toremove;
@@ -273,21 +274,6 @@ inline void selectall(Fl_Check_Button* o, void* v)
 	}
 	ui->scroll->redraw();
 	Fl::wait();
-}
-
-// callback for delete mcpppp-temp
-inline void deletetemp(Fl_Button* o, void* v)
-{
-	std::filesystem::remove_all("mcpppp-temp");
-	ui->tempfound->hide();
-}
-
-// callback for not deleting mcpppp-temp
-inline void dontdeletetemp(Fl_Button* o, void* v)
-{
-	out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
-	mcpppp::running = true;
-	ui->tempfound->hide();
 }
 
 // callback for closing main window

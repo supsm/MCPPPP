@@ -131,13 +131,14 @@ try
 		"Other"
 #endif
 		<< std::endl << std::endl;
+	out(6) << "autoDeleteTemp  " << (mcpppp::autodeletetemp ? "true" : "false") << std::endl;
 	out(6) << "pauseOnExit     " << (mcpppp::pauseonexit ? "true" : "false") << std::endl;
 	out(6) << "log             " << mcpppp::logfilename << std::endl;
 	out(6) << "timestamp       " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
 	out(6) << "outputLevel     " << mcpppp::outputlevel << std::endl;
 	out(6) << "logLevel        " << mcpppp::loglevel << std::endl;
-	out(6) << "autoReconvert   " << mcpppp::autoreconvert << std::endl;
-	out(6) << "fsbTransparent  " << mcpppp::fsbtransparent << std::endl << std::endl << std::endl;
+	out(6) << "autoReconvert   " << (mcpppp::autoreconvert ? "true" : "false") << std::endl;
+	out(6) << "fsbTransparent  " << (mcpppp::fsbtransparent ? "true" : "false") << std::endl << std::endl << std::endl;
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
@@ -149,7 +150,17 @@ try
 		else
 		{
 #ifdef GUI
-			mcpppp::ui->tempfound->show();
+			switch (fl_choice("mcpppp-temp folder was found. If you created it yourself, it may contain important files.\nIf you did not create it, it is probably the result of a failed conversion.\nDo you want to delete it?", "No", "Yes", nullptr))
+			{
+			case 0: // no
+				std::filesystem::remove_all("mcpppp-temp");
+				break;
+			case 1: // yes
+				out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+				break;
+			default:
+				break;
+			}
 #else
 			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 			mcpppp::exit();

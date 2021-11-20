@@ -26,8 +26,6 @@ extern void deleterespath(Fl_Button*, void*);
 extern void savesettings(Fl_Button*, void*);
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Help_View.H>
-extern void deletetemp(Fl_Button*, void*);
-extern void dontdeletetemp(Fl_Button*, void*);
 
 class UI {
 public:
@@ -42,6 +40,16 @@ public:
   Fl_Double_Window *edit_paths;
   Fl_Scroll *paths;
   Fl_Double_Window *settings;
+  Fl_Button *autodeletetemptrue;
+private:
+  inline void cb_autodeletetemptrue_i(Fl_Button*, void*);
+  static void cb_autodeletetemptrue(Fl_Button*, void*);
+public:
+  Fl_Button *autodeletetempfalse;
+private:
+  inline void cb_autodeletetempfalse_i(Fl_Button*, void*);
+  static void cb_autodeletetempfalse(Fl_Button*, void*);
+public:
   Fl_Input *log;
 private:
   inline void cb_log_i(Fl_Input*, void*);
@@ -89,7 +97,6 @@ private:
 public:
   Fl_Box *savewarning;
   Fl_Window *help;
-  Fl_Window *tempfound;
   Fl_Window *path_warning;
 private:
   inline void cb_Close_i(Fl_Button*, void*);
