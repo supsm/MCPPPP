@@ -69,7 +69,7 @@ namespace mcpppp
 	};
 
 	const std::unordered_map<std::string, setting_item> settings =
-	{
+	{ {
 		{"pauseonexit", {type::boolean, pauseonexit, pauseonexit}},
 		{"log", {type::string, logfilename, logfilename}},
 		{"timestamp", {type::boolean, dotimestamp, dotimestamp}},
@@ -78,7 +78,7 @@ namespace mcpppp
 		{"loglevel", {type::integer, loglevel, loglevel, 1, 5}},
 		{"autoreconvert", {type::boolean, autoreconvert, autoreconvert}},
 		{"fsbtransparent", {type::boolean, fsbtransparent, fsbtransparent}}
-	};
+	} };
 
 
 	[[noreturn]] inline void exit() noexcept
