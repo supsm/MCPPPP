@@ -7,8 +7,8 @@
 void run(std::string path, std::string os)
 try
 {
-	out(5) << "MCPPPP mod" << std::endl;
-	out(5) << "Os: " << os << std::endl << std::endl;
+	out(6) << "MCPPPP mod" << std::endl;
+	out(6) << "Os: " << os << std::endl << std::endl;
 	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 	{
 		if (entry.is_directory())
@@ -21,7 +21,7 @@ try
 		{
 			bool success = false;
 			Zippy::ZipArchive zipa;
-			unzip(entry, zipa);
+			mcpppp::unzip(entry, zipa);
 			std::string folder = entry.path().stem().u8string();
 			if (fsb("mcpppp-temp/" + folder, folder).success)
 			{
@@ -37,7 +37,7 @@ try
 			}
 			if (success)
 			{
-				rezip(folder, zipa);
+				mcpppp::rezip(folder, zipa);
 			}
 		}
 	}
@@ -77,6 +77,6 @@ std::string tostring(JNIEnv* env, jstring str)
 
 JNIEXPORT void JNICALL Java_supsm_mcpppp_jni_run(JNIEnv* env, jobject obj, jstring str, jstring os)
 {
-	autodeletetemp = true, pauseonexit = false, outputlevel = 2, dotimestamp = true;
+	mcpppp::autodeletetemp = true, mcpppp::pauseonexit = false, mcpppp::outputlevel = 2, mcpppp::dotimestamp = true;
 	run(tostring(env, str), tostring(env, os));
 }

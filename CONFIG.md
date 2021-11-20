@@ -9,15 +9,16 @@ The `settings` object contains a list of settings to be changed. The names are n
 <details>
   <summary>Settings</summary>
 
-  | Name              | Values/Type      | Description                                                                                                            | Default    |
-  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:----------:|
-  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`    |
+  | Name              | Values/Type      | Description                                                                                                            | Default           |
+  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:-----------------:|
+  | `pauseOnExit`    | `true`, `false` | Wait for enter/key to be pressed once execution has been finished                                                      | `true`           |
   | `log`             | String           | A log file where logs will be stored. `""` disables logging.                                                          | `mcpppp-log.txt` |
-  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`   |
-  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`  |
-  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`       |
-  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `1`       |
-  | `autoReconvert`   | `true`, `false` | Automatically reconvert resourcepacks instead of skipping. **Could lose data** if a pack isn't converted with MCPPPP  | `false`   |
+  | `timestamp`      | `true`, `false` | Timestamp console (Logs will always be timestamped)                                                                    | `false`          |
+  | `autoDeleteTemp` | `true`, `false` | Automatically delete `mcpppp-temp` folder on startup                                                                  | `false`          |
+  | `outputLevel`    | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error | `3`              |
+  | `logLevel`       | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                           | `1`              |
+  | `autoReconvert`  | `true`, `false` | Automatically reconvert resourcepacks instead of skipping. **Could lose data** if a pack isn't converted with MCPPPP   | `false`          |
+  | `fsbTransparent` | `true`, `false` | Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally.                              | `true`           |
 </details>
 
 ### Paths

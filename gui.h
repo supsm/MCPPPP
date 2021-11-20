@@ -233,6 +233,8 @@ namespace mcpppp
 	// update settings in "Settings"
 	inline void updatesettings()
 	{
+		ui->autodeletetemptrue->value(static_cast<int>(autodeletetemp));
+		ui->autodeletetempfalse->value(static_cast<int>(!autodeletetemp));
 		if (dolog)
 		{
 			ui->log->value(logfilename.c_str());
