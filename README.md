@@ -50,6 +50,12 @@ Prerequisites: basic compiler with C++17 support
 
 My build script: `clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-windows-cli.exe`  
 
+#### CLI (Arch Linux)
+Prerequisistes: `base-devel` installed
+1. Clone this using `git clone` or Download and Extract the ZIP via Github. 
+2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`. 
+3. Run `makepkg -si` and type your password when prompted
+
 #### GUI (Windows)
 Prerequisites: compiler with C++17 support, capable of specifying additional include paths and linking libraries  
 1. Define `GUI` as a preprocessor definition or uncomment `#define GUI` at top of `Source.cpp`  
