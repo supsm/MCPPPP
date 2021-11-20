@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+#include <functional>
 #include <set>
 #include <sstream>
 #include <string>
@@ -69,16 +70,16 @@ namespace mcpppp
 	};
 
 	const std::unordered_map<std::string, setting_item> settings =
-	{ {
-		{"pauseonexit", {type::boolean, pauseonexit, pauseonexit}},
-		{"log", {type::string, logfilename, logfilename}},
-		{"timestamp", {type::boolean, dotimestamp, dotimestamp}},
-		{"autodeletetemp", {type::boolean, autodeletetemp, autodeletetemp}},
-		{"outputlevel", {type::integer, outputlevel, outputlevel, 1, 5}},
-		{"loglevel", {type::integer, loglevel, loglevel, 1, 5}},
-		{"autoreconvert", {type::boolean, autoreconvert, autoreconvert}},
-		{"fsbtransparent", {type::boolean, fsbtransparent, fsbtransparent}}
-	} };
+	{
+		{"pauseonexit", {type::boolean, std::ref(pauseonexit), pauseonexit}},
+		{"log", {type::string, logfilename, std::ref(logfilename)}},
+		{"timestamp", {type::boolean, std::ref(dotimestamp), dotimestamp}},
+		{"autodeletetemp", {type::boolean, std::ref(autodeletetemp), autodeletetemp}},
+		{"outputlevel", {type::integer, std::ref(outputlevel), outputlevel, 1, 5}},
+		{"loglevel", {type::integer, std::ref(loglevel), loglevel, 1, 5}},
+		{"autoreconvert", {type::boolean, std::ref(autoreconvert), autoreconvert}},
+		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}}
+	};
 
 
 	[[noreturn]] inline void exit() noexcept
