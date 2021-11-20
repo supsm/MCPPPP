@@ -36,6 +36,7 @@
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_Radio_Button.H>
+#include <FL/fl_ask.H>
 #include "mcpppp.cxx" // ui class
 
 namespace mcpppp

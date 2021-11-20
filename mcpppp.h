@@ -4,6 +4,7 @@
 #define mcpppp_h
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
+extern void windowclosed(Fl_Double_Window*, void*);
 #include <FL/Fl_Button.H>
 extern void run(Fl_Button*, void*);
 #include <FL/Fl_Browser.H>
