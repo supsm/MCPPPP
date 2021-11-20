@@ -169,7 +169,7 @@ try
 #ifdef GUI
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
-				mcpppp::entries.emplace_back(std::make_pair(true, entry));
+				mcpppp::entries.push_back(std::make_pair(true, entry));
 				mcpppp::addpack(entry.path().filename().u8string(), true);
 			}
 #else

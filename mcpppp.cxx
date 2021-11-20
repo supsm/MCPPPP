@@ -75,7 +75,7 @@ void UI::cb_Close(Fl_Button* o, void* v) {
 UI::UI() {
   { window = new Fl_Double_Window(660, 420, "MCPPPP");
     window->color((Fl_Color)48);
-    window->user_data((void*)(this));
+    window->callback((Fl_Callback*)windowclosed, (void*)(this));
     { Fl_Button* o = new Fl_Button(445, 370, 190, 30, "Run");
       o->tooltip("Start conversion process");
       o->box(FL_BORDER_BOX);

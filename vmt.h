@@ -235,7 +235,7 @@ private:
 							}
 							height1 += temp.at(i);
 						}
-						heights.at(static_cast<size_t>(curnum - 1)).emplace_back(std::make_pair(height1, temp));
+						heights.at(static_cast<size_t>(curnum - 1)).push_back(std::make_pair(height1, temp));
 					}
 				}
 			}
@@ -327,7 +327,7 @@ private:
 							}
 							time1 += temp.at(i);
 						}
-						times.at(static_cast<size_t>(curnum - 1)).emplace_back(std::make_pair(time1, temp));
+						times.at(static_cast<size_t>(curnum - 1)).push_back(std::make_pair(time1, temp));
 					}
 				}
 			}

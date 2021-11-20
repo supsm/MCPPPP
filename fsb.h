@@ -437,7 +437,7 @@ private:
 							minheight = height;
 							minheight.erase(minheight.begin() + static_cast<std::string::difference_type>(i), minheight.end());
 							height.erase(height.begin(), height.begin() + static_cast<std::string::difference_type>(i));
-							heightlist.push_back({ {"min", stod(minheight)}, {"max", stod(height)} });
+							heightlist.push_back(nlohmann::json({ {"min", stod(minheight)}, {"max", stod(height)} }));
 						}
 					}
 				}

@@ -74,7 +74,7 @@ inline void reload(Fl_Button* o, void* v)
 			{
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
-					entries.emplace_back(std::make_pair(true, entry));
+					entries.push_back(std::make_pair(true, entry));
 					mcpppp::addpack(entry.path().filename().u8string(), true);
 				}
 			}
@@ -134,7 +134,10 @@ inline void deleterespath(Fl_Button* o, void* v)
 	{
 		return;
 	}
-	paths.erase(selectedwidget->label());
+	std::string s = selectedwidget->label();
+	// erase spaces used for padding
+	s.erase(s.begin(), s.begin() + 4);
+	paths.erase(s);
 	deletedpaths.insert(selectedwidget->label());
 	selectedwidget.reset();
 	mcpppp::addpaths();
@@ -285,4 +288,26 @@ inline void dontdeletetemp(Fl_Button* o, void* v)
 	out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
 	mcpppp::running = true;
 	ui->tempfound->hide();
+}
+
+// callback for closing main window
+inline void windowclosed(Fl_Double_Window* w, void* v)
+{
+	if (mcpppp::running)
+	{
+		switch (fl_choice("Conversion is still in progress, files may be corrupted if you choose to close now. Are you sure you want to close?", "Yes", "No", nullptr))
+		{
+		case 0: // if yes, close window
+			w->hide();
+			break;
+		case 1: // don't do anything
+			break;
+		default:
+			break;
+		}
+	}
+	else
+	{
+		w->hide();
+	}
 }

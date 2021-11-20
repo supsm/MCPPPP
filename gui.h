@@ -3,6 +3,8 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 #ifdef GUI
+#include <future>
+
 #include "fsb.h"
 #include "vmt.h"
 #include "cim.h"
@@ -21,60 +23,127 @@ namespace mcpppp
 	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 	inline std::set<std::string> deletedpaths;
 
+	inline std::string getdefaultpath()
+	{
+#ifdef _WIN32
+		const auto wtomb = [](const PWSTR& in)
+		{
+			const int len = WideCharToMultiByte(CP_UTF8, 0, in, -1, nullptr, 0, nullptr, nullptr);
+			std::string out(static_cast<size_t>(len), 0);
+			WideCharToMultiByte(CP_UTF8, 0, in, -1, &out.front(), len, nullptr, nullptr);
+			while (len > 0 && out.back() == '\0')
+			{
+				out.pop_back();
+			}
+			return out;
+		};
+		PWSTR pwstr;
+		SHGetKnownFolderPath(FOLDERID_RoamingAppData, NULL, nullptr, &pwstr);
+		std::string str = wtomb(pwstr) + "\\.minecraft\\resourcepacks";
+		CoTaskMemFree(pwstr);
+		return str;
+#elif defined __linux__
+		return "~/.minecraft/resourcepacks";
+#elif defined __APPLE__ || defined __MACH__
+		return "~/Library/Application Support/minecraft/resourcepacks";
+#else
+		return nullptr;
+#endif
+	}
+
 	inline void guirun()
 		try
 	{
-		for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
+		if (paths.empty())
 		{
-			if (!p.first)
+			out(4) << "No path found, running from default directory: " << getdefaultpath() << std::endl;
+			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(getdefaultpath())))
 			{
-				continue;
-			}
-			if (p.second.is_directory())
-			{
-				if (dofsb)
+				if (entry.is_directory())
 				{
-					fsb(p.second.path().u8string(), p.second.path().filename().u8string());
+					fsb(entry.path().u8string(), entry.path().filename().u8string());
+					vmt(entry.path().u8string(), entry.path().filename().u8string());
+					cim(entry.path().u8string(), entry.path().filename().u8string());
 				}
-				if (dovmt)
+				else if (entry.path().extension() == ".zip")
 				{
-					vmt(p.second.path().u8string(), p.second.path().filename().u8string());
-				}
-				if (docim)
-				{
-					cim(p.second.path().u8string(), p.second.path().filename().u8string());
-				}
-			}
-			else if (p.second.path().extension() == ".zip")
-			{
-				bool success = false;
-				Zippy::ZipArchive zipa;
-				unzip(p.second, zipa);
-				std::string folder = p.second.path().stem().u8string();
-				if (dofsb)
-				{
+					bool success = false;
+					Zippy::ZipArchive zipa;
+					mcpppp::unzip(entry, zipa);
+					std::string folder = entry.path().stem().u8string();
 					if (fsb("mcpppp-temp/" + folder, folder).success)
 					{
 						success = true;
 					}
-				}
-				if (dovmt)
-				{
 					if (vmt("mcpppp-temp/" + folder, folder).success)
 					{
 						success = true;
 					}
-				}
-				if (docim)
-				{
 					if (cim("mcpppp-temp/" + folder, folder).success)
 					{
 						success = true;
 					}
+					if (success)
+					{
+						mcpppp::rezip(folder, zipa);
+					}
 				}
-				if (success)
+			}
+		}
+		else
+		{
+			for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
+			{
+				if (!p.first)
 				{
-					rezip(folder, zipa);
+					continue;
+				}
+				if (p.second.is_directory())
+				{
+					if (dofsb)
+					{
+						fsb(p.second.path().u8string(), p.second.path().filename().u8string());
+					}
+					if (dovmt)
+					{
+						vmt(p.second.path().u8string(), p.second.path().filename().u8string());
+					}
+					if (docim)
+					{
+						cim(p.second.path().u8string(), p.second.path().filename().u8string());
+					}
+				}
+				else if (p.second.path().extension() == ".zip")
+				{
+					bool success = false;
+					Zippy::ZipArchive zipa;
+					unzip(p.second, zipa);
+					std::string folder = p.second.path().stem().u8string();
+					if (dofsb)
+					{
+						if (fsb("mcpppp-temp/" + folder, folder).success)
+						{
+							success = true;
+						}
+					}
+					if (dovmt)
+					{
+						if (vmt("mcpppp-temp/" + folder, folder).success)
+						{
+							success = true;
+						}
+					}
+					if (docim)
+					{
+						if (cim("mcpppp-temp/" + folder, folder).success)
+						{
+							success = true;
+						}
+					}
+					if (success)
+					{
+						rezip(folder, zipa);
+					}
 				}
 			}
 		}
@@ -106,11 +175,31 @@ namespace mcpppp
 		out(5) << "UNKNOWN FATAL ERROR" << std::endl;
 	}
 
+#ifdef _WIN32
+	static UINT win_getscale() noexcept
+	{
+		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
+		return GetDpiForSystem();
+	}
+#endif
+
+	inline double getscale()
+	{
+#ifdef _WIN32
+		std::future<UINT> dpi = std::async(&win_getscale);
+		return dpi.get() / 96.0;
+#else
+		return 1;
+#endif
+	}
+
 	// add resourcepack to checklist
 	inline void addpack(const std::string& name, bool selected)
 	{
+		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
 		fl_text_extents(name.c_str(), dx, dy, w, h);
+		w = std::lround(w / getscale());
 		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
 		o->copy_label(name.c_str());
@@ -225,13 +314,21 @@ namespace mcpppp
 	// add paths to "Edit Paths" from paths
 	inline void addpaths()
 	{
-		int i = 0, dx = 0, dy = 0, w = 0, h = 0;
+		// only w, maxsize, and i are used
+		int i = 0, dx = 0, dy = 0, w = 0, h = 0, maxsize = 0;
 		ui->paths->clear();
+		// make sure all boxes are same size
 		for (const std::string& str : paths)
 		{
-			fl_text_extents(str.c_str(), dx, dy, w, h);
-			std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(w + 30, 250), 15);
-			o->copy_label(str.c_str());
+			fl_text_extents(("    " + str).c_str(), dx, dy, w, h);
+			w = std::lround(w / getscale());
+			maxsize = std::max(maxsize, w);
+		}
+		for (const std::string& str : paths)
+		{
+			std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(maxsize, 250), 15);
+			o->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
+			o->copy_label(("    " + str).c_str());
 			o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
 			ui->paths->add(o.get());
 			o.release();
@@ -262,20 +359,14 @@ namespace mcpppp
 			}
 		}
 
-		int w, h, dx, dy;
-		fl_text_extents(name.c_str(), dx, dy, w, h);
-		std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * paths.size(), std::max(w + 30, 250), 15);
-		o->copy_label(name.c_str());
-		o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
-		ui->paths->add(o.get());
-		o.release();
 		paths.insert(name);
+		addpaths();
 	}
 
 #ifdef _WIN32
 	inline std::string winfilebrowser()
 	{
-		const auto wtomb = [](LPWSTR in)
+		const auto wtomb = [](const LPWSTR& in)
 		{
 			const int len = WideCharToMultiByte(CP_UTF8, 0, in, -1, nullptr, 0, nullptr, nullptr);
 			std::string out(static_cast<size_t>(len), 0);
