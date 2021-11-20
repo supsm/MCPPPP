@@ -221,7 +221,7 @@ UI::UI() {
     } // Fl_Scroll* paths
     edit_paths->end();
   } // Fl_Double_Window* edit_paths
-  { settings = new Fl_Double_Window(300, 280, "Settings");
+  { settings = new Fl_Double_Window(299, 280, "Settings");
     settings->user_data((void*)(this));
     { Fl_Box* o = new Fl_Box(10, 10, 120, 20, "autoDeleteTemp");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
@@ -342,6 +342,7 @@ B has minor issues with transparency, some parts may not show");
         fsbtransparenttrue->type(102);
         fsbtransparenttrue->box(FL_FLAT_BOX);
         fsbtransparenttrue->down_box(FL_BORDER_BOX);
+        fsbtransparenttrue->value(1);
         fsbtransparenttrue->color(FL_DARK2);
         fsbtransparenttrue->selection_color((Fl_Color)43);
         fsbtransparenttrue->callback((Fl_Callback*)cb_fsbtransparenttrue);
@@ -350,7 +351,6 @@ B has minor issues with transparency, some parts may not show");
         fsbtransparentfalse->type(102);
         fsbtransparentfalse->box(FL_FLAT_BOX);
         fsbtransparentfalse->down_box(FL_BORDER_BOX);
-        fsbtransparentfalse->value(1);
         fsbtransparentfalse->color(FL_DARK2);
         fsbtransparentfalse->selection_color((Fl_Color)43);
         fsbtransparentfalse->callback((Fl_Callback*)cb_fsbtransparentfalse);

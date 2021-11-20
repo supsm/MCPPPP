@@ -158,7 +158,6 @@ inline void selectpath(Fl_Radio_Button* o, void* v) noexcept
 // callback for settings button
 inline void opensettings(Fl_Button* o, void* v)
 {
-	ui->savewarning->hide();
 	ui->settings->show();
 	ui->box1->redraw(); // the outlining boxes disappear for some reason
 	ui->box2->redraw();
