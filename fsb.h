@@ -114,16 +114,7 @@ private:
 	// convert black to transparent
 	static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
 	{
-<<<<<<< HEAD
-		// don't convert transparency if setting is false
-		if (!mcpppp::fsbtransparent)
-		{
-			return;
-		}
-		for (long long i = 0; i < (w * 4) / 3; i += 4)
-=======
 		for (long long i = 0; i < w; i += 4)
->>>>>>> 3620088c0e0c09be1d34e11ed1c3dc3e938183df
 		{
 			for (long long j = 0; j < h; j++)
 			{
@@ -157,13 +148,8 @@ private:
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry)
 	{
-<<<<<<< HEAD
 		out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
 		unsigned int w, h, error;
-=======
-		out(1) << "FSB: Converting " + png.path().filename().u8string() << std::endl;
-		unsigned int w, h;
->>>>>>> 3620088c0e0c09be1d34e11ed1c3dc3e938183df
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 		std::string filename = entry.path().filename().u8string();
@@ -171,28 +157,11 @@ private:
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
 		filename.erase(filename.end() - 4, filename.end());
-<<<<<<< HEAD
-		error = lodepng::load_file(buffer, entry.path().u8string());
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
-		error = lodepng::decode(image, w, h, state, buffer);
-		if (error != 0)
-		{
-			out(5) << "FSB: png error: " << lodepng_error_text(error) << std::endl;
-		}
-		if (w % 3 != 0 || h % 2 != 0)
-		{
-			out(5) << "FSB: Wrong dimensions: " << entry.path().u8string() << std::endl;
-			return;
-=======
-		checkError(lodepng::load_file(buffer, png.path().u8string()));
+		checkError(lodepng::load_file(buffer, entry.path().u8string()));
 		checkError(lodepng::decode(image, w, h, state, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
 		{
-			out(4) << "FSB: Wrong dimensions: " << png.path().u8string() << std::endl << "will be cropped to proper dimensions" << std::endl;
->>>>>>> 3620088c0e0c09be1d34e11ed1c3dc3e938183df
+			out(4) << "FSB: Wrong dimensions: " << entry.path().u8string() << std::endl << "will be cropped to proper dimensions" << std::endl;
 		}
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
