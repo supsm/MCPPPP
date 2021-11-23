@@ -42,19 +42,20 @@ Alternatively, command-line arguments may be passed for temorary settings. Simpl
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  
 
 ## Build
-#### CLI
-Prerequisites: basic compiler with C++17 support  
-1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
-2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
-3. Build `Source.cpp` in whichever fashion you want, using C++17. Turn on optimizations if possible, the conversion process will be a lot faster.  
-
-My build script: `clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-windows-cli.exe`  
 
 #### CLI (Arch Linux)
 Prerequisistes: `base-devel` installed
 1. Clone this using `git clone` or Download and Extract the ZIP via Github. 
 2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`. 
 3. Run `makepkg -si` and type your password when prompted
+
+#### CLI (other)
+Prerequisites: basic compiler with C++17 support  
+1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
+2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
+3. Build `Source.cpp` in whichever fashion you want, using C++17. Turn on optimizations if possible, the conversion process will be a lot faster.  
+
+My build script: `clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-windows-cli.exe`  
 
 #### GUI (Windows)
 Prerequisites: compiler with C++17 support, capable of specifying additional include paths and linking libraries  
