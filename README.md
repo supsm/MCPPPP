@@ -47,7 +47,7 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 Prerequisistes: `base-devel` installed
 1. Run `paru -S mcpppp` (Substitute your aur helper for `paru`)
 
-OR install it the official way without a aur helper.
+OR install it the official way without an aur helper.
 
 1. Clone aur.archlinux.org/mcpppp with git
 2. `cd` into `mcpppp`
