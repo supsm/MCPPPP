@@ -45,9 +45,13 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 
 #### CLI (Arch Linux)
 Prerequisistes: `base-devel` installed
-1. Clone this using `git clone` or Download and Extract the ZIP via Github. 
-2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`. 
-3. Run `makepkg -si` and type your password when prompted
+1. Run `paru -S mcpppp` (Substitute your aur helper for `paru`)
+
+OR install it the official way without a aur helper.
+
+1. Clone aur.archlinux.org/mcpppp with git
+2. `cd` into `mcpppp`
+3. run makepkg -si
 
 #### CLI (other)
 Prerequisites: basic compiler with C++17 support  
