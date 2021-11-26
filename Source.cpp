@@ -4,7 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.6"; // MCPPPP version
+constexpr auto VERSION = "0.5.7"; // MCPPPP version
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -167,6 +167,9 @@ try
 #endif
 		}
 	}
+#ifndef GUI
+	out(3) << "Conversion Started" << std::endl;
+#endif
 	for (const std::string& path : mcpppp::paths)
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
@@ -220,7 +223,7 @@ try
 	mcpppp::ui->scroll->redraw();
 	Fl::run();
 #else
-	out(3) << "All Done!" << std::endl;
+	out(3) << "Conversion Finished" << std::endl;
 	mcpppp::exit();
 #endif
 }

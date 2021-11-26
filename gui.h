@@ -54,6 +54,7 @@ namespace mcpppp
 	inline void guirun()
 		try
 	{
+		out(3) << "Conversion Started" << std::endl;
 		if (paths.empty())
 		{
 			out(4) << "No path found, running from default directory: " << getdefaultpath() << std::endl;
@@ -148,7 +149,7 @@ namespace mcpppp
 			}
 		}
 		running = false;
-		out(3) << "All Done!" << std::endl;
+		out(3) << "Conversion Finished" << std::endl;
 	}
 	catch (const nlohmann::json::exception& e)
 	{

@@ -205,7 +205,7 @@ namespace mcpppp
 		// couldn't find a good pre-defined color for warning
 		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
 #endif
-		friend outstream out(const short& level);
+		friend outstream out(const short& level) noexcept;
 		bool cout, file, err, first = false;
 		short level;
 		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept : cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
@@ -354,7 +354,7 @@ namespace mcpppp
 		}
 	};
 
-	inline outstream out(const short& level)
+	inline outstream out(const short& level) noexcept
 	{
 		return outstream(true, level >= outputlevel, level >= loglevel, level == 5, level);
 	}
@@ -462,7 +462,7 @@ namespace mcpppp
 			try
 			{
 				int temp = j.get<int>();
-				if (item.min && item.max && (temp < item.min || temp > item.max))
+				if (static_cast<bool>(item.min) && static_cast<bool>(item.max) && (temp < item.min || temp > item.max))
 				{
 					out(5) << "Not a valid value for " << option << ": " << temp << "; Expected integer between " << item.min << " and " << item.max << std::endl;
 				}
