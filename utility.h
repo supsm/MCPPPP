@@ -4,6 +4,9 @@
 
 #pragma once
 
+constexpr auto VERSION = "0.5.7"; // MCPPPP version
+constexpr int PACK_VER = 8; // pack.mcmeta pack format
+
 #include <algorithm>
 #include <cstdlib>
 #include <filesystem>
@@ -218,11 +221,13 @@ namespace mcpppp
 			strncpy(c, s.c_str(), s.size() + 1);
 			return c;
 		}
+#ifdef GUI
 		static void print(void* v)
 		{
 			ui->output->add(static_cast<char*>(v));
-			delete[] v;
+			delete[] static_cast<char*>(v);
 		}
+#endif
 	public:
 		template<typename T>
 		outstream operator<<(const T& value) const

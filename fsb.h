@@ -153,7 +153,7 @@ private:
 	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry)
 	{
 		out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
-		unsigned int w, h, error;
+		unsigned int w, h;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 		std::string filename = entry.path().filename().u8string();

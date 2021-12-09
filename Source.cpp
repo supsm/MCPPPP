@@ -4,8 +4,7 @@
 
  //#define GUI
 
-constexpr auto VERSION = "0.5.7"; // MCPPPP version
-constexpr int PACK_VER = 8; // pack.mcmeta pack format
+// VERSION and PACK_VER can be found in utility.h
 
 #ifdef _WIN32
 #define NOMINMAX
