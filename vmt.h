@@ -475,6 +475,8 @@ public:
 	// main vmt function
 	inline vmt(const std::string& path, const std::string& filename)
 	{
+		out(4) << "vmt conversion currently does not work" << std::endl;
+		return;
 		// source: assets/minecraft/*/mob/		< this can be of or mcpatcher, but the one below is of only
 		// source: assets/minecraft/optifine/random/entity/
 		// destination: assets/minecraft/varied/textures/entity/

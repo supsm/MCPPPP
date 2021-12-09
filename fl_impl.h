@@ -280,7 +280,8 @@ inline void windowclosed(Fl_Double_Window* w, void* v)
 {
 	if (mcpppp::running)
 	{
-		switch (fl_choice("Conversion is still in progress, files may be corrupted if you choose to close now. Are you sure you want to close?", "Yes", "No", nullptr))
+		switch (fl_choice("Conversion is still in progress, files may be corrupted if you choose to close now. Are you sure you want to close?",
+			"Close", "Don't Close", nullptr))
 		{
 		case 0: // if yes, close window
 			w->hide();

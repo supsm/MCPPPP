@@ -5,6 +5,7 @@
  //#define GUI
 
 constexpr auto VERSION = "0.5.7"; // MCPPPP version
+constexpr int PACK_VER = 8; // pack.mcmeta pack format
 
 #ifdef _WIN32
 #define NOMINMAX
@@ -43,6 +44,9 @@ try
 #ifdef GUI
 	ui = std::make_unique<UI>();
 	Fl::get_system_colors();
+	Fl::lock();
+	fl_message_icon()->labeltype(FL_NO_LABEL);
+	fl_message_icon()->box(FL_NO_BOX);
 	mcpppp::ui->show();
 	Fl::wait();
 #endif
@@ -52,7 +56,8 @@ try
 		if (configfile.fail() && argc < 2)
 		{
 			std::ofstream createconfig("mcpppp-config.json");
-			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl << "{}" << std::endl;
+			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md"
+				<< std::endl << "{}" << std::endl;
 			createconfig.close();
 #ifdef GUI
 			openhelp(nullptr, nullptr);
@@ -150,13 +155,15 @@ try
 		else
 		{
 #ifdef GUI
-			switch (fl_choice("mcpppp-temp folder was found. If you created it yourself, it may contain important files.\nIf you did not create it, it is probably the result of a failed conversion.\nDo you want to delete it?", "No", "Yes", nullptr))
+			switch (fl_choice("mcpppp-temp folder was found. If you created it yourself, it may contain important files.\n\
+				If you did not create it, it is probably the result of a failed conversion.\n\
+				Do you want to delete it?", "Don't Delete", "Delete", nullptr))
 			{
-			case 0: // no
-				std::filesystem::remove_all("mcpppp-temp");
-				break;
-			case 1: // yes
+			case 0: // don't delete
 				out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+				break;
+			case 1: // delete
+				std::filesystem::remove_all("mcpppp-temp");
 				break;
 			default:
 				break;
@@ -189,16 +196,30 @@ try
 #else
 			if (entry.is_directory())
 			{
-				fsb(entry.path().u8string(), entry.path().filename().u8string());
-				vmt(entry.path().u8string(), entry.path().filename().u8string());
-				cim(entry.path().u8string(), entry.path().filename().u8string());
+				bool success = false;
+				if (fsb(entry.path().u8string(), entry.path().filename().u8string()).success)
+				{
+					success = true;
+				}
+				if (vmt(entry.path().u8string(), entry.path().filename().u8string()).success)
+				{
+					success = true;
+				}
+				if (cim(entry.path().u8string(), entry.path().filename().u8string()).success)
+				{
+					success = true;
+				}
+				if (success)
+				{
+					mcpppp::checkpackver(entry);
+				}
 			}
 			else if (entry.path().extension() == ".zip")
 			{
 				bool success = false;
 				Zippy::ZipArchive zipa;
 				mcpppp::unzip(entry, zipa);
-				std::string folder = entry.path().stem().u8string();
+				const std::string folder = entry.path().stem().u8string();
 				if (fsb("mcpppp-temp/" + folder, folder).success)
 				{
 					success = true;
@@ -213,6 +234,7 @@ try
 				}
 				if (success)
 				{
+					mcpppp::checkpackver("mcpppp-temp/" + folder);
 					mcpppp::rezip(folder, zipa);
 				}
 			}
