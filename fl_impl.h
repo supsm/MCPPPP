@@ -113,8 +113,9 @@ inline void addrespath(Fl_Button* o, void* v)
 #ifdef _WIN32
 	str = mcpppp::winfilebrowser();
 #else
-	std::unique_ptr<Fl_Native_File_Chooser> chooser = std::make_unique<Fl_Native_File_Chooser>(1); // browse directory
-	str = chooser->show();
+	std::unique_ptr<Fl_Native_File_Chooser> chooser = std::make_unique<Fl_Native_File_Chooser>(Fl_Native_File_Chooser::BROWSE_DIRECTORY); // browse directory
+	chooser->show();
+	str = chooser->filename();
 #endif
 	if (!str.empty() && paths.find(str) == paths.end())
 	{
@@ -122,9 +123,9 @@ inline void addrespath(Fl_Button* o, void* v)
 		deletedpaths.erase(str);
 		mcpppp::updatepaths();
 		mcpppp::updatepathconfig();
+		ui->edit_paths->redraw();
+		reload(nullptr, nullptr);
 	}
-	ui->edit_paths->redraw();
-	reload(nullptr, nullptr);
 }
 
 // callback for "Delete" button in "Edit Paths"
