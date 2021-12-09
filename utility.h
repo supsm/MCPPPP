@@ -208,7 +208,21 @@ namespace mcpppp
 		friend outstream out(const short& level) noexcept;
 		bool cout, file, err, first = false;
 		short level;
-		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept : cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
+		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept
+			: cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
+		// lol
+		static char* dupstr(const std::string& s)
+		{
+			// add one for null character
+			char* c = new char[s.size() + 1];
+			strncpy(c, s.c_str(), s.size() + 1);
+			return c;
+		}
+		static void print(void* v)
+		{
+			ui->output->add(static_cast<char*>(v));
+			delete[] v;
+		}
 	public:
 		template<typename T>
 		outstream operator<<(const T& value) const
@@ -311,10 +325,9 @@ namespace mcpppp
 						sstream.str(" "); // fltk won't print empty strings
 					}
 					// add color and output line
-					ui->output->add(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str()).c_str());
+					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
 					sstream.str(std::string());
 					sstream.clear();
-					Fl::wait();
 				}
 				else
 				{
@@ -391,6 +404,38 @@ namespace mcpppp
 		{
 			out(5) << "Error copying file:" << std::endl << e.what() << std::endl;
 		}
+	}
+
+	inline void checkpackver(const std::filesystem::path& path)
+	{
+		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
+		if (!std::filesystem::is_regular_file(pack_mcmeta))
+		{
+			out(4) << "pack.mcmeta not found; in " << path.filename().u8string() << std::endl;
+			return;
+		}
+		nlohmann::json j;
+		std::ifstream fin(pack_mcmeta);
+		try
+		{
+			fin >> j;
+			if (j["pack"]["pack_format"].get<int>() != PACK_VER)
+			{
+				std::stringstream ss;
+				ss << "Potentially incorrect pack_format in " << path.filename().u8string() << ". This may cause some resourcepacks to break.\n"
+					<< "Version found : " << j["pack"]["pack_format"].get<int>() << "\nLatest version : " << PACK_VER << std::endl;
+				out(4) << ss.str();
+#ifdef GUI
+				const auto alert = [](void* v) {fl_alert(static_cast<char*>(v)); };
+				Fl::awake(alert, const_cast<char*>(ss.str().c_str()));
+#endif
+			}
+		}
+		catch (const nlohmann::json::exception& e)
+		{
+			out(4) << "Json error while parsing pack.mcmeta from " << path.filename().u8string() << ":\n" << e.what() << std::endl;
+		}
+		fin.close();
 	}
 
 	inline void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)

@@ -55,23 +55,109 @@ namespace mcpppp
 		try
 	{
 		out(3) << "Conversion Started" << std::endl;
-		if (paths.empty())
+		bool valid = false;
+		for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
 		{
-			out(4) << "No path found, running from default directory: " << getdefaultpath() << std::endl;
+			if (!p.first)
+			{
+				continue;
+			}
+			if (p.second.is_directory())
+			{
+				valid = true;
+				bool success = false;
+				if (dofsb)
+				{
+					if (fsb(p.second.path().u8string(), p.second.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+				}
+				if (dovmt)
+				{
+					if (vmt(p.second.path().u8string(), p.second.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+				}
+				if (docim)
+				{
+					if (cim(p.second.path().u8string(), p.second.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+				}
+				if (success)
+				{
+					mcpppp::checkpackver(p.second);
+				}
+			}
+			else if (p.second.path().extension() == ".zip")
+			{
+				valid = true;
+				bool success = false;
+				Zippy::ZipArchive zipa;
+				unzip(p.second, zipa);
+				std::string folder = p.second.path().stem().u8string();
+				if (dofsb)
+				{
+					if (fsb("mcpppp-temp/" + folder, folder).success)
+					{
+						success = true;
+					}
+				}
+				if (dovmt)
+				{
+					if (vmt("mcpppp-temp/" + folder, folder).success)
+					{
+						success = true;
+					}
+				}
+				if (docim)
+				{
+					if (cim("mcpppp-temp/" + folder, folder).success)
+					{
+						success = true;
+					}
+				}
+				if (success)
+				{
+					mcpppp::checkpackver("mcpppp-temp/" + folder);
+					rezip(folder, zipa);
+				}
+			}
+		}
+		if (!valid)
+		{
+			out(4) << "No valid path found, running from default directory: " << getdefaultpath() << std::endl;
 			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(getdefaultpath())))
 			{
 				if (entry.is_directory())
 				{
-					fsb(entry.path().u8string(), entry.path().filename().u8string());
-					vmt(entry.path().u8string(), entry.path().filename().u8string());
-					cim(entry.path().u8string(), entry.path().filename().u8string());
+					bool success = false;
+					if (fsb(entry.path().u8string(), entry.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+					if (vmt(entry.path().u8string(), entry.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+					if (cim(entry.path().u8string(), entry.path().filename().u8string()).success)
+					{
+						success = true;
+					}
+					if (success)
+					{
+						mcpppp::checkpackver(entry);
+					}
 				}
 				else if (entry.path().extension() == ".zip")
 				{
 					bool success = false;
 					Zippy::ZipArchive zipa;
 					mcpppp::unzip(entry, zipa);
-					std::string folder = entry.path().stem().u8string();
+					const std::string folder = entry.path().stem().u8string();
 					if (fsb("mcpppp-temp/" + folder, folder).success)
 					{
 						success = true;
@@ -86,64 +172,8 @@ namespace mcpppp
 					}
 					if (success)
 					{
+						mcpppp::checkpackver("mcpppp-temp/" + folder);
 						mcpppp::rezip(folder, zipa);
-					}
-				}
-			}
-		}
-		else
-		{
-			for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
-			{
-				if (!p.first)
-				{
-					continue;
-				}
-				if (p.second.is_directory())
-				{
-					if (dofsb)
-					{
-						fsb(p.second.path().u8string(), p.second.path().filename().u8string());
-					}
-					if (dovmt)
-					{
-						vmt(p.second.path().u8string(), p.second.path().filename().u8string());
-					}
-					if (docim)
-					{
-						cim(p.second.path().u8string(), p.second.path().filename().u8string());
-					}
-				}
-				else if (p.second.path().extension() == ".zip")
-				{
-					bool success = false;
-					Zippy::ZipArchive zipa;
-					unzip(p.second, zipa);
-					std::string folder = p.second.path().stem().u8string();
-					if (dofsb)
-					{
-						if (fsb("mcpppp-temp/" + folder, folder).success)
-						{
-							success = true;
-						}
-					}
-					if (dovmt)
-					{
-						if (vmt("mcpppp-temp/" + folder, folder).success)
-						{
-							success = true;
-						}
-					}
-					if (docim)
-					{
-						if (cim("mcpppp-temp/" + folder, folder).success)
-						{
-							success = true;
-						}
-					}
-					if (success)
-					{
-						rezip(folder, zipa);
 					}
 				}
 			}
@@ -154,26 +184,32 @@ namespace mcpppp
 	catch (const nlohmann::json::exception& e)
 	{
 		out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+		std::exit(-1);
 	}
 	catch (const Zippy::ZipLogicError& e)
 	{
 		out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+		std::exit(-1);
 	}
 	catch (const Zippy::ZipRuntimeError& e)
 	{
 		out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
+		std::exit(-1);
 	}
 	catch (const std::filesystem::filesystem_error& e)
 	{
 		out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+		std::exit(-1);
 	}
 	catch (const std::exception& e)
 	{
 		out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+		std::exit(-1);
 	}
 	catch (...)
 	{
 		out(5) << "UNKNOWN FATAL ERROR" << std::endl;
+		std::exit(-1);
 	}
 
 #ifdef _WIN32
@@ -192,7 +228,7 @@ namespace mcpppp
 #else
 		return 1;
 #endif
-	}
+}
 
 	// add resourcepack to checklist
 	inline void addpack(const std::string& name, bool selected)

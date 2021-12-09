@@ -226,7 +226,7 @@ private:
 			{
 				image2.push_back(image.at(i));
 			}
-			else if(i % (w * 4) < 3 * outw)
+			else if (i % (w * 4) < 3 * outw)
 			{
 				image3.push_back(image.at(i));
 			}
@@ -258,7 +258,25 @@ private:
 		name.erase(name.end() - 11, name.end());
 		source = name;
 		std::stringstream ss;
-		nlohmann::json j = { {"schemaVersion", 2}, {"type", "square-textured"}, {"conditions", {{"worlds", {"minecraft:overworld"}}}}, {"blend", true}, {"properties", {{"blend", {{"type", "add"}}}, {"rotation", {{"axis", {0.0, 180.0, 0.0}}}}, {"sunSkyTint", false}} } };
+		nlohmann::json j =
+		{
+			{"schemaVersion", 2},
+			{"type", "square-textured"},
+			{"conditions",
+			{
+				{"worlds", {"minecraft:overworld"}}
+			} },
+			{"blend", true},
+			{"properties",
+			{
+				{"blend", {{"type", "add"}}},
+				{"rotation",
+				{
+					{"axis", {0.0, 180.0, 0.0}}
+				}},
+				{"sunSkyTint", false}
+			} }
+		};
 		std::ifstream fin(entry.path());
 		while (fin)
 		{
@@ -317,7 +335,10 @@ private:
 					int tempi = stoi(temp);
 					tempi = tempi / 1000 * 1000 + static_cast<int>(round((tempi % 1000) / 3.0 * 5));
 					tempi = (tempi + 18000) % 24000;
-					((option == "startFadeIn" || option == "startFadeOut") ? (option == "startFadeIn" ? startfadein : startfadeout) : (option == "endFadeIn" ? endfadein : endfadeout)) = tempi;
+					((option == "startFadeIn" || option == "startFadeOut") ?
+						(option == "startFadeIn" ? startfadein : startfadeout) :
+						(option == "endFadeIn" ? endfadein : endfadeout))
+						= tempi;
 					j["properties"]["fade"][option] = tempi;
 				}
 				catch (const std::invalid_argument& e)
@@ -416,10 +437,10 @@ private:
 			}
 			temp += source;
 			source = "fabricskyboxes:sky" + source;
-			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
-			if (entry.exists())
+			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
+			if (image.exists())
 			{
-				png(path, "/assets/fabricskyboxes/sky/", entry);
+				png(path, "/assets/fabricskyboxes/sky/", image);
 			}
 			else
 			{
@@ -447,10 +468,10 @@ private:
 			{
 				sourcefolder.insert(sourcefolder.begin(), '/');
 			}
-			std::filesystem::directory_entry entry = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
-			if (entry.exists())
+			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
+			if (image.exists())
 			{
-				png(path, "/assets/fabricskyboxes/sky" + sourcefolder, entry);
+				png(path, "/assets/fabricskyboxes/sky" + sourcefolder, image);
 			}
 			else
 			{

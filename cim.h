@@ -73,7 +73,8 @@ private:
 							mcpppp::findreplace(temp, " ", "_");
 							if (temp.find(':') == std::string::npos)
 							{
-								mcpppp::copy(std::filesystem::u8path(path + "/assets/minecraft/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::u8path(path + "/assets/minecraft/textures/" + origtemp + ".png"),
+									std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
 								it.value() = "mcpppp:extra/minecraft/" + temp;
 							}
 							else
@@ -88,7 +89,8 @@ private:
 									}
 									ns.push_back(origtemp.at(i));
 								}
-								mcpppp::copy(std::filesystem::u8path(path + "/assets/" + ns + "/textures/" + origtemp + ".png"), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::u8path(path + "/assets/" + ns + "/textures/" + origtemp + ".png"),
+									std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
 								it.value() = "mcpppp:extra/" + ns + "/" + temp;
 							}
 						}
