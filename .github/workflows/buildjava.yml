@@ -27,17 +27,15 @@ jobs:
         uses: actions/checkout@v2
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
-      - name: setup jdk 17
+      - name: setup jdk 16
         uses: actions/setup-java@v1
         with:
-          java-version: 17
+          java-version: 16
       - name: make gradle wrapper executable
-        if: ${{ runner.os != 'Windows' }}
         run: chmod +x ./gradlew
       - name: build
         run: ./gradlew clean build
       - name: capture build artifacts
-        if: ${{ runner.os == 'Linux' }} # Only upload artifacts built from latest java on one OS
         uses: actions/upload-artifact@v2
         with:
           name: Artifacts
