@@ -4,7 +4,7 @@
 
 #pragma once
 
-constexpr auto VERSION = "0.5.7"; // MCPPPP version
+constexpr auto VERSION = "0.5.8"; // MCPPPP version
 constexpr int PACK_VER = 8; // pack.mcmeta pack format
 
 #include <algorithm>
