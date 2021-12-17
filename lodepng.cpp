@@ -23,6 +23,8 @@ freely, subject to the following restrictions:
     distribution.
 */
 
+// Some parts of this file have been modified by supsm and are not the original. They are marked with comments
+
 /*
 The manual and changelog are in the header file "lodepng.h"
 Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for C.
@@ -346,6 +348,7 @@ static long lodepng_filesize(const char* filename) {
   FILE* file;
   long size;
 #ifdef _WIN32
+// this part was added by me (supsm) for my own use
   const auto mbtow = [](const char* in) -> wchar_t*
   {
       const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
@@ -379,6 +382,7 @@ static unsigned lodepng_buffer_file(unsigned char* out, size_t size, const char*
   FILE* file;
   size_t readsize;
 #ifdef _WIN32
+// this part was added by me (supsm) for my own use
   const auto mbtow = [](const char* in) -> wchar_t*
   {
       const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
@@ -416,6 +420,7 @@ unsigned lodepng_load_file(unsigned char** out, size_t* outsize, const char* fil
 unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const char* filename) {
   FILE* file;
 #ifdef _WIN32
+// this part was added by me (supsm) for my own use
   const auto mbtow = [](const char* in) -> wchar_t*
   {
       const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);

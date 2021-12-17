@@ -1,3 +1,6 @@
+# GUI
+This project uses [FLTK](https://github.com/fltk/fltk) for GUI. It should be relatively intuitive and easy to use.
+
 **Mostly everything has a hover tooltip. Hover over something to get more information.**
 
 ## Main GUI Screen
