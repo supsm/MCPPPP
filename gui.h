@@ -278,7 +278,7 @@ namespace mcpppp
 		}
 		ui->timestamptrue->value(static_cast<int>(dotimestamp));
 		ui->timestampfalse->value(static_cast<int>(!dotimestamp));
-		ui->outputlevel->value(outputlevel);
+		ui->outputlevelslider->value(outputlevel);
 		ui->loglevel->value(loglevel);
 		ui->autoreconverttrue->value(static_cast<int>(autoreconvert));
 		ui->autoreconvertfalse->value(static_cast<int>(!autoreconvert));

@@ -37,13 +37,6 @@ void UI::cb_timestampfalse(Fl_Button* o, void* v) {
   ((UI*)(o->parent()->parent()->user_data()))->cb_timestampfalse_i(o,v);
 }
 
-void UI::cb_outputlevel_i(Fl_Counter* o, void* v) {
-  settingchanged(o, v);
-}
-void UI::cb_outputlevel(Fl_Counter* o, void* v) {
-  ((UI*)(o->parent()->user_data()))->cb_outputlevel_i(o,v);
-}
-
 void UI::cb_loglevel_i(Fl_Counter* o, void* v) {
   settingchanged(o, v);
 }
@@ -192,6 +185,18 @@ UI::UI() {
       allpacks->callback((Fl_Callback*)selectall);
       allpacks->when(FL_WHEN_CHANGED);
     } // Fl_Check_Button* allpacks
+    { outputlevelslider = new Fl_Value_Slider(220, 10, 200, 20, "Output Level: ");
+      outputlevelslider->tooltip("Updates the amount of text shown\n1 = Most text, 5 = Least text");
+      outputlevelslider->type(1);
+      outputlevelslider->box(FL_BORDER_BOX);
+      outputlevelslider->minimum(1);
+      outputlevelslider->maximum(5);
+      outputlevelslider->step(1);
+      outputlevelslider->value(3);
+      outputlevelslider->textsize(14);
+      outputlevelslider->callback((Fl_Callback*)updateoutputlevel);
+      outputlevelslider->align(Fl_Align(FL_ALIGN_LEFT));
+    } // Fl_Value_Slider* outputlevelslider
     window->end();
   } // Fl_Double_Window* window
   { edit_paths = new Fl_Double_Window(269, 300, "Edit Paths");
@@ -221,7 +226,7 @@ UI::UI() {
     } // Fl_Scroll* paths
     edit_paths->end();
   } // Fl_Double_Window* edit_paths
-  { settings = new Fl_Double_Window(299, 280, "Settings");
+  { settings = new Fl_Double_Window(300, 250, "Settings");
     settings->user_data((void*)(this));
     { Fl_Box* o = new Fl_Box(10, 10, 120, 20, "autoDeleteTemp");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
@@ -254,21 +259,16 @@ UI::UI() {
       o->tooltip("Whether to add timestamp to console");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(10, 100, 120, 20, "outputLevel");
-      o->tooltip("How much info should be outputted \\n1 Spam\\n2 Info\\n3 Important\\n4 Warnin\
-g\\n5 Error");
-      o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
-    } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(10, 130, 120, 20, "logLevel");
+    { Fl_Box* o = new Fl_Box(10, 100, 120, 20, "logLevel");
       o->tooltip("Same as outputLevel, but for logs");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(10, 160, 120, 20, "autoReconvert");
+    { Fl_Box* o = new Fl_Box(10, 130, 120, 20, "autoReconvert");
       o->tooltip("Automatically reconvert resourcepacks instead of skipping. Could lose data if\
  a pack isn\'t converted with MCPPPP");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
-    { Fl_Box* o = new Fl_Box(10, 190, 120, 20, "fsbTransparent");
+    { Fl_Box* o = new Fl_Box(10, 160, 120, 20, "fsbTransparent");
       o->tooltip("Make Fabricskyboxes skyboxes partially transparent to match with optifine. FS\
 B has minor issues with transparency, some parts may not show");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
@@ -299,16 +299,7 @@ B has minor issues with transparency, some parts may not show");
       } // Fl_Button* timestampfalse
       o->end();
     } // Fl_Group* o
-    { outputlevel = new Fl_Counter(140, 100, 150, 20);
-      outputlevel->box(FL_BORDER_BOX);
-      outputlevel->labeltype(FL_NO_LABEL);
-      outputlevel->minimum(1);
-      outputlevel->maximum(5);
-      outputlevel->step(1);
-      outputlevel->value(3);
-      outputlevel->callback((Fl_Callback*)cb_outputlevel);
-    } // Fl_Counter* outputlevel
-    { loglevel = new Fl_Counter(140, 130, 150, 20);
+    { loglevel = new Fl_Counter(140, 100, 150, 20);
       loglevel->box(FL_BORDER_BOX);
       loglevel->labeltype(FL_NO_LABEL);
       loglevel->minimum(1);
@@ -317,8 +308,8 @@ B has minor issues with transparency, some parts may not show");
       loglevel->value(2);
       loglevel->callback((Fl_Callback*)cb_loglevel);
     } // Fl_Counter* loglevel
-    { Fl_Group* o = new Fl_Group(140, 160, 150, 20);
-      { autoreconverttrue = new Fl_Button(140, 160, 75, 20, "True");
+    { Fl_Group* o = new Fl_Group(140, 130, 150, 20);
+      { autoreconverttrue = new Fl_Button(140, 130, 75, 20, "True");
         autoreconverttrue->type(102);
         autoreconverttrue->box(FL_FLAT_BOX);
         autoreconverttrue->down_box(FL_BORDER_BOX);
@@ -326,7 +317,7 @@ B has minor issues with transparency, some parts may not show");
         autoreconverttrue->selection_color((Fl_Color)43);
         autoreconverttrue->callback((Fl_Callback*)cb_autoreconverttrue);
       } // Fl_Button* autoreconverttrue
-      { autoreconvertfalse = new Fl_Button(215, 160, 75, 20, "False");
+      { autoreconvertfalse = new Fl_Button(215, 130, 75, 20, "False");
         autoreconvertfalse->type(102);
         autoreconvertfalse->box(FL_FLAT_BOX);
         autoreconvertfalse->down_box(FL_BORDER_BOX);
@@ -337,8 +328,8 @@ B has minor issues with transparency, some parts may not show");
       } // Fl_Button* autoreconvertfalse
       o->end();
     } // Fl_Group* o
-    { Fl_Group* o = new Fl_Group(140, 190, 150, 20);
-      { fsbtransparenttrue = new Fl_Button(140, 190, 75, 20, "True");
+    { Fl_Group* o = new Fl_Group(140, 160, 150, 20);
+      { fsbtransparenttrue = new Fl_Button(140, 160, 75, 20, "True");
         fsbtransparenttrue->type(102);
         fsbtransparenttrue->box(FL_FLAT_BOX);
         fsbtransparenttrue->down_box(FL_BORDER_BOX);
@@ -347,7 +338,7 @@ B has minor issues with transparency, some parts may not show");
         fsbtransparenttrue->selection_color((Fl_Color)43);
         fsbtransparenttrue->callback((Fl_Callback*)cb_fsbtransparenttrue);
       } // Fl_Button* fsbtransparenttrue
-      { fsbtransparentfalse = new Fl_Button(215, 190, 75, 20, "False");
+      { fsbtransparentfalse = new Fl_Button(215, 160, 75, 20, "False");
         fsbtransparentfalse->type(102);
         fsbtransparentfalse->box(FL_FLAT_BOX);
         fsbtransparentfalse->down_box(FL_BORDER_BOX);
@@ -357,7 +348,7 @@ B has minor issues with transparency, some parts may not show");
       } // Fl_Button* fsbtransparentfalse
       o->end();
     } // Fl_Group* o
-    { Fl_Button* o = new Fl_Button(10, 230, 280, 25, "Save");
+    { Fl_Button* o = new Fl_Button(10, 200, 280, 25, "Save");
       o->tooltip("Save settings");
       o->box(FL_BORDER_BOX);
       o->down_box(FL_BORDER_BOX);
@@ -365,7 +356,7 @@ B has minor issues with transparency, some parts may not show");
       o->selection_color((Fl_Color)43);
       o->callback((Fl_Callback*)savesettings);
     } // Fl_Button* o
-    { savewarning = new Fl_Box(10, 255, 280, 20, "Warning: unsaved changes");
+    { savewarning = new Fl_Box(10, 225, 280, 20, "Warning: unsaved changes");
       savewarning->labelfont(1);
       savewarning->labelcolor((Fl_Color)1);
       savewarning->hide();

@@ -84,8 +84,7 @@ private:
 		folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-		name = entry.path().filename().u8string();
-		name.erase(name.end() - 11, name.end());
+		name = entry.path().stem().u8string();
 		std::string temp, option, value, time1, last, height1, tempnum;
 		nlohmann::json j, tempj;
 		std::vector<nlohmann::json> v, tempv;

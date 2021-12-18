@@ -182,7 +182,6 @@ inline void savesettings(Fl_Button* o, void* v)
 	config["gui"]["settings"]["autoDeleteTemp"] = static_cast<bool>(ui->autodeletetemptrue->value());
 	config["gui"]["settings"]["log"] = ui->log->value();
 	config["gui"]["settings"]["timestamp"] = static_cast<bool>(ui->timestamptrue->value());
-	config["gui"]["settings"]["outputLevel"] = ui->outputlevel->value();
 	config["gui"]["settings"]["logLevel"] = ui->loglevel->value();
 	config["gui"]["settings"]["autoReconvert"] = static_cast<bool>(ui->autoreconverttrue->value());
 	config["gui"]["settings"]["fsbTransparent"] = static_cast<bool>(ui->fsbtransparenttrue->value());
@@ -276,8 +275,24 @@ inline void selectall(Fl_Check_Button* o, void* v)
 	Fl::wait();
 }
 
+inline void updateoutputlevel(Fl_Value_Slider* o, void* v)
+{
+	mcpppp::waitdontoutput = true;
+	mcpppp::outputlevel = ui->outputlevelslider->value();
+	ui->output->clear();
+	for (const auto& p : mcpppp::outputted)
+	{
+		if (p.first >= mcpppp::outputlevel)
+		{
+			ui->output->add(("@S14@C" + std::to_string(mcpppp::outstream::colors.at(p.first - 1)) + "@." + p.second).c_str());
+		}
+	}
+	ui->output->bottomline(ui->output->size());
+	mcpppp::waitdontoutput = false;
+}
+
 // callback for closing main window
-inline void windowclosed(Fl_Double_Window* w, void* v)
+inline void windowclosed(Fl_Double_Window* o, void* v)
 {
 	if (mcpppp::running)
 	{
@@ -285,7 +300,7 @@ inline void windowclosed(Fl_Double_Window* w, void* v)
 			"Close", "Don't Close", nullptr))
 		{
 		case 0: // if yes, close window
-			w->hide();
+			o->hide();
 			break;
 		case 1: // don't do anything
 			break;
@@ -295,6 +310,6 @@ inline void windowclosed(Fl_Double_Window* w, void* v)
 	}
 	else
 	{
-		w->hide();
+		o->hide();
 	}
 }

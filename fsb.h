@@ -152,15 +152,14 @@ private:
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry)
 	{
-		out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
+		out(1) << "FSB: Converting " + entry.path().stem().u8string() << std::endl;
 		unsigned int w, h;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
-		std::string filename = entry.path().filename().u8string();
+		std::string filename = entry.path().stem().u8string();
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
-		filename.erase(filename.end() - 4, filename.end());
 		checkError(lodepng::load_file(buffer, entry.path().u8string()));
 		checkError(lodepng::decode(image, w, h, state, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
@@ -250,12 +249,11 @@ private:
 	static void prop(const std::string& path, const std::filesystem::directory_entry& entry)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
-		std::string name = entry.path().filename().u8string(), source, option, value, temp;
+		std::string name = entry.path().stem().u8string(), source, option, value, temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
-		name.erase(name.end() - 11, name.end());
 		source = name;
 		std::stringstream ss;
 		nlohmann::json j =

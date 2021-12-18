@@ -8,6 +8,7 @@ constexpr auto VERSION = "0.5.8"; // MCPPPP version
 constexpr int PACK_VER = 8; // pack.mcmeta pack format
 
 #include <algorithm>
+#include <atomic>
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
@@ -83,6 +84,12 @@ namespace mcpppp
 		{"autoreconvert", {type::boolean, std::ref(autoreconvert), autoreconvert}},
 		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}}
 	};
+
+#ifdef GUI
+	// vector of things already outputted, to be used when outputlevel is changed
+	// level, text
+	static std::vector<std::pair<short, std::string>> outputted;
+#endif
 
 
 	[[noreturn]] inline void exit() noexcept
@@ -201,13 +208,11 @@ namespace mcpppp
 		return of;
 	}
 
+	inline std::atomic_bool waitdontoutput = false; // don't output probably since output is being redrawn
+
 	class outstream
 	{
 	private:
-#ifdef GUI
-		// couldn't find a good pre-defined color for warning
-		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
-#endif
 		friend outstream out(const short& level) noexcept;
 		bool cout, file, err, first = false;
 		short level;
@@ -225,10 +230,16 @@ namespace mcpppp
 		static void print(void* v)
 		{
 			ui->output->add(static_cast<char*>(v));
+			ui->output->bottomline(ui->output->size()); // automatically scroll to the bottom
 			delete[] static_cast<char*>(v);
 		}
 #endif
 	public:
+#ifdef GUI
+		// couldn't find a good pre-defined color for warning
+		// this is public so it can be used for redrawing when output level is changed
+		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
+#endif
 		template<typename T>
 		outstream operator<<(const T& value) const
 		{
@@ -329,8 +340,13 @@ namespace mcpppp
 					{
 						sstream.str(" "); // fltk won't print empty strings
 					}
+					while (waitdontoutput)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					}
 					// add color and output line
 					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
+					outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
 					sstream.str(std::string());
 					sstream.clear();
 				}
