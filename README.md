@@ -42,48 +42,13 @@ Alternatively, command-line arguments may be passed for temorary settings. Simpl
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  
 
 ## Build
-#### CLI
-Prerequisites: basic compiler with C++17 support  
-1. Clone this using `git clone` or Download and Extract the ZIP via Github.  
-2. Make sure your current folder is MCPPPP, if you cloned the repository `cd MCPPPP`.  
-3. Build `Source.cpp` in whichever fashion you want, using C++17. Turn on optimizations if possible, the conversion process will be a lot faster.  
-
-My build script: `clang++ Source.cpp -Ofast -std=c++17 -o MCPPPP-windows-cli.exe`  
-
-#### GUI (Windows)
-Prerequisites: compiler with C++17 support, capable of specifying additional include paths and linking libraries  
-1. Define `GUI` as a preprocessor definition or uncomment `#define GUI` at top of `Source.cpp`  
-2. Add `./` as include path  
-3. Add `fltk.lib` as a library  
-4. Note: `User32.lib`, `Gdi32.lib`, `Comdlg32.lib`, `Advapi32.lib`, `Shell32.lib`, and `Ole32.lib` are also required. If you are using an ide, these may already be linked.  
-
-My clang (windows) build script: `clang++ -I./ Source.cpp ./fltk.lib -lUser32.lib -lGdi32.lib -lComdlg32.lib -lAdvapi32.lib -lShell32.lib -lOle32.lib -Ofast -std=c++17 -o MCPPPP-windows.exe -Wl,/SUBSYSTEM:WINDOWS`  
-
-#### GUI (Other)
-Prerequisites: compiler, fltk (optional, see step 2)  
-1. Define `GUI` as a preprocessor definition or uncomment `#define GUI` at top of `Source.cpp`  
-2. Note: You can use my build scripts instead of using `fltk-config`. `libfltk.a` is for linux, `libfltk-mac.a` is for mac  
-Download [fltk 1.3.6](https://github.com/fltk/fltk/releases/tag/release-1.3.6)  
-Extract, follow instructions (e.g. `README.OSX.txt` for mac) and build  
-Note: On linux, make sure you have the proper libraries installed (e.g `autoconf`, `libx11-dev`, `libglu1-mesa-dev`, `libxft-dev`, and `libxext-dev`)  
-Drag the `fltk` library (e.g. `libfltk.a`) to the libs folder if necessary  
-Run `fltk-config --cxxflags` in `build` to get compiler flags  
-Add `std=c++17` to the flags  
-Navigate back to the MCPPPP folder and compile  
-
-My linux build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk.a -lXrender -lXext -lXft -lfontconfig -lpthread -ldl -lm -lX11 -Ofast -std=c++17 -o MCPPPP-linux-gui`  
-My mac build script: `clang++ -I./ -D_LARGEFILE_SOURCE -D_THREAD_SAFE -D_REENTRANT Source.cpp ./libfltk-mac.a -lpthread -framework Cocoa -Ofast -std=c++17 -o MCPPPP-mac`  
-
-#### Mod
-To build the mod there are 2 basic steps. First you will need to build the libraries for JNI, then you will need to build the actual mod itself.  
-##### JNI
-If you do not want to compile this yourself, there are prebuilt libraries located in the `lib` directory of the main branch.
-Prerequisites: compiler, JDK  
-1. Download or clone the **master branch** of MCPPPP  
-2. Add the java includes as include paths (This will be `%JAVA_HOME%\include` and `%JAVA_HOME%\include\win32` on windows. On linux it will be `$JAVA_HOME/include` and `$JAVA_HOME/include/linux`, and on mac replace `linux` with `darwin`)  
-3. Compile a shared library. Add `-shared` as a flag for clang++/g++. -fPIC will also be needed for linux/mac. The output should be `mcpppp.dll` on windows or `libmcpppp.so` on linux and `libmcpppp.dylib` on mac.  
-
-My windows build script: `clang++ -shared -std=c++17 -Ofast jni.cpp -o mcpppp.dll -I"%JAVA_HOME%/include" -I"%JAVA_HOME%/include/win32"`
+Prerequisites: Cmake, compiler with c++17
+To build MCPPPP from source, you should use cmake. There are 3 options for mcpppp, which are `MCPPPP_CLI`, `MCPPPP_GUI`, and `MCPPPP_JNI` (the rest are for fltk and should be ignored). `MCPPPP_JNI` defaults to false, the other two default to true.  
+In cmake-gui, simply check or uncheck these checkboxes.  
+If you wish to use cmake from the command line, 
+1. Configure with `cmake -B build`. You may specify options such as `-DMCPPPP_CLI=TRUE`. As an example, if I only want to build jni libraries I would run `cmake -B build -DMCPPPP_CLI=FALSE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=TRUE`
+2. Build with `cmake --build build --config Release`
+In both cases, the binaries should be in `build/bin`
 
 ##### Mod
 Prerequisites: JDK, JNI libraries from previous step
