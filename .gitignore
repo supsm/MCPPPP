@@ -14,3 +14,11 @@ desktop.ini
 
 mcpppp-temp/
 x64-Debug/
+x64/
+
+.sarif/
+.nuget/
+
+cppcheck-suppressions.txt
+mcpppp.cppcheck
+mcpppp-cppcheck-build-dir/
