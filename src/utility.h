@@ -42,7 +42,8 @@ constexpr int PACK_VER = 8; // pack.mcmeta pack format
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_Radio_Button.H>
 #include <FL/fl_ask.H>
-#include "mcpppp.h" // ui class
+// I know this is sacreligious but at least I don't have to deal with linker errors
+#include "mcpppp.cxx" // ui class
 
 namespace mcpppp
 {
