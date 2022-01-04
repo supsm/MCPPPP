@@ -27,6 +27,6 @@ jobs:
       run: mv bin/MCPPPP-gui bin/MCPPPP-linux && mv bin/MCPPPP-cli bin/MCPPPP-linux-cli
     - uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/MCPPPP-linux", "bin/MCPPPP-linux-gui"]'
+        add: '["bin/MCPPPP-linux", "bin/MCPPPP-linux-gui", "bin/libmcpppp.so"]'
         message: 'add linux binaries'
         push: true

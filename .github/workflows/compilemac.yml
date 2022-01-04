@@ -35,6 +35,6 @@ jobs:
       run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
     - uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/MCPPPP-mac-cli", "bin/MCPPPP-mac"]'
+        add: '["bin/MCPPPP-mac-cli", "bin/MCPPPP-mac", "bin/libmcpppp.dylib"]'
         message: 'add mac binaries'
         push: true
