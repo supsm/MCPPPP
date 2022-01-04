@@ -107,7 +107,7 @@ namespace mcpppp
 			std::cout << "Press enter to continue . . .";
 			getline(std::cin, str);
 #endif
-}
+		}
 #endif
 		std::exit(0);
 	}
@@ -344,7 +344,7 @@ namespace mcpppp
 				{
 					sstream << (dotimestamp ? timestamp() : "");
 				}
-				if (f == std::endl<char, std::char_traits<char>>)
+				if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
 				{
 					if (sstream.str().empty())
 					{
