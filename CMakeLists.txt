@@ -5,7 +5,8 @@ project(MCPPPP
 	LANGUAGES CXX
 )
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_EXTENSIONS FALSE)
 
 option(MCPPPP_CLI "Build CLI version of MCPPPP" TRUE)
 option(MCPPPP_GUI "Build GUI version of MCPPPP" TRUE)
@@ -23,13 +24,17 @@ if (MCPPPP_CLI)
 endif ()
 
 if (MCPPPP_GUI)
-	add_subdirectory("lib/fltk/fltk-1.3.6")
 	set(FLTK_BUILD_TEST FALSE CACHE BOOL "Build test/demo programs" FORCE) # Don't tmake fltk build tests
 	set(FLTK_BUILD_FLUID FALSE CACHE BOOL "Build fluid ui designer" FORCE) # Don't build fluid (I had to add this option myself)
 	set(OPTION_BUILD_HTML_DOCUMENTATION FALSE CACHE BOOL "build html docs" FORCE) # Don't build fltk docs
-	add_executable(MCPPPP-gui "src/Source.cpp" "src/mcpppp.cxx")
+	add_subdirectory("lib/fltk/fltk-1.3.6")
+	add_executable(MCPPPP-gui "src/Source.cpp")
 	target_compile_definitions(MCPPPP-gui PUBLIC "GUI")
-	target_link_libraries(MCPPPP-gui lodepng fltk)
+	if (APPLE)
+		target_link_libraries(MCPPPP-gui lodepng fltk "-framework Cocoa")
+	else ()
+		target_link_libraries(MCPPPP-gui lodepng fltk)
+	endif ()
 endif ()
 
 if (MCPPPP_JNI)
