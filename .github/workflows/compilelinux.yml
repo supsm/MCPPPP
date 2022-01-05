@@ -24,7 +24,7 @@ jobs:
     - name: copy files
       run: rm bin/* && cp build/bin/* bin/
     - name: rename files
-      run: mv bin/MCPPPP-gui bin/MCPPPP-linux && mv bin/MCPPPP-cli bin/MCPPPP-linux-cli
+      run: mv bin/MCPPPP-gui bin/MCPPPP-linux-gui && mv bin/MCPPPP-cli bin/MCPPPP-linux
     - uses: EndBug/add-and-commit@v7
       with:
         add: '["bin/MCPPPP-linux", "bin/MCPPPP-linux-gui", "bin/libmcpppp.so"]'
