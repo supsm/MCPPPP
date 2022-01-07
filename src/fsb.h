@@ -354,7 +354,14 @@ private:
 			}
 			else if (option == "speed")
 			{
-				j["properties"]["rotation"]["rotationSpeed"] = stod(value);
+				try
+				{
+					j["properties"]["rotation"]["rotationSpeed"] = stod(value);
+				}
+				catch (const std::invalid_argument& e)
+				{
+					out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+				}
 			}
 			else if (option == "axis")
 			{
@@ -362,7 +369,14 @@ private:
 				std::stringstream axis;
 				axis.str(value);
 				axis >> x >> y >> z;
-				j["properties"]["rotation"]["axis"] = { stod(x) * 180, stod(y) * 180, stod(z) * 180 };
+				try
+				{
+					j["properties"]["rotation"]["axis"] = { stod(x) * 180, stod(y) * 180, stod(z) * 180 };
+				}
+				catch (const std::invalid_argument& e)
+				{
+					out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+				}
 			}
 			else if (option == "weather")
 			{
@@ -398,6 +412,7 @@ private:
 				heights.str(value);
 				while (heights)
 				{
+					height.clear();
 					heights >> height;
 					for (size_t i = 0; i < height.size(); i++)
 					{
@@ -405,8 +420,15 @@ private:
 						{
 							minheight = height;
 							minheight.erase(minheight.begin() + static_cast<std::string::difference_type>(i), minheight.end());
-							height.erase(height.begin(), height.begin() + static_cast<std::string::difference_type>(i));
-							heightlist.push_back(nlohmann::json({ {"min", stod(minheight)}, {"max", stod(height)} }));
+							height.erase(height.begin(), height.begin() + static_cast<std::string::difference_type>(i) + 1);
+							try
+							{
+								heightlist.push_back(nlohmann::json({ {"min", stod(minheight)}, {"max", stod(height)} }));
+							}
+							catch (const std::invalid_argument& e)
+							{
+								out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+							}
 						}
 					}
 				}
