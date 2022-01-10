@@ -3,8 +3,8 @@ A resource pack converter from Optifine format to newer and alternative formats.
 
 ### Links  
 [Discord](https://discord.gg/waXJDswsaR)  
-[Modrinth](https://modrinth.com/mod/mcpppp)
-[Curseforge](https://www.curseforge.com/minecraft/mc-mods/mcpppp)
+[Modrinth](https://modrinth.com/mod/mcpppp)  
+[Curseforge](https://www.curseforge.com/minecraft/mc-mods/mcpppp)  
 
 #### Formats
 Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes).  
