@@ -11,6 +11,7 @@ constexpr int PACK_VER = 8; // pack.mcmeta pack format
 #define NOMINMAX
 #endif
 
+#include <atomic>
 #include <fstream>
 #include <set>
 #include <sstream>
