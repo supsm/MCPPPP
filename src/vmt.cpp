@@ -4,16 +4,17 @@
 
 #include <climits>
 #include <filesystem>
+#include <sstream>
 #include <string>
 #include <vector>
 
+#include "convert.h"
 #include "utility.h"
 
 using mcpppp::out;
 
-class vmt
+namespace vmt
 {
-private:
 	static constexpr auto VMT = "reselect";
 
 	// moves vmt pngs to new location
@@ -468,11 +469,43 @@ private:
 		fout << j.dump(1, '\t') << std::endl;
 	}
 
-public:
-	bool success = false;
+	// check if should be converted
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
+	{
+		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/varied/textures/entity/", zip))
+		{
+			if (mcpppp::autoreconvert)
+			{
+				out(3) << "VMT: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/minecraft/varied/"));
+			}
+			else
+			{
+				out(2) << "VMT: Varied Mob Textures folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				return { false, false, false };
+			}
+		}
+		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/random/entity/", zip))
+		{
+			return { true, true, true };
+		}
+		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/mob/", zip))
+		{
+			return { true, true, false };
+		}
+		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/mob/", zip))
+		{
+			return { true, false, false };
+		}
+		else
+		{
+			out(2) << "VMT: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+			return { false, false, false };
+		}
+	}
 
 	// main vmt function
-	inline vmt(const std::string& path, const std::string& filename)
+	void convert(const std::string& path, const std::string& filename, const mcpppp::checkinfo& info)
 	{
 		out(4) << "vmt conversion currently does not work" << std::endl;
 		return;
@@ -480,44 +513,10 @@ public:
 		// source: assets/minecraft/optifine/random/entity/
 		// destination: assets/minecraft/varied/textures/entity/
 
-
-		bool optifine, newlocation = false;
 		std::string name, folderpath;
 		std::vector<int> numbers;
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity")))
-		{
-			if (mcpppp::autoreconvert)
-			{
-				out(3) << "VMT: Reconverting " << filename << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/varied"));
-			}
-			else
-			{
-				out(2) << "VMT: Varied Mob Textures folder found in " << filename << ", skipping" << std::endl;
-				return;
-			}
-		}
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/random/entity")))
-		{
-			optifine = true;
-			newlocation = true;
-		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/mob")))
-		{
-			optifine = true;
-			newlocation = false;
-		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/mob")))
-		{
-			optifine = false;
-		}
-		else
-		{
-			out(2) << "VMT: Nothing to convert in " << filename << ", skipping" << std::endl;
-			return;
-		}
 		out(3) << "VMT: Converting Pack " << filename << std::endl;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" + std::string(newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (info.optifine ? "optifine" + std::string(info.newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
 		{
 			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties")
 			{
@@ -525,11 +524,11 @@ public:
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
-				png(name, path, newlocation, numbers, entry);
+				png(name, path, info.newlocation, numbers, entry);
 			}
 			else if (entry.path().filename().extension() == ".properties")
 			{
-				prop(path, newlocation, entry);
+				prop(path, info.newlocation, entry);
 			}
 		}
 		if (!numbers.empty())
@@ -549,6 +548,5 @@ public:
 			}
 			numbers.clear();
 		}
-		success = true;
 	}
 };

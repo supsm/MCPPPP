@@ -2,17 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#ifdef GUI
+#include <thread>
+#include <FL/Fl.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Radio_Button.H>
+#include "FL/fl_ask.H"
+
 #include "gui.h"
+#include "utility.h"
 
 static std::unique_ptr<Fl_Widget> selectedwidget;
 
 using mcpppp::ui;
+using mcpppp::out;
 using mcpppp::paths;
 using mcpppp::entries;
 using mcpppp::deletedpaths;
 
 // callback for run button
-inline void run(Fl_Button* o, void* v)
+void run(Fl_Button* o, void* v)
 {
 	if (mcpppp::running)
 	{
@@ -24,7 +34,7 @@ inline void run(Fl_Button* o, void* v)
 }
 
 // callback for "CIM", "VMT", "FSB" checkboxes
-inline void conversion(Fl_Check_Button* o, void* v)
+void conversion(Fl_Check_Button* o, void* v)
 {
 	if (strcmp(o->label(), "FSB") == 0)
 	{
@@ -41,20 +51,20 @@ inline void conversion(Fl_Check_Button* o, void* v)
 }
 
 // callback for resourcepack checkboxes
-inline void resourcepack(Fl_Check_Button* o, void* v)
+void resourcepack(Fl_Check_Button* o, void* v)
 {
 	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).first = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
 }
 
 // callback for browse button
-inline void browse(Fl_Button* o, void* v)
+void browse(Fl_Button* o, void* v)
 {
 	ui->edit_paths->show();
 }
 
 // callback for reload button
-inline void reload(Fl_Button* o, void* v)
+void reload(Fl_Button* o, void* v)
 {
 	entries.clear();
 	ui->scroll->clear();
@@ -85,7 +95,7 @@ inline void reload(Fl_Button* o, void* v)
 }
 
 // callback for path_input
-inline void editpath(Fl_Input* o, void* v)
+void editpath(Fl_Input* o, void* v)
 {
 	deletedpaths.insert(paths.begin(), paths.end());
 	paths.clear();
@@ -107,7 +117,7 @@ inline void editpath(Fl_Input* o, void* v)
 }
 
 // callback for "Add" button in "Edit Paths"
-inline void addrespath(Fl_Button* o, void* v)
+void addrespath(Fl_Button* o, void* v)
 {
 	std::string str;
 #ifdef _WIN32
@@ -129,7 +139,7 @@ inline void addrespath(Fl_Button* o, void* v)
 }
 
 // callback for "Delete" button in "Edit Paths"
-inline void deleterespath(Fl_Button* o, void* v)
+void deleterespath(Fl_Button* o, void* v)
 {
 	if (selectedwidget == nullptr)
 	{
@@ -151,13 +161,13 @@ inline void deleterespath(Fl_Button* o, void* v)
 }
 
 // callback for paths buttons in "Edit Paths"
-inline void selectpath(Fl_Radio_Button* o, void* v) noexcept
+void selectpath(Fl_Radio_Button* o, void* v) noexcept
 {
 	selectedwidget.reset(o);
 }
 
 // callback for settings button
-inline void opensettings(Fl_Button* o, void* v)
+void opensettings(Fl_Button* o, void* v)
 {
 	ui->settings->show();
 	ui->box1->redraw(); // the outlining boxes disappear for some reason
@@ -165,7 +175,7 @@ inline void opensettings(Fl_Button* o, void* v)
 }
 
 // callback for help button
-inline void openhelp(Fl_Button* o, void* v)
+void openhelp(Fl_Button* o, void* v)
 {
 	ui->help->show();
 	ui->box1->redraw();
@@ -173,7 +183,7 @@ inline void openhelp(Fl_Button* o, void* v)
 }
 
 // callback for save button in setings
-inline void savesettings(Fl_Button* o, void* v)
+void savesettings(Fl_Button* o, void* v)
 {
 	using mcpppp::config;
 
@@ -248,13 +258,13 @@ inline void savesettings(Fl_Button* o, void* v)
 }
 
 // callback for edited settings
-inline void settingchanged(Fl_Widget* o, void* v)
+void settingchanged(Fl_Widget* o, void* v)
 {
 	ui->savewarning->show();
 }
 
 // callback for select all/none
-inline void selectall(Fl_Check_Button* o, void* v)
+void selectall(Fl_Check_Button* o, void* v)
 {
 	ui->scroll->clear();
 	mcpppp::numbuttons = 0;
@@ -276,7 +286,7 @@ inline void selectall(Fl_Check_Button* o, void* v)
 }
 
 // callback for output level slider
-inline void updateoutputlevel(Fl_Value_Slider* o, void* v)
+void updateoutputlevel(Fl_Value_Slider* o, void* v)
 {
 	mcpppp::waitdontoutput = true;
 	mcpppp::outputlevel = ui->outputlevelslider->value();
@@ -293,7 +303,7 @@ inline void updateoutputlevel(Fl_Value_Slider* o, void* v)
 }
 
 // callback for closing main window
-inline void windowclosed(Fl_Double_Window* o, void* v)
+void windowclosed(Fl_Double_Window* o, void* v)
 {
 	if (mcpppp::running)
 	{
@@ -314,3 +324,4 @@ inline void windowclosed(Fl_Double_Window* o, void* v)
 		o->hide();
 	}
 }
+#endif

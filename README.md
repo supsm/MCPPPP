@@ -43,7 +43,7 @@ Alternatively, command-line arguments may be passed for temorary settings. Simpl
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  
 
 ## Build
-Prerequisites: Cmake, compiler with c++17
+Prerequisites: Cmake, compiler with c++17  
 To build MCPPPP from source, you should use cmake. There are 3 options for mcpppp, which are `MCPPPP_CLI`, `MCPPPP_GUI`, and `MCPPPP_JNI` (the rest are for fltk and should be ignored). `MCPPPP_JNI` defaults to false, the other two default to true.  
 In cmake-gui, simply check or uncheck these checkboxes.  
 If you wish to use cmake from the command line, 

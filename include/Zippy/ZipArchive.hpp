@@ -36,6 +36,7 @@
 #include <cstddef>
 #include <memory>
 #include <fstream>
+#include <filesystem>
 
 // ===== Other Includes
 #include "miniz/miniz.h"

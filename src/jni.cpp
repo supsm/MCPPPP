@@ -1,8 +1,8 @@
-#include "fsb.h"
-#include "vmt.h"
-#include "cim.h"
+#include "convert.h"
+#include "utility.h"
 #include "supsm_mcpppp_jni.h"
 
+using mcpppp::out;
 
 void run(std::string path, std::string os)
 try
@@ -11,35 +11,7 @@ try
 	out(6) << "Os: " << os << std::endl << std::endl;
 	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 	{
-		if (entry.is_directory())
-		{
-			fsb(entry.path().u8string(), entry.path().filename().u8string());
-			vmt(entry.path().u8string(), entry.path().filename().u8string());
-			cim(entry.path().u8string(), entry.path().filename().u8string());
-		}
-		else if (entry.path().extension() == ".zip")
-		{
-			bool success = false;
-			Zippy::ZipArchive zipa;
-			mcpppp::unzip(entry, zipa);
-			std::string folder = entry.path().stem().u8string();
-			if (fsb("mcpppp-temp/" + folder, folder).success)
-			{
-				success = true;
-			}
-			if (vmt("mcpppp-temp/" + folder, folder).success)
-			{
-				success = true;
-			}
-			if (cim("mcpppp-temp/" + folder, folder).success)
-			{
-				success = true;
-			}
-			if (success)
-			{
-				mcpppp::rezip(folder, zipa);
-			}
-		}
+		mcpppp::convert(entry);
 	}
 }
 catch (const nlohmann::json::exception& e)

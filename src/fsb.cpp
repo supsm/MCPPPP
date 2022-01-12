@@ -5,18 +5,21 @@
 #include <algorithm>
 #include <cmath>
 #include <filesystem>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
 
+#include "convert.h"
 #include "utility.h"
+
 #include "lodepng.h"
+#include "json.hpp"
 
 using mcpppp::out;
 
-class fsb
+namespace fsb
 {
-private:
 	template<class T>
 	static bool compare(T first, T second) noexcept
 	{
@@ -361,6 +364,7 @@ private:
 				catch (const std::invalid_argument& e)
 				{
 					out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					return;
 				}
 			}
 			else if (option == "axis")
@@ -376,6 +380,7 @@ private:
 				catch (const std::invalid_argument& e)
 				{
 					out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					return;
 				}
 			}
 			else if (option == "weather")
@@ -428,6 +433,7 @@ private:
 							catch (const std::invalid_argument& e)
 							{
 								out(5) << "Error: " << e.what() << "\n\tIn file \"" << entry.path().u8string() << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+								return;
 							}
 						}
 					}
@@ -526,41 +532,41 @@ private:
 		fout.close();
 	}
 
-public:
-	bool success = false;
-
-	// main fsb function
-	inline fsb(const std::string& path, const std::string& filename)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
 	{
-		bool optifine;
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/fabricskyboxes/sky")))
+		if (mcpppp::findfolder(path.u8string(), "assets/fabricskyboxes/sky/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
-				out(3) << "FSB: Reconverting " << filename << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/fabricskyboxes"));
+				out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/fabricskyboxes"));
 			}
 			else
 			{
-				out(2) << "FSB: Fabricskyboxes folder found in " << filename << ", skipping" << std::endl;
-				return;
+				out(2) << "FSB: Fabricskyboxes folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				return { false, false, false };
 			}
 		}
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/sky")))
+		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/sky/", zip))
 		{
-			optifine = true;
+			return { true, true, false };
 		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/sky")))
+		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/sky/", zip))
 		{
-			optifine = false;
+			return { true, false, false };
 		}
 		else
 		{
-			out(2) << "FSB: Nothing to convert in " << filename << ", skipping" << std::endl;
-			return;
+			out(2) << "FSB: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+			return { false, false, false };
 		}
+	}
+
+	// main fsb function
+	void convert(const std::string& path, const std::string& filename, const mcpppp::checkinfo& info)
+	{
 		out(3) << "FSB: Converting Pack " << filename << std::endl;
-		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
+		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (info.optifine ? "optifine" : "mcpatcher") + "/sky/world0")))
 		{
 			if (entry.path().extension() == ".properties")
 			{
@@ -568,6 +574,5 @@ public:
 				prop(path, entry);
 			}
 		}
-		success = true;
 	}
 };

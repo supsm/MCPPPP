@@ -17,15 +17,16 @@
 #include <sstream>
 #include <vector>
 
-#ifndef GUI
-#include "fsb.h"
-#include "vmt.h"
-#include "cim.h"
-#else
-#if defined(_WIN32)
+#include "utility.h"
+
+#ifdef GUI
+#ifdef _WIN32
 #include <Windows.h> // SetProcessDpiAwarenessContext
 #endif
-#include "fl_impl.h"
+#include <FL/fl_ask.H>
+#include "gui.h"
+#else
+#include "convert.h"
 #endif
 
 using mcpppp::out;
@@ -41,7 +42,7 @@ try
 	std::string str;
 	std::error_code ec;
 #ifdef GUI
-	ui = std::make_unique<UI>();
+	mcpppp::ui = std::make_unique<UI>();
 	Fl::get_system_colors();
 	Fl::lock();
 	fl_message_icon()->labeltype(FL_NO_LABEL);
@@ -193,50 +194,7 @@ try
 				mcpppp::addpack(entry.path().filename().u8string(), true);
 			}
 #else
-			if (entry.is_directory())
-			{
-				bool success = false;
-				if (fsb(entry.path().u8string(), entry.path().filename().u8string()).success)
-				{
-					success = true;
-				}
-				if (vmt(entry.path().u8string(), entry.path().filename().u8string()).success)
-				{
-					success = true;
-				}
-				if (cim(entry.path().u8string(), entry.path().filename().u8string()).success)
-				{
-					success = true;
-				}
-				if (success)
-				{
-					mcpppp::checkpackver(entry);
-				}
-			}
-			else if (entry.path().extension() == ".zip")
-			{
-				bool success = false;
-				Zippy::ZipArchive zipa;
-				mcpppp::unzip(entry, zipa);
-				const std::string folder = entry.path().stem().u8string();
-				if (fsb("mcpppp-temp/" + folder, folder).success)
-				{
-					success = true;
-				}
-				if (vmt("mcpppp-temp/" + folder, folder).success)
-				{
-					success = true;
-				}
-				if (cim("mcpppp-temp/" + folder, folder).success)
-				{
-					success = true;
-				}
-				if (success)
-				{
-					mcpppp::checkpackver("mcpppp-temp/" + folder);
-					mcpppp::rezip(folder, zipa);
-				}
-			}
+			mcpppp::convert(entry);
 #endif
 		}
 	}

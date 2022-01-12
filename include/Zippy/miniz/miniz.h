@@ -4521,7 +4521,7 @@ extern "C" {
 #define NOMINMAX
 #include <windows.h>
 
-wchar_t* mbtow(const char* in)
+static wchar_t* mbtow(const char* in)
 {
     const int len = MultiByteToWideChar(CP_UTF8, 0, in, -1, NULL, 0);
     wchar_t* out = new wchar_t[len];
