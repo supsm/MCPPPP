@@ -30,11 +30,13 @@ jobs:
     - name: build cmake
       run: cmake --build build --config Release
     - name: copy files
-      run: rm bin/* && cp build/bin/* bin/
+      run: rm bin/*mac* && cp build/bin/* bin/
     - name: rename files
       run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
+    - name: compress files
+      run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli
     - uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/MCPPPP-mac-cli", "bin/MCPPPP-mac", "bin/libmcpppp.dylib"]'
+        add: '["bin/MCPPPP-mac-cli.tar.gz", "bin/MCPPPP-mac.tar.gz", "bin/libmcpppp.dylib"]'
         message: 'add mac binaries'
         push: true
