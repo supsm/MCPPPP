@@ -3,17 +3,18 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 #include <filesystem>
+#include <sstream>
 #include <stack>
 #include <string>
 #include <vector>
 
+#include "convert.h"
 #include "utility.h"
 
 using mcpppp::out;
 
-class cim
+namespace cim
 {
-private:
 	// converts non-properties (models and textures) to cim
 	static void other(const std::string& path, const std::filesystem::directory_entry& entry)
 	{
@@ -542,45 +543,45 @@ private:
 		}
 	}
 
-public:
-	bool success = false;
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
+	{
+		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/overrides/", zip))
+		{
+			if (mcpppp::autoreconvert)
+			{
+				out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/mcpppp"));
+				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/minecraft/overrides"));
+			}
+			else
+			{
+				out(2) << "CIM: Chime folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				return { false, false, false };
+			}
+		}
+		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/cit/", zip))
+		{
+			return { true, true, false };
+		}
+		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/cit/", zip))
+		{
+			return { true, false, false };
+		}
+		else
+		{
+			out(2) << "CIM: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+			return { false, false, false };
+		}
+	}
 
 	// main cim function
-	inline cim(const std::string& path, const std::string& filename)
+	void convert(const std::string& path, const std::string& filename, const mcpppp::checkinfo& info)
 	{
 		// source: assets/minecraft/*/cit (recursive)
 		// destination: assets/minecraft/overrides/item
 
-		bool optifine;
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/overrides")))
-		{
-			if (mcpppp::autoreconvert)
-			{
-				out(3) << "CIM: Reconverting " << filename << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/mcpppp"));
-				std::filesystem::remove_all(std::filesystem::u8path(path + "/assets/minecraft/overrides"));
-			}
-			else
-			{
-				out(2) << "CIM: Chime folder found in " << filename << ", skipping" << std::endl;
-				return;
-			}
-		}
-		if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/optifine/cit")))
-		{
-			optifine = true;
-		}
-		else if (std::filesystem::is_directory(std::filesystem::u8path(path + "/assets/minecraft/mcpatcher/cit")))
-		{
-			optifine = false;
-		}
-		else
-		{
-			out(2) << "CIM: Nothing to convert in " << filename << ", skipping" << std::endl;
-			return;
-		}
 		out(3) << "CIM: Converting Pack " << filename << std::endl;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (optifine ? "optifine" : "mcpatcher") + "/cit")))
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (info.optifine ? "optifine" : "mcpatcher") + "/cit")))
 		{
 			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties" || entry.path().extension() == ".json")
 			{
@@ -595,6 +596,5 @@ public:
 				prop(path, entry);
 			}
 		}
-		success = true;
 	}
 };

@@ -42,6 +42,7 @@ Rename this file to lodepng.cpp to use it for C++, or to lodepng.c to use it for
 #endif /* LODEPNG_COMPILE_ALLOCATORS */
 
 #ifdef _WIN32
+#define NOMINMAX
 #include <Windows.h>
 #endif
 
@@ -431,7 +432,7 @@ unsigned lodepng_save_file(const unsigned char* buffer, size_t buffersize, const
       wchar_t* out = new wchar_t[len];
       MultiByteToWideChar(CP_UTF8, 0, in, -1, out, len);
       return out;
-};
+  };
   wchar_t* wfilename = mbtow(filename);
   file = _wfopen(wfilename, L"wb");
   delete wfilename;
