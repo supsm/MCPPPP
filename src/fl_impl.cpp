@@ -8,6 +8,7 @@
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
 #include <FL/Fl_Radio_Button.H>
+#include <FL/Fl_Native_File_Chooser.H>
 #include "FL/fl_ask.H"
 
 #include "gui.h"
