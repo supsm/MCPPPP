@@ -488,6 +488,10 @@ namespace mcpppp
 				info = vmt::check(path, true);
 				if (info.convert)
 				{
+					if (!success)
+					{
+						unzip(path.u8string(), zipa);
+					}
 					vmt::convert("mcpppp-temp/" + folder, path.filename().u8string(), info);
 					success = true;
 				}
@@ -497,6 +501,10 @@ namespace mcpppp
 				info = cim::check(path, true);
 				if (info.convert)
 				{
+					if (!success)
+					{
+						unzip(path.u8string(), zipa);
+					}
 					cim::convert("mcpppp-temp/" + folder, path.filename().u8string(), info);
 					success = true;
 				}
