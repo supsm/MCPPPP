@@ -37,6 +37,6 @@ jobs:
       run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli
     - uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/MCPPPP-mac-cli.tar.gz", "bin/MCPPPP-mac.tar.gz", "bin/libmcpppp.dylib"]'
+        add: '["bin/*"]'
         message: 'add mac binaries'
         push: true
