@@ -18,7 +18,7 @@ on:
 
 jobs:
   build:
-    runs-on: macos-10.14
+    runs-on: macos-10.15
     steps:
     - uses: actions/checkout@v2
     - name: setup jdk
@@ -30,7 +30,7 @@ jobs:
     - name: build cmake
       run: cmake --build build --config Release
     - name: copy files
-      run: rm bin/*mac* && cp build/bin/* bin/
+      run: rm bin/*mac* && cp build/bin/* bin/ && cp build/libmcpppp.dylib bin/
     - name: rename files
       run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
     - name: compress files
