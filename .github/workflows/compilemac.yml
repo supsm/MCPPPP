@@ -34,7 +34,7 @@ jobs:
     - name: rename files
       run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
     - name: compress files
-      run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli
+      run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli && rm MCPPPP-mac && rm MCPPPP-mac-cli
     - uses: EndBug/add-and-commit@v7
       with:
         add: '["bin/*"]'
