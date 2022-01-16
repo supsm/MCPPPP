@@ -32,12 +32,20 @@ jobs:
         format: sarif
         # Adjust severity of non-security issues
         gh-code-scanning-compat: true
+        directory: src/
 
     # Upload the SARIF file generated in the previous step
     - name: Upload SARIF results file
       uses: github/codeql-action/upload-sarif@main
       with:
         sarif_file: results.sarif
+
+    # Run separately or it complains
+    - name: Run Codacy Analysis CLI
+      uses: codacy/codacy-analysis-cli-action@master
+      with:
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        upload: true
 
 
   codeql:
@@ -92,13 +100,13 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Download coverity
-      run: wget --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xvzf --strip 1 -C cov-analysis && export PATH="${PWD}/cov-analysis/bin:${PATH}"
+      run: wget -q --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xzf cov-analysis.tar.gz --strip 1 -C cov-analysis && export PATH="${PWD}/cov-analysis/bin:${PATH}"
     - name: Configure Cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
     - name: Build
       run: cov-build --dir cov-int cmake --build build --config Release
     - name: Compress
-      run: tar -cvzf cov-int.tar.gz cov-int
+      run: tar -cvz f cov-int.tar.gz cov-int
     - name: Upload
       run: curl --form token=${{ secrets.COVERITY_TOKEN }} --form email=supsm2017@gmail.com --form file=@cov-int.tar.gz https://scan.coverity.com/builds?project=MCPPPP
       
@@ -117,7 +125,7 @@ jobs:
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@v1
         with:
-          ignore-globs: ./lib/**, ./include/**, ./src/mcpppp.cxx, ./src/mcpppp.h, ./src/lodepng.cpp
+          ignore-globs: "**/lib/**, **/include/**, **/src/mcpppp.cxx, **/src/mcpppp.h, **/src/lodepng.cpp"
         
       - name: Upload DevSkim scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
