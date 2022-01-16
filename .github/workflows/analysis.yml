@@ -28,24 +28,19 @@ jobs:
     - name: Run Codacy Analysis CLI
       uses: codacy/codacy-analysis-cli-action@master
       with:
+        directory: ${PWD}/src/
         output: results.sarif
         format: sarif
         # Adjust severity of non-security issues
         gh-code-scanning-compat: true
-        directory: ${PWD}/src/
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        upload: true
 
     # Upload the SARIF file generated in the previous step
     - name: Upload SARIF results file
       uses: github/codeql-action/upload-sarif@main
       with:
         sarif_file: results.sarif
-
-    # Run separately or it complains
-    - name: Run Codacy Analysis CLI
-      uses: codacy/codacy-analysis-cli-action@master
-      with:
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        upload: true
 
 
   codeql:
@@ -106,7 +101,7 @@ jobs:
     - name: Build
       run: ./cov-analysis/bin/cov-build --dir cov-int cmake --build build --config Release
     - name: Compress
-      run: tar -cvz f cov-int.tar.gz cov-int
+      run: tar -czf cov-int.tar.gz cov-int
     - name: Upload
       run: curl --form token=${{ secrets.COVERITY_TOKEN }} --form email=supsm2017@gmail.com --form file=@cov-int.tar.gz https://scan.coverity.com/builds?project=MCPPPP
       
