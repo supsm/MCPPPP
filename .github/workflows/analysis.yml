@@ -94,7 +94,7 @@ jobs:
       uses: actions/checkout@v2
       
     - name: Download coverity
-      run: wget --post-data "token=${{ secrets.COVERITY_TOKEN }}" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xvzf --strip 1 -C cov-analysis && export PATH="${PWD}/cov-analysis/bin:${PATH}"
+      run: wget --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xvzf --strip 1 -C cov-analysis && export PATH="${PWD}/cov-analysis/bin:${PATH}"
     - name: Configure Cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
     - name: Build
@@ -136,7 +136,7 @@ jobs:
     - name: Flawfinder scan
       uses: david-a-wheeler/flawfinder@2.0.19-alpha1
       with:
-        arguments: "--sarif./"
+        arguments: "--sarif ./"
         output: "flawfinder.sarif"
     - name: Upload results
       uses: github/codeql-action/upload-sarif@v1
