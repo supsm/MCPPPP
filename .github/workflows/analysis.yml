@@ -32,8 +32,6 @@ jobs:
         format: sarif
         # Adjust severity of non-security issues
         gh-code-scanning-compat: true
-        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
-        upload: true
 
     # Upload the SARIF file generated in the previous step
     - name: Upload SARIF results file
@@ -119,7 +117,7 @@ jobs:
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@v1
         with:
-          ignore-globs: lib/**, include/**, src/mcpppp.cxx, src/mcpppp.h, src/lodepng.cpp
+          ignore-globs: ./lib/**, ./include/**, ./src/mcpppp.cxx, ./src/mcpppp.h, ./src/lodepng.cpp
         
       - name: Upload DevSkim scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
@@ -136,7 +134,7 @@ jobs:
     - name: Flawfinder scan
       uses: david-a-wheeler/flawfinder@2.0.19-alpha1
       with:
-        arguments: "--sarif ./"
+        arguments: "--sarif ./src"
         output: "flawfinder.sarif"
     - name: Upload results
       uses: github/codeql-action/upload-sarif@v1
