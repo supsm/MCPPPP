@@ -32,7 +32,7 @@ jobs:
         format: sarif
         # Adjust severity of non-security issues
         gh-code-scanning-compat: true
-        directory: ./src/
+        directory: ${PWD}/src/
 
     # Upload the SARIF file generated in the previous step
     - name: Upload SARIF results file
