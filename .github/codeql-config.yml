@@ -1,0 +1,6 @@
+paths-ignore:
+  - lib/**
+  - include/**
+  - src/mcpppp.cxx
+  - src/mcpppp.h
+  - src/lodepng.cpp
