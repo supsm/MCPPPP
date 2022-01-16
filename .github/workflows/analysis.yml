@@ -5,6 +5,7 @@ on:
   pull_request:
     branches:
     - master
+  workflow_dispatch:
 
 env: # Comment env block if you do not want to apply fixes
   # Apply linter fixes configuration
@@ -17,6 +18,30 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  codacy:
+    name: Codacy
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@main
+
+    - name: Run Codacy Analysis CLI
+      uses: codacy/codacy-analysis-cli-action@master
+      with:
+        output: results.sarif
+        format: sarif
+        # Adjust severity of non-security issues
+        gh-code-scanning-compat: true
+        project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+        upload: true
+
+    # Upload the SARIF file generated in the previous step
+    - name: Upload SARIF results file
+      uses: github/codeql-action/upload-sarif@main
+      with:
+        sarif_file: results.sarif
+
+
   codeql:
     name: CodeQL
     runs-on: ubuntu-latest
@@ -24,14 +49,7 @@ jobs:
       actions: read
       contents: read
       security-events: write
-
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'cpp' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
-        # Learn more about CodeQL language support at https://git.io/codeql-language-support
-
+      
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -40,7 +58,8 @@ jobs:
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
       with:
-        languages: ${{ matrix.language }}
+        languages: 'cpp'
+        config-file: ./.github/codeql-config.yml
         # If you wish to specify custom queries, you can do so here or in a config file.
         # By default, queries listed here will override any specified in a config file.
         # Prefix the list here with "+" to use these queries and those in the config file.
@@ -66,129 +85,25 @@ jobs:
       uses: github/codeql-action/analyze@v1
 
 
-  megalinter:
-    name: MegaLinter
+  coverity:
+    name: Coverity
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-        with:
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          fetch-depth: 0
-
-      # MegaLinter
-      - name: MegaLinter
-        id: ml
-        # You can override MegaLinter flavor used to have faster performances
-        # More info at https://megalinter.github.io/flavors/
-        uses: megalinter/megalinter@v5
-        env:
-          # All available variables are described in documentation
-          # https://megalinter.github.io/configuration/
-          VALIDATE_ALL_CODEBASE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }} # Validates all source when push on main, else just the git diff with main. Override with true if you always want to lint all sources
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # ADD YOUR CUSTOM ENV VARIABLES HERE OR DEFINE THEM IN A FILE .mega-linter.yml AT THE ROOT OF YOUR REPOSITORY
-          # DISABLE: COPYPASTE,SPELL # Uncomment to disable copy-paste and spell checks
-
-      # Upload MegaLinter artifacts
-      - name: Archive production artifacts
-        if: ${{ success() }} || ${{ failure() }}
-        uses: actions/upload-artifact@v2
-        with:
-          name: MegaLinter reports
-          path: |
-            report
-            mega-linter.log
-
-      # Create pull request if applicable (for now works only on PR from same repository, not from forks)
-      - name: Create Pull Request with applied fixes
-        id: cpr
-        if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES_EVENT == 'all' || env.APPLY_FIXES_EVENT == github.event_name) && env.APPLY_FIXES_MODE == 'pull_request' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: peter-evans/create-pull-request@v3
-        with:
-          token: ${{ secrets.PAT || secrets.GITHUB_TOKEN }}
-          commit-message: "[MegaLinter] Apply linters automatic fixes"
-          title: "[MegaLinter] Apply linters automatic fixes"
-          labels: bot
-      - name: Create PR output
-        if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES_EVENT == 'all' || env.APPLY_FIXES_EVENT == github.event_name) && env.APPLY_FIXES_MODE == 'pull_request' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
-        run: |
-          echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
-          echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
-
-      # Push new commit if applicable (for now works only on PR from same repository, not from forks)
-      - name: Prepare commit
-        if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES_EVENT == 'all' || env.APPLY_FIXES_EVENT == github.event_name) && env.APPLY_FIXES_MODE == 'commit' && github.ref != 'refs/heads/main' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
-        run: sudo chown -Rc $UID .git/
-      - name: Commit and push applied linter fixes
-        if: steps.ml.outputs.has_updated_sources == 1 && (env.APPLY_FIXES_EVENT == 'all' || env.APPLY_FIXES_EVENT == github.event_name) && env.APPLY_FIXES_MODE == 'commit' && github.ref != 'refs/heads/main' && (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository)
-        uses: stefanzweifel/git-auto-commit-action@v4
-        with:
-          branch: ${{ github.event.pull_request.head.ref || github.head_ref || github.ref }}
-          commit_message: "[MegaLinter] Apply linters fixes"
-
-
-  synopsys:
-    name: Synopsys
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
     
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
       
-    - name: Synopsys Intelligent Security Scan
-      id: prescription
-      uses: synopsys-sig/intelligent-security-scan@48eedfcd42bc342a294dc495ac452797b2d9ff08
-      with:
-        ioServerUrl: ${{secrets.IO_SERVER_URL}}
-        ioServerToken: ${{secrets.IO_SERVER_TOKEN}}
-        workflowServerUrl: ${{secrets.WORKFLOW_SERVER_URL}}
-        additionalWorkflowArgs: --polaris.url=${{secrets.POLARIS_SERVER_URL}} --polaris.token=${{secrets.POLARIS_ACCESS_TOKEN}}
-        stage: "IO"
-    
-    # Please note that the ID in previous step was set to prescription
-    # in order for this logic to work also make sure that POLARIS_ACCESS_TOKEN
-    # is defined in settings
-    - name: Static Analysis with Polaris
-      if: ${{steps.prescription.outputs.sastScan == 'true' }}
-      run: |
-          export POLARIS_SERVER_URL=${{ secrets.POLARIS_SERVER_URL}}
-          export POLARIS_ACCESS_TOKEN=${{ secrets.POLARIS_ACCESS_TOKEN}}
-          wget -q ${{ secrets.POLARIS_SERVER_URL}}/api/tools/polaris_cli-linux64.zip
-          unzip -j polaris_cli-linux64.zip -d /tmp
-          /tmp/polaris analyze -w
-    
-    # Please note that the ID in previous step was set to prescription
-    # in order for this logic to work
-    - name: Software Composition Analysis with Black Duck
-      if: ${{steps.prescription.outputs.scaScan == 'true' }}
-      uses: blackducksoftware/github-action@9ea442b34409737f64743781e9adc71fd8e17d38
-      with:
-         args: '--blackduck.url="${{ secrets.BLACKDUCK_URL}}" --blackduck.api.token="${{ secrets.BLACKDUCK_TOKEN}}" --detect.tools="SIGNATURE_SCAN,DETECTOR"'
-    
-    - name: Synopsys Intelligent Security Scan
-      if: ${{ steps.prescription.outputs.sastScan == 'true' || steps.prescription.outputs.scaScan == 'true' }}
-      uses: synopsys-sig/intelligent-security-scan@48eedfcd42bc342a294dc495ac452797b2d9ff08
-      with:
-        ioServerUrl: ${{secrets.IO_SERVER_URL}}
-        ioServerToken: ${{secrets.IO_SERVER_TOKEN}}
-        workflowServerUrl: ${{secrets.WORKFLOW_SERVER_URL}}
-        additionalWorkflowArgs: --IS_SAST_ENABLED=${{steps.prescription.outputs.sastScan}} --IS_SCA_ENABLED=${{steps.prescription.outputs.scaScan}} 
-                --polaris.project.name={{PROJECT_NAME}} --polaris.url=${{secrets.POLARIS_SERVER_URL}} --polaris.token=${{secrets.POLARIS_ACCESS_TOKEN}} 
-                --blackduck.project.name={{PROJECT_NAME}}:{{PROJECT_VERSION}} --blackduck.url=${{secrets.BLACKDUCK_URL}} --blackduck.api.token=${{secrets.BLACKDUCK_TOKEN}}
-        stage: "WORKFLOW"
-    
-    - name: Upload SARIF file
-      if: ${{steps.prescription.outputs.sastScan == 'true' }}
-      uses: github/codeql-action/upload-sarif@v1
-      with:
-        # Path to SARIF file relative to the root of the repository
-        sarif_file: workflowengine-results.sarif.json
-
+    - name: Download coverity
+      run: wget --post-data "token=${{ secrets.COVERITY_TOKEN }}" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xvzf --strip 1 -C cov-analysis && export PATH="${PWD}/cov-analysis/bin:${PATH}"
+    - name: Configure Cmake
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
+    - name: Build
+      run: cov-build --dir cov-int cmake --build build --config Release
+    - name: Compress
+      run: tar -cvzf cov-int.tar.gz cov-int
+    - name: Upload
+      run: curl --form token=${{ secrets.COVERITY_TOKEN }} --form email=supsm2017@gmail.com --form file=@cov-int.tar.gz https://scan.coverity.com/builds?project=MCPPPP
+      
 
   devskim:
     name: DevSkim
@@ -203,9 +118,27 @@ jobs:
 
       - name: Run DevSkim scanner
         uses: microsoft/DevSkim-Action@v1
+        with:
+          ignore-globs: lib/**, include/**, src/mcpppp.cxx, src/mcpppp.h, src/lodepng.cpp
         
       - name: Upload DevSkim scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v1
         with:
           sarif_file: devskim-results.sarif
 
+
+  flawfinder:
+    name: Flawfinder
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Flawfinder scan
+      uses: david-a-wheeler/flawfinder@2.0.19-alpha1
+      with:
+        arguments: "--sarif./"
+        output: "flawfinder.sarif"
+    - name: Upload results
+      uses: github/codeql-action/upload-sarif@v1
+      with:
+        sarif_file: flawfinder.sarif
