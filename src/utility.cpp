@@ -333,8 +333,11 @@ namespace mcpppp
 			{
 				std::stringstream ss;
 				ss << "Potentially incorrect pack_format in " << path.filename().u8string() << ". This may cause some resourcepacks to break.\n"
-					<< "Version found : " << j["pack"]["pack_format"].get<int>() << "\nLatest version : " << PACK_VER << std::endl;
-				out(4) << ss.str();
+					<< "Version found : " << j["pack"]["pack_format"].get<int>() << "\nLatest version : " << PACK_VER;
+				// output it again since it doesn't like \n or something
+				out(4) << "Potentially incorrect pack_format in " << path.filename().u8string() << ". This may cause some resourcepacks to break." << std::endl
+					<< "Version found : " << j["pack"]["pack_format"].get<int>() << std::endl
+					<< "Latest version : " << PACK_VER << std::endl;
 #ifdef GUI
 				wait_close = true;
 				const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
