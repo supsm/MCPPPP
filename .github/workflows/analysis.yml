@@ -29,6 +29,7 @@ jobs:
       uses: codacy/codacy-analysis-cli-action@master
       with:
         directory: ${PWD}/src/
+        run-clang-tidy: true
         output: results.sarif
         format: sarif
         # Adjust severity of non-security issues

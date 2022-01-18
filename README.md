@@ -37,8 +37,7 @@ More detailed instructions below
 
 
 #### CLI
-In the CLI version of MCPPPP, you will need to add paths and settings yourself. Please read [CONFIG.md](CONFIG.md)  
-Alternatively, command-line arguments may be passed for temorary settings. Simply add a json as the command line argument(s). 
+Run `MCPPPP-cli --help`  
 
 #### GUI
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  

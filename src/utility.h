@@ -34,6 +34,7 @@ namespace mcpppp
 	inline std::unique_ptr<UI> ui;
 	inline std::stringstream sstream;
 #endif
+	inline int argc = -1;
 	inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false, fsbtransparent = true;
 	inline int outputlevel = 3, loglevel = 1;
 	inline std::ofstream logfile("mcpppp-log.txt");
@@ -41,6 +42,7 @@ namespace mcpppp
 
 	inline std::set<std::string> paths = {};
 	inline nlohmann::ordered_json config;
+	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 
 	enum class type { boolean, integer, string };
 
@@ -119,32 +121,39 @@ namespace mcpppp
 			if (cout)
 			{
 #ifdef GUI
-				if (first)
+				// if there are no command line arguments, print to gui
+				// otherwise, print to command line like cli
+				if (argc < 2)
 				{
-					sstream << (dotimestamp ? timestamp() : "");
+					if (first)
+					{
+						sstream << (dotimestamp ? timestamp() : "");
+					}
+					sstream << value;
 				}
-				sstream << value;
-#else
-				if (first)
+				else
+#endif
 				{
+					if (first)
+					{
+						if (err)
+						{
+							std::cerr << (dotimestamp ? timestamp() : "");
+						}
+						else
+						{
+							std::cout << (dotimestamp ? timestamp() : "");
+						}
+					}
 					if (err)
 					{
-						std::cerr << (dotimestamp ? timestamp() : "");
+						std::cerr << value;
 					}
 					else
 					{
-						std::cout << (dotimestamp ? timestamp() : "");
+						std::cout << value;
 					}
 				}
-				if (err)
-				{
-					std::cerr << value;
-				}
-				else
-				{
-					std::cout << value;
-				}
-#endif
 			}
 			if (file && logfile.good())
 			{
@@ -182,4 +191,6 @@ namespace mcpppp
 	void setting(const std::string& option, const nlohmann::json& j);
 
 	void readconfig();
+
+	void parseargs(int argc, const char* argv[]);
 }

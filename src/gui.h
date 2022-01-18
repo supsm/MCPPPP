@@ -14,7 +14,6 @@ namespace mcpppp
 {
 	inline bool dofsb = true, dovmt = true, docim = true, running = false;
 	inline int numbuttons = 0;
-	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 	inline std::set<std::string> deletedpaths;
 
 	std::string getdefaultpath();

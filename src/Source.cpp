@@ -34,6 +34,7 @@ using mcpppp::out;
 int main(int argc, const char* argv[])
 try
 {
+	mcpppp::argc = argc;
 	// we don't need this if running cli version, or if unaware_gdiscaled is not available
 	// other dpi awareness settings make the window too small, it's probably better if blurry
 #if defined _WIN32 && defined GUI && defined DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED
@@ -41,17 +42,23 @@ try
 #endif
 	std::string str;
 	std::error_code ec;
-#ifdef GUI
-	mcpppp::ui = std::make_unique<UI>();
-	Fl::get_system_colors();
-	Fl::lock();
-	fl_message_icon()->labeltype(FL_NO_LABEL);
-	fl_message_icon()->box(FL_NO_BOX);
-	mcpppp::ui->show();
-	Fl::wait();
-#endif
 	if (argc < 2) // skip file settings if there are command line settings
 	{
+#ifdef GUI
+		// also skip creating ui window
+
+#ifdef _WIN32
+		// hide console window on windows
+		ShowWindow(GetConsoleWindow(), SW_HIDE);
+#endif
+		mcpppp::ui = std::make_unique<UI>();
+		Fl::get_system_colors();
+		Fl::lock();
+		fl_message_icon()->labeltype(FL_NO_LABEL);
+		fl_message_icon()->box(FL_NO_BOX);
+		mcpppp::ui->show();
+		Fl::wait();
+#endif
 		std::ifstream configfile("mcpppp-config.json");
 		if (configfile.fail() && argc < 2)
 		{
@@ -82,34 +89,19 @@ try
 			mcpppp::readconfig();
 		}
 	}
-#ifndef GUI // gui doenst need command line options
 	else
 	{
-		str.clear();
-		str += argv[1];
-		for (int i = 2; i < argc; i++)
-		{
-			str += ' ';
-			str += argv[i];
-		}
-		try
-		{
-			mcpppp::config = nlohmann::ordered_json::parse(str, nullptr, true, true);
-		}
-		catch (nlohmann::json::exception& e)
-		{
-			out(5) << e.what() << std::endl;
-			mcpppp::exit();
-		}
-		mcpppp::readconfig();
+		mcpppp::parseargs(argc, argv);
 	}
-#endif
 
 #ifdef GUI
-	mcpppp::addpaths();
-	mcpppp::updatepaths();
-	mcpppp::dotimestamp = true;
-	mcpppp::updatesettings();
+	if (argc < 2)
+	{
+		mcpppp::addpaths();
+		mcpppp::updatepaths();
+		mcpppp::dotimestamp = true;
+		mcpppp::updatesettings();
+	}
 #endif
 
 	out(6) << "MCPPPP " << VERSION
@@ -187,21 +179,33 @@ try
 		out(2) << "Path: " << path << std::endl;
 		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
 		{
-#ifdef GUI
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
 				mcpppp::entries.push_back(std::make_pair(true, entry));
+#ifdef GUI
 				mcpppp::addpack(entry.path().filename().u8string(), true);
-			}
-#else
-			mcpppp::convert(entry);
 #endif
+			}
 		}
 	}
 #ifdef GUI
-	mcpppp::ui->scroll->redraw();
-	Fl::run();
+	if (argc < 2)
+	{
+		mcpppp::ui->scroll->redraw();
+		Fl::run();
+	}
+	else
+	{
+		for (const auto& entry : mcpppp::entries)
+		{
+			mcpppp::convert(entry.second);
+		}
+	}
 #else
+	for (const auto& entry : mcpppp::entries)
+	{
+		mcpppp::convert(entry.second);
+	}
 	out(3) << "Conversion Finished" << std::endl;
 	mcpppp::exit();
 #endif
