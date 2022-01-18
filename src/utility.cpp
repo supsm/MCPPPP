@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-// VERSION and PACK_VER are in utility.h
+ // VERSION and PACK_VER are in utility.h
 
 #include "utility.h"
 
@@ -24,6 +24,8 @@
 
 #include "convert.h"
 
+#include "argparse/argparse.hpp"
+
 #ifdef GUI
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/fl_ask.H>
@@ -43,13 +45,9 @@ namespace mcpppp
 #ifndef GUI
 		if (pauseonexit)
 		{
-#ifdef _WIN32
-			system("pause");
-#else
 			std::string str;
 			std::cout << "Press enter to continue . . .";
 			getline(std::cin, str);
-#endif
 		}
 #endif
 		std::exit(0);
@@ -175,32 +173,37 @@ namespace mcpppp
 		if (cout)
 		{
 #ifdef GUI
-			if (first)
+			if (argc < 2)
 			{
-				sstream << (dotimestamp ? timestamp() : "");
+				if (first)
+				{
+					sstream << (dotimestamp ? timestamp() : "");
+				}
+				sstream << str;
 			}
-			sstream << str;
-#else
-			if (first)
+			else
+#endif
 			{
+				if (first)
+				{
+					if (err)
+					{
+						std::cerr << (dotimestamp ? timestamp() : "");
+					}
+					else
+					{
+						std::cout << (dotimestamp ? timestamp() : "");
+					}
+				}
 				if (err)
 				{
-					std::cerr << (dotimestamp ? timestamp() : "");
+					std::cerr << str;
 				}
 				else
 				{
-					std::cout << (dotimestamp ? timestamp() : "");
+					std::cout << str;
 				}
 			}
-			if (err)
-			{
-				std::cerr << str;
-			}
-			else
-			{
-				std::cout << str;
-			}
-#endif
 		}
 		if (file && logfile.good())
 		{
@@ -219,51 +222,56 @@ namespace mcpppp
 		if (cout)
 		{
 #ifdef GUI
-			if (first)
+			if (argc < 2)
 			{
-				sstream << (dotimestamp ? timestamp() : "");
-			}
-			if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
-			{
-				if (sstream.str().empty())
+				if (first)
 				{
-					sstream.str(" "); // fltk won't print empty strings
+					sstream << (dotimestamp ? timestamp() : "");
 				}
-				while (waitdontoutput)
+				if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
 				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				}
-				// add color and output line
-				Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
-				outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
-				sstream.str(std::string());
-				sstream.clear();
-			}
-			else
-			{
-				sstream << f;
-			}
-#else
-			if (first)
-			{
-				if (err)
-				{
-					std::cerr << (dotimestamp ? timestamp() : "");
+					if (sstream.str().empty())
+					{
+						sstream.str(" "); // fltk won't print empty strings
+					}
+					while (waitdontoutput)
+					{
+						std::this_thread::sleep_for(std::chrono::milliseconds(1));
+					}
+					// add color and output line
+					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
+					outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
+					sstream.str(std::string());
+					sstream.clear();
 				}
 				else
 				{
-					std::cout << (dotimestamp ? timestamp() : "");
+					sstream << f;
 				}
 			}
-			if (err)
-			{
-				std::cerr << f;
-			}
 			else
-			{
-				std::cout << f;
-			}
 #endif
+			{
+				if (first)
+				{
+					if (err)
+					{
+						std::cerr << (dotimestamp ? timestamp() : "");
+					}
+					else
+					{
+						std::cout << (dotimestamp ? timestamp() : "");
+					}
+				}
+				if (err)
+				{
+					std::cerr << f;
+				}
+				else
+				{
+					std::cout << f;
+				}
+			}
 		}
 		if (file && logfile.good())
 		{
@@ -433,7 +441,7 @@ namespace mcpppp
 	// convert a single folder/file
 	bool convert(const std::filesystem::path& path, const bool& dofsb, const bool& dovmt, const bool& docim)
 	{
-		mcpppp::checkinfo info = {false, false, false};
+		mcpppp::checkinfo info = { false, false, false };
 		bool success = false;
 		if (std::filesystem::is_directory(path))
 		{
@@ -644,6 +652,88 @@ namespace mcpppp
 					}
 				}
 			}
+		}
+	}
+
+	void parseargs(int argc, const char* argv[])
+	{
+		argparse::ArgumentParser parser("MCPPPP", VERSION, argparse::default_arguments::help);
+		// default one also has -v, which we are using as verbose
+		parser.add_argument("--version")
+			.help("prints version information and exits")
+			.action([&](const auto&)
+				{
+					std::cout << "MCPPPP " << VERSION;
+					std::exit(0);
+				})
+			.nargs(0)
+			.default_value(false)
+			.implicit_value(true);
+
+		parser.add_argument("-v", "--verbose")
+			.help("Outputs more information (can be used upto 2 times)")
+			.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
+			.nargs(0)
+			.default_value(false)
+			.implicit_value(true)
+			.append();
+
+		parser.add_argument("--pauseOnExit")
+			.help("Wait for enter key to be pressed once execution has been finished")
+			.default_value(std::string(pauseonexit ? "true" : "false"));
+		parser.add_argument("--log")
+			.help("Log file where logs will be stored")
+			.default_value(logfilename);
+		parser.add_argument("--timestamp")
+			.help("Add timestamp to output")
+			.default_value(std::string(dotimestamp ? "true" : "false"));
+		parser.add_argument("--autoDeleteTemp")
+			.help("Automatically delete `mcpppp-temp` folder on startup")
+			.default_value(std::string(autodeletetemp ? "true" : "false"));
+		parser.add_argument("--autoReconvert")
+			.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
+			.default_value(std::string(autoreconvert ? "true" : "false"));
+		parser.add_argument("--fsbTransparent")
+			.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
+			.default_value(std::string(fsbtransparent ? "true" : "false"));
+
+		parser.add_argument("resourcepacks")
+			.help("The resourcepacks to convert")
+			.remaining();
+
+		try
+		{
+			parser.parse_args(argc, argv);
+		}
+		catch (const std::runtime_error& e)
+		{
+			out(5) << e.what() << std::endl;
+			std::exit(-1);
+		}
+
+		pauseonexit = (lowercase(parser.get<std::string>("--pauseOnExit")) == "true");
+		if (parser.is_used("--log"))
+		{
+			logfilename = parser.get<std::string>("--log");
+			logfile.open(logfilename);
+		}
+		dotimestamp = (lowercase(parser.get<std::string>("--timestamp")) == "true");
+		autodeletetemp = (lowercase(parser.get<std::string>("--autoDeleteTemp")) == "true");
+		autoreconvert = (lowercase(parser.get<std::string>("--autoReconvert")) == "true");
+		fsbtransparent = (lowercase(parser.get<std::string>("--fsbTransparent")) == "true");
+
+		try
+		{
+			auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
+			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
+				{
+					return std::make_pair(true, std::filesystem::directory_entry(s));
+				});
+		}
+		catch (const std::logic_error& e)
+		{
+			out(5) << e.what() << std::endl;
+			std::exit(0);
 		}
 	}
 }
