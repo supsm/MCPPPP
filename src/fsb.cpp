@@ -153,13 +153,24 @@ namespace fsb
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
-	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry)
+	static void png(const std::string& path, const std::string& output, const std::filesystem::directory_entry& entry, const std::string& filename)
 	{
 		out(1) << "FSB: Converting " + entry.path().filename().u8string() << std::endl;
+		// skip if already converted
+		// TODO: might cause some issues with reconverting
+		if (std::filesystem::exists(path + output + filename + "_top.png") &&
+			std::filesystem::exists(path + output + filename + "_bottom.png") &&
+			std::filesystem::exists(path + output + filename + "_north.png") &&
+			std::filesystem::exists(path + output + filename + "_south.png") &&
+			std::filesystem::exists(path + output + filename + "_west.png") &&
+			std::filesystem::exists(path + output + filename + "_east.png"))
+		{
+			out(1) << "FSB: " << entry.path().filename().u8string() << " already found, skipping reconversion" << std::endl;
+			return;
+		}
 		unsigned int w, h;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
-		std::string filename = entry.path().stem().u8string();
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
@@ -206,7 +217,7 @@ namespace fsb
 			}
 		}
 		buffer.clear();
-		std::filesystem::create_directories(std::filesystem::u8path(path + output));
+		std::filesystem::create_directories(std::filesystem::u8path(path + output + filename).parent_path());
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, path + output + filename + "_bottom.png"));
 		buffer.clear();
@@ -465,7 +476,7 @@ namespace fsb
 			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::u8path(temp + ".png"));
 			if (image.exists())
 			{
-				png(path, "/assets/fabricskyboxes/sky/", image);
+				png(path, "/assets/fabricskyboxes/sky", image, origsource);
 			}
 			else
 			{
@@ -500,7 +511,7 @@ namespace fsb
 			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::u8path(path + (source.front() == '/' ? "" : "/") + source + ".png"));
 			if (image.exists())
 			{
-				png(path, "/assets/fabricskyboxes/sky" + sourcefolder, image);
+				png(path, "/assets/fabricskyboxes/sky" + sourcefolder, image, image.path().filename().u8string());
 			}
 			else
 			{
