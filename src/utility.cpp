@@ -40,7 +40,7 @@ namespace mcpppp
 {
 	std::atomic_bool wait_close; // wait for dialog to close
 
-	[[noreturn]] void exit() noexcept
+	[[noreturn]] void exit()
 	{
 #ifndef GUI
 		if (pauseonexit)
@@ -441,92 +441,107 @@ namespace mcpppp
 	// convert a single folder/file
 	bool convert(const std::filesystem::path& path, const bool& dofsb, const bool& dovmt, const bool& docim)
 	{
-		mcpppp::checkinfo info = { false, false, false };
-		bool success = false;
-		if (std::filesystem::is_directory(path))
+		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
 		{
-			if (dofsb)
+			out(5) << "Tried to convert invalid pack:" << std::endl << path.u8string();
+			return false;
+		}
+		checkinfo fsb = {checkresults::noneconvertible, false, false}, vmt = fsb, cim = fsb;
+		const bool zip = (path.extension() == ".zip");
+		// TODO: Do we really need to delete before reconversion?
+		// TODO: Consolidate conversion for directory and zip resourcepacks (don't duplicate the code)
+		Zippy::ZipArchive zipa;
+		const std::string folder = path.stem().u8string();
+		std::string convert;
+		const auto isvalid = [](const checkinfo& info) -> bool
+		{
+			return (info.results == checkresults::valid || info.results == checkresults::reconverting);
+		};
+		if (zip)
+		{
+			convert = "mcpppp-temp/" + folder;
+		}
+		else
+		{
+			convert = path.u8string();
+		}
+		fsb = fsb::check(path, zip);
+		vmt = vmt::check(path, zip);
+		cim = cim::check(path, zip);
+		if (zip && (isvalid(fsb) || isvalid(vmt) || isvalid(cim)))
+		{
+			unzip(path.u8string(), zipa);
+		}
+		if (dofsb)
+		{
+			switch (fsb.results)
 			{
-				info = fsb::check(path, false);
-				if (info.convert)
-				{
-					fsb::convert(path.u8string(), path.filename().u8string(), info);
-					success = true;
-				}
-			}
-			if (dovmt)
-			{
-				info = vmt::check(path, false);
-				if (info.convert)
-				{
-					vmt::convert(path.u8string(), path.filename().u8string(), info);
-					success = true;
-				}
-			}
-			if (docim)
-			{
-				info = cim::check(path, false);
-				if (info.convert)
-				{
-					cim::convert(path.u8string(), path.filename().u8string(), info);
-					success = true;
-				}
-			}
-			if (success)
-			{
-				checkpackver(path);
+			case checkresults::valid:
+				fsb::convert(convert, path.filename().u8string(), fsb);
+				break;
+			case checkresults::noneconvertible:
+				out(2) << "FSB: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+				break;
+			case checkresults::alrfound:
+				out(2) << "FSB: Fabricskyboxes folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				break;
+			case checkresults::reconverting:
+				out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/fabricskyboxes"));
+				fsb::convert(convert, path.filename().u8string(), fsb);
+				break;
 			}
 		}
-		else if (path.extension() == ".zip")
+		if (dovmt)
 		{
-			Zippy::ZipArchive zipa;
-			const std::string folder = path.stem().u8string();
-			if (dofsb)
+			switch (vmt.results)
 			{
-				info = fsb::check(path, true);
-				if (info.convert)
-				{
-					if (!success)
-					{
-						unzip(path.u8string(), zipa);
-					}
-					fsb::convert("mcpppp-temp/" + folder, path.filename().u8string(), info);
-					success = true;
-				}
+			case checkresults::valid:
+				vmt::convert(convert, path.filename().u8string(), vmt);
+				break;
+			case checkresults::noneconvertible:
+				out(2) << "VMT: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+				break;
+			case checkresults::alrfound:
+				out(2) << "VMT: Varied Mob Textures folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				break;
+			case checkresults::reconverting:
+				out(3) << "VMT: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/varied/"));
+				vmt::convert(convert, path.filename().u8string(), vmt);
+				break;
 			}
-			if (dovmt)
+		}
+		if (docim)
+		{
+			switch (cim.results)
 			{
-				info = vmt::check(path, true);
-				if (info.convert)
-				{
-					if (!success)
-					{
-						unzip(path.u8string(), zipa);
-					}
-					vmt::convert("mcpppp-temp/" + folder, path.filename().u8string(), info);
-					success = true;
-				}
+			case checkresults::valid:
+				cim::convert(convert, path.filename().u8string(), cim);
+				break;
+			case checkresults::noneconvertible:
+				break;
+			case checkresults::alrfound:
+				out(2) << "CIM: Chime folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				break;
+			case checkresults::reconverting:
+				out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
+				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/mcpppp"));
+				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/overrides"));
+				cim::convert(convert, path.filename().u8string(), cim);
+				break;
 			}
-			if (docim)
+		}
+		if (isvalid(fsb) || isvalid(vmt) || isvalid(cim))
+		{
+			checkpackver(convert);
+			if (zip)
 			{
-				info = cim::check(path, true);
-				if (info.convert)
-				{
-					if (!success)
-					{
-						unzip(path.u8string(), zipa);
-					}
-					cim::convert("mcpppp-temp/" + folder, path.filename().u8string(), info);
-					success = true;
-				}
-			}
-			if (success)
-			{
-				checkpackver("mcpppp-temp/" + folder);
 				rezip(folder, zipa);
 			}
+			return true;
 		}
-		return success;
+		return false;
 	}
 
 	void setting(const std::string& option, const nlohmann::json& j)
@@ -711,16 +726,33 @@ namespace mcpppp
 			std::exit(-1);
 		}
 
-		pauseonexit = (lowercase(parser.get<std::string>("--pauseOnExit")) == "true");
+		const auto truefalse = [](const std::string& str) -> bool
+		{
+			if (lowercase(str) == "true")
+			{
+				return true;
+			}
+			else if (lowercase(str) == "false")
+			{
+				return false;
+			}
+			else
+			{
+				out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
+				return false;
+			}
+		};
+
+		pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
 		if (parser.is_used("--log"))
 		{
 			logfilename = parser.get<std::string>("--log");
 			logfile.open(logfilename);
 		}
-		dotimestamp = (lowercase(parser.get<std::string>("--timestamp")) == "true");
-		autodeletetemp = (lowercase(parser.get<std::string>("--autoDeleteTemp")) == "true");
-		autoreconvert = (lowercase(parser.get<std::string>("--autoReconvert")) == "true");
-		fsbtransparent = (lowercase(parser.get<std::string>("--fsbTransparent")) == "true");
+		dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
+		autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
+		autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
+		fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
 
 		try
 		{

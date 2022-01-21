@@ -545,31 +545,45 @@ namespace fsb
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
 	{
+		using mcpppp::checkresults;
+		bool reconverting = false;
 		if (mcpppp::findfolder(path.u8string(), "assets/fabricskyboxes/sky/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
-				out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/fabricskyboxes"));
+				reconverting = true;
 			}
 			else
 			{
-				out(2) << "FSB: Fabricskyboxes folder found in " << path.filename().u8string() << ", skipping" << std::endl;
-				return { false, false, false };
+				return { checkresults::alrfound, false, false };
 			}
 		}
 		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/sky/", zip))
 		{
-			return { true, true, false };
+			if (reconverting)
+			{
+				return { checkresults::reconverting, true, false };
+			}
+			else
+			{
+				return { checkresults::valid, true, false };
+			}
 		}
 		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/sky/", zip))
 		{
-			return { true, false, false };
+			if (reconverting)
+			{
+				return { checkresults::reconverting, false, false };
+			}
+			else
+			{
+				return { checkresults::valid, false, false };
+			}
 		}
 		else
 		{
-			out(2) << "FSB: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
-			return { false, false, false };
+			// no convertible locations found
+			return { checkresults::noneconvertible, false, false };
 		}
 	}
 

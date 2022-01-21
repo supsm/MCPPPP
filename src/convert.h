@@ -9,9 +9,10 @@
 
 namespace mcpppp
 {
+	enum class checkresults { valid, noneconvertible, alrfound, reconverting };
 	struct checkinfo
 	{
-		bool convert; // whether to convert the pack
+		checkresults results;
 		bool optifine, newlocation;
 	};
 }
