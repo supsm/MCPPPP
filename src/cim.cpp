@@ -545,32 +545,45 @@ namespace cim
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
 	{
+		using mcpppp::checkresults;
+		bool reconverting = false;
 		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/overrides/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
-				out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/mcpppp"));
-				std::filesystem::remove_all(std::filesystem::u8path(path.u8string() + "/assets/minecraft/overrides"));
+				reconverting = true;
 			}
 			else
 			{
-				out(2) << "CIM: Chime folder found in " << path.filename().u8string() << ", skipping" << std::endl;
-				return { false, false, false };
+				return { checkresults::alrfound, false, false };
 			}
 		}
 		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/cit/", zip))
 		{
-			return { true, true, false };
+			if (reconverting)
+			{
+				return { checkresults::reconverting, true, false };
+			}
+			else
+			{
+				return { checkresults::valid, true, false };
+			}
 		}
 		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/cit/", zip))
 		{
-			return { true, false, false };
+			if (reconverting)
+			{
+				return { checkresults::reconverting, false, false };
+			}
+			else
+			{
+				return { checkresults::valid, false, false };
+			}
 		}
 		else
 		{
 			out(2) << "CIM: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
-			return { false, false, false };
+			return { checkresults::noneconvertible, false, false };
 		}
 	}
 
