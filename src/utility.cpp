@@ -446,15 +446,18 @@ namespace mcpppp
 			out(5) << "Tried to convert invalid pack:" << std::endl << path.u8string();
 			return false;
 		}
-		checkinfo fsb = {checkresults::noneconvertible, false, false}, vmt = fsb, cim = fsb;
 		const bool zip = (path.extension() == ".zip");
+		const checkinfo fsb = fsb::check(path, zip), vmt = vmt::check(path, zip), cim = cim::check(path, zip);
 		// TODO: Do we really need to delete before reconversion?
-		// TODO: Consolidate conversion for directory and zip resourcepacks (don't duplicate the code)
 		Zippy::ZipArchive zipa;
 		const std::string folder = path.stem().u8string();
 		std::string convert;
-		const auto isvalid = [](const checkinfo& info) -> bool
+		const auto isvalid = [](const checkinfo& info, const bool& doconversion) -> bool
 		{
+			if (!doconversion)
+			{
+				return false;
+			}
 			return (info.results == checkresults::valid || info.results == checkresults::reconverting);
 		};
 		if (zip)
@@ -465,10 +468,7 @@ namespace mcpppp
 		{
 			convert = path.u8string();
 		}
-		fsb = fsb::check(path, zip);
-		vmt = vmt::check(path, zip);
-		cim = cim::check(path, zip);
-		if (zip && (isvalid(fsb) || isvalid(vmt) || isvalid(cim)))
+		if (zip && (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim)))
 		{
 			unzip(path.u8string(), zipa);
 		}
@@ -532,7 +532,7 @@ namespace mcpppp
 				break;
 			}
 		}
-		if (isvalid(fsb) || isvalid(vmt) || isvalid(cim))
+		if (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim))
 		{
 			checkpackver(convert);
 			if (zip)
