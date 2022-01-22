@@ -9,23 +9,24 @@ The `settings` object contains a list of settings to be changed. The names are n
 <details>
   <summary>Settings</summary>
 
-  | Name              | Values/Type      | Description                                                                                                            | Default          |
-  |:-----------------:|:----------------:|:----------------------------------------------------------------------------------------------------------------------:|:----------------:|
-  | `pauseOnExit`    | `true`, `false`   | Wait for enter key to be pressed once execution has been finished                                                      | `true`           |
-  | `log`             | String           | A log file where logs will be stored. `""` disables logging                                                            | `mcpppp-log.txt` |
-  | `timestamp`      | `true`, `false`   | Add timestamp to console output (Logs will always be timestamped)                                                      | `false`          |
-  | `autoDeleteTemp` | `true`, `false`   | Automatically delete `mcpppp-temp` folder on startup                                                                   | `false`          |
-  | `outputLevel`    | Integer, `1-5`    | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error  | `3`              |
-  | `logLevel`       | Integer, `1-5`    | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                            | `1`              |
-  | `autoReconvert`  | `true`, `false`   | Automatically reconvert resourcepacks instead of skipping. **Could lose data** if a pack isn't converted with MCPPPP   | `false`          |
-  | `fsbTransparent` | `true`, `false`   | Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally                               | `true`           |
+  | Name              | Values/Type      | Description                                                                                                                | Default          | Mod Default   |
+  |:-----------------:|:----------------:|:--------------------------------------------------------------------------------------------------------------------------:|:----------------:|:-------------:|
+  | `pauseOnExit`     | `true`, `false`  | Wait for enter key to be pressed once execution has been finished                                                          | `true`           | `false`       |
+  | `log`             | String           | A log file where logs will be stored. `""` disables logging                                                                | `mcpppp-log.txt` | Default       |
+  | `timestamp`       | `true`, `false`  | Add timestamp to console output (Logs will always be timestamped)                                                          | `false`          | `true`        |
+  | `autoDeleteTemp`  | `true`, `false`  | Automatically delete `mcpppp-temp` folder on startup                                                                       | `false`          | `true`        |
+  | `outputLevel`     | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error      | `3`              | `2`           |
+  | `logLevel`        | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                                | `1`              | Default       |
+  | `autoReconvert`   | `true`, `false`  | Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted   | `false`          | `true`        |
+  | `fsbTransparent`  | `true`, `false`  | Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally                                   | `true`           | Default       |
 </details>
 
 ### Paths
 The `paths` array contains a list of paths to resourcepacks folders (e.g. `C:\Users\user\AppData\Roaming\.minecraft\resourcepacks`).
 
 ### GUI
-The `gui` object contains additional settings and paths changed from the gui. It is used so the GUI will not override your original settings. **You should not edit this object manually**.
+The `gui` object contains additional settings and paths changed from the gui. It is used so the GUI will not override your original settings. **You should not edit this object manually**.  
+Ignored in CLI version
 
 ## Example config
 ```json

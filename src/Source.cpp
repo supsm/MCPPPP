@@ -40,8 +40,8 @@ try
 #if defined _WIN32 && defined GUI && defined DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED); // fix blurriness
 #endif
-	std::string str;
 	std::error_code ec;
+	mcpppp::gethashes();
 	if (argc < 2) // skip file settings if there are command line settings
 	{
 #ifdef GUI
@@ -60,7 +60,7 @@ try
 		Fl::wait();
 #endif
 		std::ifstream configfile("mcpppp-config.json");
-		if (configfile.fail() && argc < 2)
+		if (configfile.fail())
 		{
 			std::ofstream createconfig("mcpppp-config.json");
 			createconfig << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md"
@@ -77,9 +77,10 @@ try
 		{
 			try
 			{
-				str.resize(std::filesystem::file_size("mcpppp-config.json"));
-				configfile.read(&str.at(0), static_cast<std::streamsize>(std::filesystem::file_size("mcpppp-config.json")));
-				mcpppp::config = nlohmann::ordered_json::parse(str, nullptr, true, true);
+				const std::uintmax_t filesize = std::filesystem::file_size("mcpppp-config.json");
+				std::vector<char> contents(filesize);
+				configfile.read(contents.data(), static_cast<std::streamsize>(filesize));
+				mcpppp::config = nlohmann::ordered_json::parse(contents, nullptr, true, true);
 			}
 			catch (const nlohmann::json::exception& e)
 			{
@@ -88,6 +89,7 @@ try
 			}
 			mcpppp::readconfig();
 		}
+		configfile.close();
 	}
 	else
 	{
@@ -173,7 +175,7 @@ try
 	{
 		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
 		{
-			out(5) << "Invalid path: \'" << path << "\'\n" << ec.message() << std::endl;
+			out(5) << "Invalid path: \'" << path << "\'" << std::endl << ec.message() << std::endl;
 			continue;
 		}
 		out(2) << "Path: " << path << std::endl;

@@ -24,6 +24,11 @@
 
 #include "convert.h"
 
+#include "microtar.h"
+#define XXH_INLINE_ALL
+#define XXH_NO_STREAM
+#include "xxhash.h"
+
 #include "argparse/argparse.hpp"
 
 #ifdef GUI
@@ -38,7 +43,7 @@ namespace mcpppp
 
 namespace mcpppp
 {
-	std::atomic_bool wait_close; // wait for dialog to close
+	static std::atomic_bool wait_close; // wait for dialog to close
 
 	[[noreturn]] void exit()
 	{
@@ -66,7 +71,7 @@ namespace mcpppp
 		return str;
 	}
 
-	auto localtime_rs(tm* tm, const time_t* time)
+	static auto localtime_rs(tm* tm, const time_t* time)
 	{
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 		return localtime_r(time, tm);
@@ -364,7 +369,7 @@ namespace mcpppp
 		fin.close();
 	}
 
-	bool findzipitem(const std::string& ziparchive, const std::string& itemtofind)
+	static bool findzipitem(const std::string& ziparchive, const std::string& itemtofind)
 	{
 		bool found = false;
 		mz_zip_archive archive = mz_zip_archive();
@@ -438,6 +443,80 @@ namespace mcpppp
 		std::filesystem::remove_all("mcpppp-temp");
 	}
 
+	static std::vector<std::pair<std::filesystem::directory_entry, std::string>> items;
+
+	static std::uintmax_t getitems(const std::filesystem::path& path)
+	{
+		std::uintmax_t size = 0;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
+		{
+			const std::string name = std::filesystem::relative(entry.path(), path).generic_u8string();
+			items.emplace_back(entry, name);
+			if (entry.is_regular_file())
+			{
+				size += entry.file_size();
+			}
+		}
+		return size;
+	}
+
+	static std::string gethex(const XXH128_hash_t& rawhash)
+	{
+		std::stringstream ss;
+		ss << std::setfill('0') << std::setw(16) << std::hex << rawhash.high64 << rawhash.low64;
+		return ss.str();
+	}
+
+	static std::string hash(const std::vector<char>& v)
+	{
+		const XXH128_hash_t rawhash = XXH128(v.data(), v.size(), 0);
+		return gethex(rawhash);
+	}
+
+	static std::string hash(const std::filesystem::path& path, const bool& zip)
+	{
+		if (zip)
+		{
+			const std::uintmax_t filesize = std::filesystem::file_size(path);
+			std::vector<char> file_contents(filesize);
+			std::ifstream fin(path);
+			fin.read(file_contents.data(), filesize);
+			fin.close();
+			return hash(file_contents);
+		}
+		else
+		{
+			// create tar of directory, which we then hash
+			mtar_t tar = mtar_t();
+			mtar_mem_stream_t mem = mtar_mem_stream_t();
+			mtar_init_mem_stream(&mem);
+			mtar_open_mem(&tar, &mem);
+			// get items and also reserve most of the space needed
+			mem.data.reserve(getitems(path));
+			for (const auto& item : items)
+			{
+				if (item.first.is_directory())
+				{
+					mtar_write_dir_header(&tar, item.second.c_str());
+				}
+				else
+				{
+					const std::uintmax_t filesize = item.first.file_size();
+					std::vector<char> file_contents(filesize);
+					std::ifstream fin(item.first.path());
+					fin.read(file_contents.data(), filesize);
+					fin.close();
+					mtar_write_file_header(&tar, item.second.c_str(), filesize);
+					mtar_write_data(&tar, file_contents.data(), filesize);
+				}
+			}
+			mtar_finalize(&tar);
+			std::string hashvalue = hash(mem.data);
+			mtar_close(&tar);
+			return hashvalue;
+		}
+	}
+
 	// convert a single folder/file
 	bool convert(const std::filesystem::path& path, const bool& dofsb, const bool& dovmt, const bool& docim)
 	{
@@ -448,30 +527,59 @@ namespace mcpppp
 		}
 		const bool zip = (path.extension() == ".zip");
 		const checkinfo fsb = fsb::check(path, zip), vmt = vmt::check(path, zip), cim = cim::check(path, zip);
+		bool reconvert = autoreconvert;
 		// TODO: Do we really need to delete before reconversion?
 		Zippy::ZipArchive zipa;
 		const std::string folder = path.stem().u8string();
-		std::string convert;
-		const auto isvalid = [](const checkinfo& info, const bool& doconversion) -> bool
+		std::string convert, hashvalue;
+		const auto isvalid = [](const checkinfo& info, const bool& doconversion, const bool& strict = false) -> bool
 		{
 			if (!doconversion)
 			{
 				return false;
 			}
-			return (info.results == checkresults::valid || info.results == checkresults::reconverting);
+			if (strict)
+			{
+				return info.results == checkresults::valid;
+			}
+			else
+			{
+				return (info.results == checkresults::valid || info.results == checkresults::reconverting);
+			}
 		};
-		if (zip)
+
+		// skip hashing if none are valid
+		if (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim))
 		{
-			convert = "mcpppp-temp/" + folder;
+			hashvalue = hash(path, zip);
+			if (hashes.contains(path.generic_u8string()) && hashes[path.generic_u8string()] != hashvalue)
+			{
+				out(2) << "Pack appears to have changed: " << path.filename().u8string() << ", reconverting" << std::endl;
+			}
+			else
+			{
+				// don't reconvert if pack isn't changed
+				// also has the added benefit of not reconverting packs that haven't been previously hashed,
+				// which could prevent data loss
+				reconvert = false;
+			}
+
+			// if we aren't reconverting, reconverting result is not valid
+			// if we are reconverting, it is valid
+			if (isvalid(fsb, dofsb, !reconvert) || isvalid(vmt, dovmt, !reconvert) || isvalid(cim, docim, !reconvert))
+			{
+				if (zip)
+				{
+					unzip(path, zipa);
+					convert = "mcpppp-temp/" + folder;
+				}
+				else
+				{
+					convert = path.u8string();
+				}
+			}
 		}
-		else
-		{
-			convert = path.u8string();
-		}
-		if (zip && (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim)))
-		{
-			unzip(path.u8string(), zipa);
-		}
+
 		if (dofsb)
 		{
 			switch (fsb.results)
@@ -486,9 +594,12 @@ namespace mcpppp
 				out(2) << "FSB: Fabricskyboxes folder found in " << path.filename().u8string() << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
-				out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/fabricskyboxes"));
-				fsb::convert(convert, path.filename().u8string(), fsb);
+				if (reconvert)
+				{
+					out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
+					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/fabricskyboxes"));
+					fsb::convert(convert, path.filename().u8string(), fsb);
+				}
 				break;
 			}
 		}
@@ -506,9 +617,12 @@ namespace mcpppp
 				out(2) << "VMT: Varied Mob Textures folder found in " << path.filename().u8string() << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
-				out(3) << "VMT: Reconverting " << path.filename().u8string() << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/varied/"));
-				vmt::convert(convert, path.filename().u8string(), vmt);
+				if (reconvert)
+				{
+					out(3) << "VMT: Reconverting " << path.filename().u8string() << std::endl;
+					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/varied/"));
+					vmt::convert(convert, path.filename().u8string(), vmt);
+				}
 				break;
 			}
 		}
@@ -525,23 +639,60 @@ namespace mcpppp
 				out(2) << "CIM: Chime folder found in " << path.filename().u8string() << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
-				out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
-				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/mcpppp"));
-				std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/overrides"));
-				cim::convert(convert, path.filename().u8string(), cim);
+				if (reconvert)
+				{
+					out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
+					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/mcpppp"));
+					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/overrides"));
+					cim::convert(convert, path.filename().u8string(), cim);
+				}
 				break;
 			}
 		}
-		if (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim))
+
+		// put it here, because we want to output the error messages if it isn't valid
+		if (!isvalid(fsb, dofsb, !reconvert) && !isvalid(vmt, dovmt, !reconvert) && !isvalid(cim, docim, !reconvert))
 		{
-			checkpackver(convert);
-			if (zip)
-			{
-				rezip(folder, zipa);
-			}
-			return true;
+			return false;
 		}
-		return false;
+
+		checkpackver(convert);
+		if (zip)
+		{
+			rezip(folder, zipa);
+		}
+
+		hashvalue = hash(path, zip);
+		hashes[path.generic_u8string()] = hashvalue;
+		savehashes();
+		return true;
+	}
+
+	void gethashes()
+	{
+		if (!std::filesystem::exists("mcpppp-hashes.json"))
+		{
+			// create file with empty json
+			std::ofstream emptyfile("mcpppp-hashes.json");
+			emptyfile << "{}" << std::endl;
+			emptyfile.close();
+		}
+		else
+		{
+			std::uintmax_t filesize = std::filesystem::file_size("mcpppp-hashes.json");
+			std::ifstream hashfile("mcpppp-hashes.json");
+			std::vector<char> contents(filesize);
+			hashfile.read(contents.data(), filesize);
+			hashfile.close();
+			hashes = nlohmann::json::parse(contents);
+		}
+	}
+
+	void savehashes()
+	{
+		std::ofstream hashfile("mcpppp-hashes.json");
+		hashfile << hashes.dump(1, '\t') << std::endl;
+		hashfile.close();
 	}
 
 	void setting(const std::string& option, const nlohmann::json& j)
@@ -635,6 +786,7 @@ namespace mcpppp
 		{
 			paths.insert(config["paths"].begin(), config["paths"].end());
 		}
+#ifdef GUI
 		if (config.contains("gui"))
 		{
 			if (config["gui"].type() == nlohmann::json::value_t::object)
@@ -668,6 +820,7 @@ namespace mcpppp
 				}
 			}
 		}
+#endif
 	}
 
 	void parseargs(int argc, const char* argv[])

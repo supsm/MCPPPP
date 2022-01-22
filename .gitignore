@@ -1,5 +1,6 @@
 mcpppp.properties
 mcpppp-config.json
+mcpppp-hashes.json
 *.vcxproj
 *.vcxproj.filters
 *.vcxproj.user
