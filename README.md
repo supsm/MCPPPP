@@ -38,9 +38,12 @@ More detailed instructions below
 
 #### CLI
 Run `MCPPPP-cli --help`  
+Running without any arguments will allow use of the [config file](CONFIG.md).  
+Fun Fact: On windows, you can "Open With" a zipped resourcepack with MCPPPP, and it will convert (but unfortunately settings will not be settable). Maybe it works on other platforms too, haven't tried  
 
 #### GUI
 In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. If you want, you can also add your own configuration options in the file. Your options will not be deleted; instead, there will be a GUI section at the bottom of the file. If you add anything here, it may be deleted.  
+This version can also accept command line arguments, but doing so will remove the gui entirely and function like the CLI version.  
 
 ## Build
 Prerequisites: Cmake, compiler with c++17  

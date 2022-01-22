@@ -25,6 +25,9 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <algorithm>
+#include <vector>
+
 #include "microtar.h"
 
 typedef struct {
@@ -60,14 +63,14 @@ static unsigned checksum(const mtar_raw_header_t* rh) {
 }
 
 
-static int tread(mtar_t *tar, void *data, unsigned size) {
+static int tread(mtar_t *tar, void *data, size_t size) {
   int err = tar->read(tar, data, size);
   tar->pos += size;
   return err;
 }
 
 
-static int twrite(mtar_t *tar, const void *data, unsigned size) {
+static int twrite(mtar_t *tar, const void *data, size_t size) {
   int err = tar->write(tar, data, size);
   tar->pos += size;
   return err;
@@ -75,13 +78,12 @@ static int twrite(mtar_t *tar, const void *data, unsigned size) {
 
 
 static int write_null_bytes(mtar_t *tar, int n) {
-  int i, err;
+  int err;
   char nul = '\0';
-  for (i = 0; i < n; i++) {
-    err = twrite(tar, &nul, 1);
-    if (err) {
-      return err;
-    }
+  std::vector<char> v(n, nul);
+  err = twrite(tar, v.data(), n);
+  if (err) {
+    return err;
   }
   return MTAR_ESUCCESS;
 }
@@ -153,24 +155,93 @@ const char* mtar_strerror(int err) {
 }
 
 
-static int file_write(mtar_t *tar, const void *data, unsigned size) {
-  unsigned res = fwrite(data, 1, size, tar->stream);
+static int file_write(mtar_t *tar, const void *data, size_t size) {
+  size_t res = fwrite(data, 1, size, static_cast<FILE*>(tar->stream));
   return (res == size) ? MTAR_ESUCCESS : MTAR_EWRITEFAIL;
 }
 
-static int file_read(mtar_t *tar, void *data, unsigned size) {
-  unsigned res = fread(data, 1, size, tar->stream);
+static int file_read(mtar_t *tar, void *data, size_t size) {
+  size_t res = fread(data, 1, size, static_cast<FILE*>(tar->stream));
   return (res == size) ? MTAR_ESUCCESS : MTAR_EREADFAIL;
 }
 
-static int file_seek(mtar_t *tar, unsigned offset) {
-  int res = fseek(tar->stream, offset, SEEK_SET);
+static int file_seek(mtar_t *tar, size_t offset) {
+  size_t res = fseek(static_cast<FILE*>(tar->stream), offset, SEEK_SET);
   return (res == 0) ? MTAR_ESUCCESS : MTAR_ESEEKFAIL;
 }
 
 static int file_close(mtar_t *tar) {
-  fclose(tar->stream);
+  fclose(static_cast<FILE*>(tar->stream));
   return MTAR_ESUCCESS;
+}
+
+
+static int mem_write(mtar_t* tar, const void* data, size_t size)
+{
+    mtar_mem_stream_t* mem = static_cast<mtar_mem_stream_t*>(tar->stream);
+
+    if (!mem)
+    {
+        return MTAR_EWRITEFAIL;
+    }
+
+    const size_t leftover = std::max(static_cast<size_t>(0), mem->data.size() - mem->pos);
+    std::copy_n(static_cast<const char*>(data), leftover, mem->data.end() - leftover);
+
+    mem->data.insert(mem->data.end(), static_cast<const char*>(data) + leftover, static_cast<const char*>(data) + size);
+
+    mem->pos += size;
+    return MTAR_ESUCCESS;
+}
+
+static int mem_read(mtar_t* tar, void* data, size_t size)
+{
+    mtar_mem_stream_t* mem = static_cast<mtar_mem_stream_t*>(tar->stream);
+
+    if (!mem || mem->pos + size >= mem->data.size())
+    {
+        return MTAR_EREADFAIL;
+    }
+
+    std::copy_n(mem->data.begin() + mem->pos, size, static_cast<char*>(data));
+    mem->pos += size;
+
+    return MTAR_ESUCCESS;
+}
+
+static int mem_seek(mtar_t* tar, size_t offset)
+{
+    mtar_mem_stream_t* mem = static_cast<mtar_mem_stream_t*>(tar->stream);
+
+    if (!mem || offset >= mem->data.size())
+    {
+        return MTAR_ESEEKFAIL;
+    }
+
+    mem->pos = offset;
+
+    return MTAR_ESUCCESS;
+}
+
+static int mem_close(mtar_t* tar)
+{
+    mtar_mem_stream_t* mem = static_cast<mtar_mem_stream_t*>(tar->stream);
+    
+    mem->data.clear();
+    mem->data.shrink_to_fit();
+    mem->pos = 0;
+
+    return MTAR_ESUCCESS;
+}
+
+
+int mtar_init_mem_stream(mtar_mem_stream_t* mem)
+{
+    mem->data.clear();
+    mem->data.shrink_to_fit();
+    mem->pos = 0;
+
+    return MTAR_ESUCCESS;
 }
 
 
@@ -212,8 +283,26 @@ int mtar_close(mtar_t *tar) {
   return tar->close(tar);
 }
 
+int mtar_open_mem(mtar_t* tar, mtar_mem_stream_t* mem)
+{
+    if (!mem)
+    {
+        return MTAR_EOPENFAIL;
+    }
 
-int mtar_seek(mtar_t *tar, unsigned pos) {
+    memset(tar, 0, sizeof(*tar));
+    tar->write = mem_write;
+    tar->read = mem_read;
+    tar->seek = mem_seek;
+    tar->close = mem_close;
+
+    tar->stream = mem;
+
+    return MTAR_ESUCCESS;
+}
+
+
+int mtar_seek(mtar_t *tar, size_t pos) {
   int err = tar->seek(tar, pos);
   tar->pos = pos;
   return err;
@@ -287,7 +376,7 @@ int mtar_read_header(mtar_t *tar, mtar_header_t *h) {
 }
 
 
-int mtar_read_data(mtar_t *tar, void *ptr, unsigned size) {
+int mtar_read_data(mtar_t *tar, void *ptr, size_t size) {
   int err;
   /* If we have no remaining data then this is the first read, we get the size,
    * set the remaining data and seek to the beginning of the data */
@@ -329,7 +418,7 @@ int mtar_write_header(mtar_t *tar, const mtar_header_t *h) {
 }
 
 
-int mtar_write_file_header(mtar_t *tar, const char *name, unsigned size) {
+int mtar_write_file_header(mtar_t *tar, const char *name, size_t size) {
   mtar_header_t h;
   /* Build header */
   memset(&h, 0, sizeof(h));
@@ -354,7 +443,7 @@ int mtar_write_dir_header(mtar_t *tar, const char *name) {
 }
 
 
-int mtar_write_data(mtar_t *tar, const void *data, unsigned size) {
+int mtar_write_data(mtar_t *tar, const void *data, size_t size) {
   int err;
   /* Write data */
   err = twrite(tar, data, size);

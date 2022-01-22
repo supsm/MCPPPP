@@ -31,7 +31,7 @@ extern void selectpath(Fl_Radio_Button*, void*) noexcept;
 
 namespace mcpppp
 {
-	std::string getdefaultpath()
+	static std::string getdefaultpath()
 	{
 #ifdef _WIN32
 		const auto wtomb = [](const PWSTR& in)
@@ -129,7 +129,7 @@ namespace mcpppp
 	}
 #endif
 
-	double getscale()
+	static double getscale()
 	{
 #ifdef _WIN32
 		std::future<UINT> dpi = std::async(&win_getscale);

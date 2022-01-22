@@ -16,11 +16,7 @@ namespace mcpppp
 	inline int numbuttons = 0;
 	inline std::set<std::string> deletedpaths;
 
-	std::string getdefaultpath();
-
 	void guirun();
-
-	double getscale();
 
 	void addpack(const std::string& name, bool selected);
 

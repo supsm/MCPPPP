@@ -49,6 +49,6 @@ std::string tostring(JNIEnv* env, jstring str)
 
 JNIEXPORT void JNICALL Java_supsm_mcpppp_jni_run(JNIEnv* env, jobject obj, jstring str, jstring os)
 {
-	mcpppp::autodeletetemp = true, mcpppp::pauseonexit = false, mcpppp::outputlevel = 2, mcpppp::dotimestamp = true;
+	mcpppp::autodeletetemp = true, mcpppp::pauseonexit = false, mcpppp::outputlevel = 2, mcpppp::dotimestamp = true, mcpppp::autoreconvert = true;
 	run(tostring(env, str), tostring(env, os));
 }

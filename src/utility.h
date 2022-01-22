@@ -44,6 +44,8 @@ namespace mcpppp
 	inline nlohmann::ordered_json config;
 	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 
+	inline nlohmann::json hashes;
+
 	enum class type { boolean, integer, string };
 
 	struct setting_item
@@ -75,11 +77,9 @@ namespace mcpppp
 
 	inline std::atomic_bool waitdontoutput = false; // don't output probably since output is being redrawn
 
-	[[noreturn]] void exit() noexcept;
+	[[noreturn]] void exit();
 
 	std::string lowercase(std::string str);
-
-	auto localtime_rs(tm* tm, const time_t* time);
 
 	std::string timestamp();
 
@@ -178,8 +178,6 @@ namespace mcpppp
 
 	void checkpackver(const std::filesystem::path& path);
 
-	bool findzipitem(const std::string& ziparchive, const std::string& itemtofind);
-
 	bool findfolder(const std::string& path, const std::string& tofind, const bool& zip);
 
 	void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa);
@@ -187,6 +185,10 @@ namespace mcpppp
 	void rezip(const std::string& folder, Zippy::ZipArchive& zipa);
 
 	bool convert(const std::filesystem::path& path, const bool& dofsb = true, const bool& dovmt = true, const bool& docim = true);
+
+	void gethashes();
+
+	void savehashes();
 
 	void setting(const std::string& option, const nlohmann::json& j);
 
