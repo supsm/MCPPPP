@@ -18,6 +18,20 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  clusterfuzz:
+   runs-on: ubuntu-latest
+   strategy:
+     fail-fast: false
+     matrix:
+        sanitizer: [address, undefined, memory]
+   steps:
+   - name: Build Fuzzers (${{ matrix.sanitizer }})
+     id: build
+     uses: google/clusterfuzzlite/actions/build_fuzzers@v1
+     with:
+       sanitizer: ${{ matrix.sanitizer }}
+       upload-build: true
+
   codacy:
     name: Codacy
     runs-on: ubuntu-latest
@@ -25,11 +39,14 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@main
 
+    - name: Run Clang-Tidy
+      run: clang-tidy --config-file=.clang-tidy src/Source.cpp src/fsb.cpp src/vmt.cpp src/cim.cpp src/utility.cpp -- -Iinclude -std=c++20 > clang.log
+
     - name: Run Codacy Analysis CLI
       uses: codacy/codacy-analysis-cli-action@master
       with:
         directory: ${PWD}/src/
-        run-clang-tidy: true
+        clang-tidy-output: clang.log
         output: results.sarif
         format: sarif
         # Adjust severity of non-security issues
