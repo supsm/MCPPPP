@@ -43,7 +43,7 @@ jobs:
       run: sudo apt update && sudo apt install -y clang-tidy-12
 
     - name: Run Clang-Tidy
-      run: clang-tidy --config-file=.clang-tidy src/Source.cpp src/fsb.cpp src/vmt.cpp src/cim.cpp src/utility.cpp -- -Iinclude -std=c++20 > clang.log
+      run: clang-tidy-12 --config-file=.clang-tidy src/Source.cpp src/fsb.cpp src/vmt.cpp src/cim.cpp src/utility.cpp -- -Iinclude -std=c++20 > clang.log
 
     - name: Run Codacy Analysis CLI
       uses: codacy/codacy-analysis-cli-action@master
