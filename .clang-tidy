@@ -1,0 +1,28 @@
+---
+Checks: '
+	clang-diagnostic-*,
+	clang-analyzer-*,
+	clang-diagnostic-*,
+	-clang-diagnostic-c++98-*compat*,
+	-clang-diagnostic-exit-time-destructors,
+	-clang-diagnostic-global-constructors,
+	bugprone-*,
+	clang-analyzer-*,
+	performance-*,
+	portability-*,
+	readability-*,
+	-readability-else-after-return,
+	modernize-*
+	-modernize-use-trailing-return-type,
+	cppcoreguidelines-*,
+	-cppcoreguidelines-avoid-magic-numbers,
+	-cppcoreguidelines-avoid-non-const-global-variables,
+	-cppcoreguidelines-pro-type-reinterpret-cast
+	'
+
+
+WarningsAsErrors: ''
+HeaderFilterRegex: 'src/(convert|utility).h'
+AnalyzeTemporaryDtors: false
+...
+
