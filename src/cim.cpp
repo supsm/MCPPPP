@@ -12,25 +12,27 @@
 #include "utility.h"
 
 using mcpppp::out;
+using mcpppp::c8tomb;
+using mcpppp::mbtoc8;
 
 namespace cim
 {
 	// converts non-properties (models and textures) to cim
-	static void other(const std::string& path, const std::filesystem::directory_entry& entry)
+	static void other(const std::u8string& path, const std::filesystem::directory_entry& entry)
 	{
 		// png location (textures): assets/mcpppp/textures/item
 		// json location (models): assets/mcpppp/models/item
 		// mcpppp:item/
 
-		std::string folderpath = entry.path().generic_u8string();
-		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind("/cit/") + 5));
+		std::u8string folderpath = entry.path().generic_u8string();
+		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		if (entry.path().extension() == ".png")
 		{
-			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/mcpppp/textures/item/" + folderpath));
-			std::string filename = entry.path().filename().u8string();
-			mcpppp::findreplace(filename, " ", "_");
-			copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/item/" + folderpath + filename));
+			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/mcpppp/textures/item/" + folderpath));
+			std::u8string filename = entry.path().filename().u8string();
+			mcpppp::findreplace(filename, u8" ", u8"_");
+			copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/textures/item/" + folderpath + filename));
 		}
 		else
 		{
@@ -45,7 +47,7 @@ namespace cim
 				if (temp.at(0) == '.' && temp.at(1) == '/')
 				{
 					temp.erase(temp.begin(), temp.begin() + 2);
-					temp = "mcpppp:item/" + folderpath + temp;
+					temp = "mcpppp:item/" + c8tomb(folderpath) + temp;
 					j["parent"] = temp;
 				}
 			}
@@ -65,17 +67,19 @@ namespace cim
 						if (temp.at(0) == '.' && temp.at(1) == '/')
 						{
 							temp.erase(temp.begin(), temp.begin() + 2);
-							temp.insert(0, "mcpppp:item/" + folderpath);
+							temp.insert(0, "mcpppp:item/" + c8tomb(folderpath));
 							it.value() = temp;
 						}
+						// std::string::contains in C++23
 						if (temp.find(' ') != std::string::npos)
 						{
 							std::string origtemp = temp;
 							mcpppp::findreplace(temp, " ", "_");
+							// std::string::contains in C++23
 							if (temp.find(':') == std::string::npos)
 							{
-								mcpppp::copy(std::filesystem::u8path(path + "/assets/minecraft/textures/" + origtemp + ".png"),
-									std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/minecraft/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::path(path + u8"/assets/minecraft/textures/" + mbtoc8(origtemp) + u8".png"),
+									std::filesystem::path(path + u8"/assets/mcpppp/textures/extra/minecraft/" + mbtoc8(temp) + u8".png"));
 								it.value() = "mcpppp:extra/minecraft/" + temp;
 							}
 							else
@@ -90,8 +94,8 @@ namespace cim
 									}
 									ns.push_back(origtemp.at(i));
 								}
-								mcpppp::copy(std::filesystem::u8path(path + "/assets/" + ns + "/textures/" + origtemp + ".png"),
-									std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + ns + "/" + temp + ".png"));
+								mcpppp::copy(std::filesystem::path(path + u8"/assets/" + mbtoc8(ns) + u8"/textures/" + mbtoc8(origtemp) + u8".png"),
+									std::filesystem::path(path + u8"/assets/mcpppp/textures/extra/" + mbtoc8(ns) + u8"/" + mbtoc8(temp) + u8".png"));
 								it.value() = "mcpppp:extra/" + ns + "/" + temp;
 							}
 						}
@@ -106,20 +110,20 @@ namespace cim
 					j["textures"]["layer0"] = first;
 				}
 			}
-			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/mcpppp/models/item/" + folderpath));
-			std::string filename = entry.path().filename().u8string();
-			mcpppp::findreplace(filename, " ", "_");
-			std::ofstream fout(std::filesystem::u8path(path + "/assets/mcpppp/models/item/" + folderpath + filename));
+			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/mcpppp/models/item/" + folderpath));
+			std::u8string filename = entry.path().filename().u8string();
+			mcpppp::findreplace(filename, u8" ", u8"_");
+			std::ofstream fout(std::filesystem::path(path + u8"/assets/mcpppp/models/item/" + folderpath + filename));
 			fout << j.dump(1, '\t') << std::endl;
 			fout.close();
 		}
 	}
 
 	// converts cit properties to cim
-	static void prop(const std::string& path, const std::filesystem::directory_entry& entry)
+	static void prop(const std::u8string& path, const std::filesystem::directory_entry& entry)
 	{
-		std::string folderpath = entry.path().generic_u8string();
-		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind("/cit/") + 5));
+		std::u8string folderpath = entry.path().generic_u8string();
+		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
@@ -163,7 +167,7 @@ namespace cim
 				while (ss)
 				{
 					ss >> temp;
-					if (temp.find("minecraft:") == 0)
+					if (temp.starts_with("minecraft:"))
 					{
 						temp.erase(temp.begin(), temp.begin() + 10);
 					}
@@ -174,29 +178,31 @@ namespace cim
 			{
 				texture = value;
 				mcpppp::findreplace(texture, " ", "_");
+				// std::string::contains in C++23
 				if (texture.find(".png") != std::string::npos)
 				{
 					texture.erase(texture.end() - 4, texture.end());
 				}
+				// std::string::contains in C++23
 				if (texture.find('/') != std::string::npos && texture.at(0) != '.')
 				{
 					// assets/mcpppp/textures/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/textures/extra/" + texture + ".png"));
+					mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/textures/extra/" + mbtoc8(texture) + u8".png"));
 					texture.insert(0, "mcpppp:extra/");
 				}
 				else if (texture.at(0) == '.' && texture.at(1) == '/')
 				{
 					texture.erase(texture.begin(), texture.begin() + 2);
-					texture.insert(0, "mcpppp:item/" + folderpath);
+					texture.insert(0, "mcpppp:item/" + c8tomb(folderpath));
 				}
 				else
 				{
 					texture = "mcpppp:item/" + texture;
 				}
 			}
-			else if (option.find("texture.") == 0)
+			else if (option.starts_with("texture."))
 			{
 				// TODO: texture.name (idk what this means)
 			}
@@ -204,22 +210,24 @@ namespace cim
 			{
 				model = value;
 				mcpppp::findreplace(model, " ", "_");
+				// std::string::contains in C++23
 				if (model.find(".json") != std::string::npos)
 				{
 					model.erase(model.end() - 5, model.end());
 				}
+				// std::string::contains in C++23
 				if (model.find('/') != std::string::npos && model.at(0) != '.')
 				{
 					// assets/mcpppp/models/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/mcpppp/models/extra/" + model + ".png"));
+					mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/models/extra/" + mbtoc8(model) + u8".png"));
 					model.insert(0, "mcpppp:extra/");
 				}
 				else if (model.at(0) == '.' && model.at(1) == '/')
 				{
 					model.erase(model.begin(), model.begin() + 2);
-					model.insert(0, "mcpppp:item/" + folderpath);
+					model.insert(0, "mcpppp:item/" + c8tomb(folderpath));
 				}
 				else
 				{
@@ -233,6 +241,7 @@ namespace cim
 				while (ss)
 				{
 					ss >> temp;
+					// std::string::contains in C++23
 					if (temp.find('-') == std::string::npos)
 					{
 						damages.push_back("[" + temp + ", " + temp + "]");
@@ -274,6 +283,7 @@ namespace cim
 				while (ss)
 				{
 					ss >> temp;
+					// std::string::contains in C++23
 					if (temp.find('-') == std::string::npos)
 					{
 						stacksizes.push_back("[" + temp + ", " + temp + "]");
@@ -311,6 +321,7 @@ namespace cim
 				while (ss)
 				{
 					ss >> temp;
+					// std::string::contains in C++23
 					if (temp.find(':') == std::string::npos)
 					{
 						temp = "minecraft:" + temp;
@@ -325,6 +336,7 @@ namespace cim
 				while (ss)
 				{
 					ss >> temp;
+					// std::string::contains in C++23
 					if (temp.find('-') == std::string::npos)
 					{
 						enchantmentlevels.push_back("[" + temp + ", " + temp + "]");
@@ -366,7 +378,7 @@ namespace cim
 					hand = value;
 				}
 			}
-			else if (option.find("nbt.") == 0)
+			else if (option.starts_with("nbt."))
 			{
 				temp.clear();
 				for (const char& c : option)
@@ -383,9 +395,10 @@ namespace cim
 				}
 				nbt.push(temp);
 				temp = value;
-				if (temp.find("regex:") <= 1)
+				if (temp.starts_with("regex:") || temp.starts_with("iregex:"))
 				{
-					const bool insensitive = (temp.find("iregex:") == 0);
+					// if first character is i, then it is iregex (case insensitive)
+					const bool insensitive = (temp.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -396,9 +409,9 @@ namespace cim
 					}
 					temp = std::string("/") + (insensitive ? "(?i)" : "") + temp + "/";
 				}
-				else if (temp.find("pattern:") <= 1)
+				else if (temp.starts_with("pattern:") || temp.starts_with("iregex:"))
 				{
-					const bool insensitive = (temp.find("ipattern:") == 0);
+					const bool insensitive = (temp.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -526,9 +539,9 @@ namespace cim
 		nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
 		for (const std::string& c : items)
 		{
-			std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/minecraft/overrides/item/"));
+			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/minecraft/overrides/item/"));
 			tempj = j;
-			std::ifstream fin2(std::filesystem::u8path(path + "/assets/minecraft/overrides/item/" + c + ".json"));
+			std::ifstream fin2(std::filesystem::path(path + u8"/assets/minecraft/overrides/item/" + mbtoc8(c) + u8".json"));
 			if (fin2.good())
 			{
 				fin2 >> tempj;
@@ -537,7 +550,7 @@ namespace cim
 				tempj["overrides"] = tempv;
 			}
 			fin2.close();
-			std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/overrides/item/" + c + ".json"));
+			std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/overrides/item/" + mbtoc8(c) + u8".json"));
 			fout << tempj.dump(1, '\t') << std::endl;
 			fout.close();
 		}
@@ -547,7 +560,7 @@ namespace cim
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/overrides/", zip))
+		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/overrides/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -558,7 +571,7 @@ namespace cim
 				return { checkresults::alrfound, false, false };
 			}
 		}
-		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/cit/", zip))
+		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -569,7 +582,7 @@ namespace cim
 				return { checkresults::valid, true, false };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/cit/", zip))
+		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/mcpatcher/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -582,23 +595,23 @@ namespace cim
 		}
 		else
 		{
-			out(2) << "CIM: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+			out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 			return { checkresults::noneconvertible, false, false };
 		}
 	}
 
 	// main cim function
-	void convert(const std::string& path, const std::string& filename, const mcpppp::checkinfo& info)
+	void convert(const std::u8string& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		// source: assets/minecraft/*/cit (recursive)
 		// destination: assets/minecraft/overrides/item
 
-		out(3) << "CIM: Converting Pack " << filename << std::endl;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (info.optifine ? "optifine" : "mcpatcher") + "/cit")))
+		out(3) << "CIM: Converting Pack " << c8tomb(filename) << std::endl;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::path(path + u8"/assets/minecraft/" + (info.optifine ? u8"optifine" : u8"mcpatcher") + u8"/cit")))
 		{
 			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties" || entry.path().extension() == ".json")
 			{
-				out(1) << "CIM: Converting " + entry.path().filename().u8string() << std::endl;
+				out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 			}
 			if (entry.path().extension() == ".json" || entry.path().extension() == ".png")
 			{

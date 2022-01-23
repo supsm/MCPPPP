@@ -115,11 +115,43 @@ namespace mcpppp
 	void findreplace(std::string& source, const std::string& find, const std::string& replace)
 	{
 		long long pos = -static_cast<long long>(replace.size());
+		// std::string::contains in c++23
 		while (source.find(find, static_cast<size_t>(pos) + replace.size()) != std::string::npos)
 		{
 			pos = static_cast<long long>(source.find(find, static_cast<size_t>(pos) + replace.size()));
 			source.replace(static_cast<size_t>(pos), find.length(), replace);
 		}
+	}
+
+	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace)
+	{
+		long long pos = -static_cast<long long>(replace.size());
+		// std::u8string::contains in C++23
+		while (source.find(find, static_cast<size_t>(pos) + replace.size()) != std::u8string::npos)
+		{
+			pos = static_cast<long long>(source.find(find, static_cast<size_t>(pos) + replace.size()));
+			source.replace(static_cast<size_t>(pos), find.length(), replace);
+		}
+	}
+
+	std::string c8tomb(const std::u8string& s)
+	{
+		return std::string(s.begin(), s.end());
+	}
+
+	const char* c8tomb(const char8_t* s)
+	{
+		return reinterpret_cast<const char*>(s);
+	}
+
+	std::u8string mbtoc8(const std::string& s)
+	{
+		return std::u8string(s.begin(), s.end());
+	}
+
+	const char8_t* mbtoc8(const char* s)
+	{
+		return reinterpret_cast<const char8_t*>(s);
 	}
 
 	std::string oftoregex(std::string of)
@@ -292,19 +324,19 @@ namespace mcpppp
 
 	outstream out(const short& level) noexcept
 	{
-		return outstream(true, level >= outputlevel, level >= loglevel, level == 5, level);
+		return { true, level >= outputlevel, level >= loglevel, level == 5, level };
 	}
 
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
 		if (!std::filesystem::exists(from))
 		{
-			out(5) << "Error: tried to copy nonexistent file" << std::endl << from.u8string() << std::endl;
+			out(5) << "Error: tried to copy nonexistent file" << std::endl << c8tomb(from.u8string()) << std::endl;
 			return;
 		}
 		if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
 		{
-			out(5) << "Error: tried to copy a file to a directory (or vice versa)" << std::endl << from.u8string() << std::endl << to.u8string() << std::endl;
+			out(5) << "Error: tried to copy a file to a directory (or vice versa)" << std::endl << c8tomb(from.u8string()) << std::endl << c8tomb(to.u8string()) << std::endl;
 			return;
 		}
 		if (std::filesystem::exists(to))
@@ -334,7 +366,7 @@ namespace mcpppp
 		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
 		if (!std::filesystem::is_regular_file(pack_mcmeta))
 		{
-			out(4) << "pack.mcmeta not found; in " << path.filename().u8string() << std::endl;
+			out(4) << "pack.mcmeta not found; in " << c8tomb(path.filename().u8string()) << std::endl;
 			return;
 		}
 		nlohmann::json j;
@@ -345,10 +377,10 @@ namespace mcpppp
 			if (j["pack"]["pack_format"].get<int>() != PACK_VER)
 			{
 				std::stringstream ss;
-				ss << "Potentially incorrect pack_format in " << path.filename().u8string() << ". This may cause some resourcepacks to break.\n"
+				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
 					<< "Version found : " << j["pack"]["pack_format"].get<int>() << "\nLatest version : " << PACK_VER;
 				// output it again since it doesn't like \n or something
-				out(4) << "Potentially incorrect pack_format in " << path.filename().u8string() << ". This may cause some resourcepacks to break." << std::endl
+				out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
 					<< "Version found : " << j["pack"]["pack_format"].get<int>() << std::endl
 					<< "Latest version : " << PACK_VER << std::endl;
 #ifdef GUI
@@ -364,21 +396,21 @@ namespace mcpppp
 		}
 		catch (const nlohmann::json::exception& e)
 		{
-			out(4) << "Json error while parsing pack.mcmeta from " << path.filename().u8string() << ":\n" << e.what() << std::endl;
+			out(4) << "Json error while parsing pack.mcmeta from " << c8tomb(path.filename().u8string()) << ":\n" << e.what() << std::endl;
 		}
 		fin.close();
 	}
 
-	static bool findzipitem(const std::string& ziparchive, const std::string& itemtofind)
+	static bool findzipitem(const std::u8string& ziparchive, const std::u8string& itemtofind)
 	{
 		bool found = false;
 		mz_zip_archive archive = mz_zip_archive();
-		mz_zip_reader_init_file(&archive, ziparchive.c_str(), 0);
+		mz_zip_reader_init_file(&archive, c8tomb(ziparchive.c_str()), 0);
 		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive); i++)
 		{
 			mz_zip_archive_file_stat stat;
 			mz_zip_reader_file_stat(&archive, i, &stat);
-			if (std::string(stat.m_filename).rfind(itemtofind, 0) == 0)
+			if (std::u8string(mbtoc8(stat.m_filename)).rfind(itemtofind, 0) == 0)
 			{
 				found = true;
 				break;
@@ -388,7 +420,7 @@ namespace mcpppp
 		return found;
 	}
 
-	bool findfolder(const std::string& path, const std::string& tofind, const bool& zip)
+	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip)
 	{
 		if (zip)
 		{
@@ -396,26 +428,26 @@ namespace mcpppp
 		}
 		else
 		{
-			return std::filesystem::exists(std::filesystem::u8path(path + '/' + tofind));
+			return std::filesystem::exists(std::filesystem::path(path + u8'/' + tofind));
 		}
 	}
 
 	void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 	{
-		zipa.Open(path.u8string());
-		std::string folder = path.stem().u8string();
-		std::filesystem::create_directories(std::filesystem::u8path("mcpppp-temp/" + folder));
-		out(3) << "Extracting " << path.filename().u8string() << std::endl;
-		zipa.ExtractAll("mcpppp-temp/" + folder + '/');
+		zipa.Open(c8tomb(path.u8string()));
+		const std::u8string folder = path.stem().u8string();
+		std::filesystem::create_directories(std::filesystem::path(u8"mcpppp-temp/" + folder));
+		out(3) << "Extracting " << c8tomb(path.filename().u8string()) << std::endl;
+		zipa.ExtractAll("mcpppp-temp/" + c8tomb(folder) + '/');
 	}
 
-	void rezip(const std::string& folder, Zippy::ZipArchive& zipa)
+	void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 	{
-		out(3) << "Compressing " + folder << std::endl;
+		out(3) << "Compressing " + c8tomb(folder) << std::endl;
 		Zippy::ZipEntryData zed;
 		const size_t length = 13 + folder.size();
 		size_t filesize;
-		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::u8path("mcpppp-temp/" + folder)))
+		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::path(u8"mcpppp-temp/" + folder)))
 		{
 			if (png.is_directory())
 			{
@@ -428,13 +460,13 @@ namespace mcpppp
 			fin.seekg(0, std::ios::beg);
 			fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
 			fin.close();
-			std::string temp = png.path().generic_u8string();
+			std::u8string temp = png.path().generic_u8string();
 			temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(length));
 			if (temp.front() == '/')
 			{
 				temp.erase(temp.begin());
 			}
-			zipa.AddEntry(temp, zed);
+			zipa.AddEntry(c8tomb(temp), zed);
 		}
 		zed.clear();
 		zed.shrink_to_fit();
@@ -443,14 +475,14 @@ namespace mcpppp
 		std::filesystem::remove_all("mcpppp-temp");
 	}
 
-	static std::vector<std::pair<std::filesystem::directory_entry, std::string>> items;
+	static std::vector<std::pair<std::filesystem::directory_entry, std::u8string>> items;
 
 	static std::uintmax_t getitems(const std::filesystem::path& path)
 	{
 		std::uintmax_t size = 0;
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
 		{
-			const std::string name = std::filesystem::relative(entry.path(), path).generic_u8string();
+			const std::u8string name = std::filesystem::relative(entry.path(), path).generic_u8string();
 			items.emplace_back(entry, name);
 			if (entry.is_regular_file())
 			{
@@ -497,7 +529,7 @@ namespace mcpppp
 			{
 				if (item.first.is_directory())
 				{
-					mtar_write_dir_header(&tar, item.second.c_str());
+					mtar_write_dir_header(&tar, c8tomb(item.second.c_str()));
 				}
 				else
 				{
@@ -506,7 +538,7 @@ namespace mcpppp
 					std::ifstream fin(item.first.path());
 					fin.read(file_contents.data(), filesize);
 					fin.close();
-					mtar_write_file_header(&tar, item.second.c_str(), filesize);
+					mtar_write_file_header(&tar, c8tomb(item.second.c_str()), filesize);
 					mtar_write_data(&tar, file_contents.data(), filesize);
 				}
 			}
@@ -522,7 +554,7 @@ namespace mcpppp
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
 		{
-			out(5) << "Tried to convert invalid pack:" << std::endl << path.u8string();
+			out(5) << "Tried to convert invalid pack:" << std::endl << c8tomb(path.u8string());
 			return false;
 		}
 		const bool zip = (path.extension() == ".zip");
@@ -530,8 +562,9 @@ namespace mcpppp
 		bool reconvert = autoreconvert;
 		// TODO: Do we really need to delete before reconversion?
 		Zippy::ZipArchive zipa;
-		const std::string folder = path.stem().u8string();
-		std::string convert, hashvalue;
+		const std::u8string folder = path.stem().u8string();
+		std::string hashvalue;
+		std::u8string convert;
 		const auto isvalid = [](const checkinfo& info, const bool& doconversion, const bool& strict = false) -> bool
 		{
 			if (!doconversion)
@@ -552,9 +585,9 @@ namespace mcpppp
 		if (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim))
 		{
 			hashvalue = hash(path, zip);
-			if (hashes.contains(path.generic_u8string()) && hashes[path.generic_u8string()] != hashvalue)
+			if (hashes.contains(c8tomb(path.generic_u8string())) && hashes[c8tomb(path.generic_u8string())] != hashvalue)
 			{
-				out(2) << "Pack appears to have changed: " << path.filename().u8string() << ", reconverting" << std::endl;
+				out(2) << "Pack appears to have changed: " << c8tomb(path.filename().u8string()) << ", reconverting" << std::endl;
 			}
 			else
 			{
@@ -571,7 +604,7 @@ namespace mcpppp
 				if (zip)
 				{
 					unzip(path, zipa);
-					convert = "mcpppp-temp/" + folder;
+					convert = u8"mcpppp-temp/" + folder;
 				}
 				else
 				{
@@ -588,16 +621,16 @@ namespace mcpppp
 				fsb::convert(convert, path.filename().u8string(), fsb);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "FSB: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+				out(2) << "FSB: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
-				out(2) << "FSB: Fabricskyboxes folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "FSB: Reconverting " << path.filename().u8string() << std::endl;
-					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/fabricskyboxes"));
+					out(3) << "FSB: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/fabricskyboxes"));
 					fsb::convert(convert, path.filename().u8string(), fsb);
 				}
 				break;
@@ -611,16 +644,16 @@ namespace mcpppp
 				vmt::convert(convert, path.filename().u8string(), vmt);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "VMT: Nothing to convert in " << path.filename().u8string() << ", skipping" << std::endl;
+				out(2) << "VMT: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
-				out(2) << "VMT: Varied Mob Textures folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "VMT: Reconverting " << path.filename().u8string() << std::endl;
-					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/varied/"));
+					out(3) << "VMT: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/varied/"));
 					vmt::convert(convert, path.filename().u8string(), vmt);
 				}
 				break;
@@ -636,14 +669,14 @@ namespace mcpppp
 			case checkresults::noneconvertible:
 				break;
 			case checkresults::alrfound:
-				out(2) << "CIM: Chime folder found in " << path.filename().u8string() << ", skipping" << std::endl;
+				out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "CIM: Reconverting " << path.filename().u8string() << std::endl;
-					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/mcpppp"));
-					std::filesystem::remove_all(std::filesystem::u8path(convert + "/assets/minecraft/overrides"));
+					out(3) << "CIM: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/mcpppp"));
+					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/overrides"));
 					cim::convert(convert, path.filename().u8string(), cim);
 				}
 				break;
@@ -663,7 +696,7 @@ namespace mcpppp
 		}
 
 		hashvalue = hash(path, zip);
-		hashes[path.generic_u8string()] = hashvalue;
+		hashes[c8tomb(path.generic_u8string())] = hashvalue;
 		savehashes();
 		return true;
 	}
@@ -697,7 +730,7 @@ namespace mcpppp
 
 	void setting(const std::string& option, const nlohmann::json& j)
 	{
-		if (settings.find(lowercase(option)) == settings.end())
+		if (!settings.contains(lowercase(option)))
 		{
 			out(4) << "Unknown setting: " << option << std::endl;
 			return;
@@ -784,7 +817,11 @@ namespace mcpppp
 		}
 		else
 		{
-			paths.insert(config["paths"].begin(), config["paths"].end());
+			// convert each element to u8string before inserting
+			std::transform(config["paths"].begin(), config["paths"].end(), std::inserter(paths, paths.begin()), [](const std::string& s) -> std::u8string
+				{
+					return mbtoc8(s);
+				});
 		}
 #ifdef GUI
 		if (config.contains("gui"))
@@ -805,7 +842,10 @@ namespace mcpppp
 				{
 					if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
 					{
-						paths.insert(config["gui"]["paths"].begin(), config["gui"]["paths"].end());
+						std::transform(config["gui"]["paths"].begin(), config["gui"]["paths"].end(), std::inserter(paths, paths.begin()), [](const std::string& s) -> std::u8string
+							{
+								return mbtoc8(s);
+							});
 					}
 				}
 				if (config["gui"].contains("excludepaths"))
@@ -814,7 +854,7 @@ namespace mcpppp
 					{
 						for (const std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
 						{
-							paths.erase(path);
+							paths.erase(mbtoc8(path));
 						}
 					}
 				}

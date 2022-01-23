@@ -40,7 +40,7 @@ namespace mcpppp
 	inline std::ofstream logfile("mcpppp-log.txt");
 	static std::string logfilename = "mcpppp-log.txt";
 
-	inline std::set<std::string> paths = {};
+	inline std::set<std::u8string> paths = {};
 	inline nlohmann::ordered_json config;
 	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 
@@ -87,7 +87,24 @@ namespace mcpppp
 
 	void findreplace(std::string& source, const std::string& find, const std::string& replace);
 
+	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace);
+
+	std::string c8tomb(const std::u8string& s);
+
+	const char* c8tomb(const char8_t* s);
+
+	std::u8string mbtoc8(const std::string& s);
+
+	const char8_t* mbtoc8(const char* s);
+
 	std::string oftoregex(std::string of);
+
+	// I love these new concept things
+	template<typename T>
+	concept outputtable = requires(T a)
+	{
+		std::stringstream() << a;
+	};
 
 	class outstream
 	{
@@ -115,7 +132,7 @@ namespace mcpppp
 		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
 #endif
 		// template functions must be defined in header
-		template<typename T>
+		template<outputtable T>
 		outstream operator<<(const T& value)
 		{
 			if (cout)
@@ -178,11 +195,11 @@ namespace mcpppp
 
 	void checkpackver(const std::filesystem::path& path);
 
-	bool findfolder(const std::string& path, const std::string& tofind, const bool& zip);
+	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip);
 
 	void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa);
 
-	void rezip(const std::string& folder, Zippy::ZipArchive& zipa);
+	void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa);
 
 	bool convert(const std::filesystem::path& path, const bool& dofsb = true, const bool& dovmt = true, const bool& docim = true);
 

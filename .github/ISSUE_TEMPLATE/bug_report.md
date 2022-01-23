@@ -14,8 +14,8 @@ A clear and concise description of what the bug is.
 If applicable, add screenshots to help explain your problem.
 
 **Important stuff**
- - OS: [e.g. Windows]
- - Version/Commit Number: [e.g. 0.3.2, or 90]
+- OS: [e.g. Windows]
+- Version/Commit Number: [e.g. 0.3.2, or 90]
 
 **Resourcepack**
 Upload the resourcepack you were converting / last resourcepack in logs

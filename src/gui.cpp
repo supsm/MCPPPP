@@ -29,9 +29,12 @@
 extern void resourcepack(Fl_Check_Button*, void*);
 extern void selectpath(Fl_Radio_Button*, void*) noexcept;
 
+using mcpppp::c8tomb;
+using mcpppp::mbtoc8;
+
 namespace mcpppp
 {
-	static std::string getdefaultpath()
+	static std::u8string getdefaultpath()
 	{
 #ifdef _WIN32
 		const auto wtomb = [](const PWSTR& in)
@@ -49,11 +52,11 @@ namespace mcpppp
 		SHGetKnownFolderPath(FOLDERID_RoamingAppData, NULL, nullptr, &pwstr);
 		std::string str = wtomb(pwstr) + "\\.minecraft\\resourcepacks";
 		CoTaskMemFree(pwstr);
-		return str;
+		return mbtoc8(str);
 #elif defined __linux__
-		return "~/.minecraft/resourcepacks";
+		return u8"~/.minecraft/resourcepacks";
 #elif defined __APPLE__ || defined __MACH__
-		return "~/Library/Application Support/minecraft/resourcepacks";
+		return u8"~/Library/Application Support/minecraft/resourcepacks";
 #else
 		return nullptr;
 #endif
@@ -81,8 +84,8 @@ namespace mcpppp
 		}
 		if (!valid)
 		{
-			out(4) << "No valid path found, running from default directory: " << getdefaultpath() << std::endl;
-			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(getdefaultpath())))
+			out(4) << "No valid path found, running from default directory: " << c8tomb(getdefaultpath()) << std::endl;
+			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(getdefaultpath())))
 			{
 				convert(entry, dofsb, dovmt, docim);
 			}
@@ -140,16 +143,16 @@ namespace mcpppp
 	}
 
 	// add resourcepack to checklist
-	void addpack(const std::string& name, bool selected)
+	void addpack(const std::u8string& name, bool selected)
 	{
 		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
-		fl_text_extents(name.c_str(), dx, dy, w, h);
+		fl_text_extents(c8tomb(name.c_str()), dx, dy, w, h);
 		w = std::lround(w / getscale());
 		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
-		o->copy_label(name.c_str());
-		o->copy_tooltip(name.c_str());
+		o->copy_label(c8tomb(name.c_str()));
+		o->copy_tooltip(c8tomb(name.c_str()));
 		o->down_box(FL_DOWN_BOX);
 		o->value(static_cast<int>(selected));
 		o->user_data(temp.get());
@@ -164,16 +167,16 @@ namespace mcpppp
 	// update paths from "Edit Paths" to path_input
 	void updatepaths()
 	{
-		std::string pstr;
-		for (const std::string& str : paths)
+		std::u8string pstr;
+		for (const std::u8string& str : paths)
 		{
-			pstr.append(str + " // ");
+			pstr.append(str + u8" // ");
 		}
 		if (!paths.empty())
 		{
 			pstr.erase(pstr.end() - 4, pstr.end()); // erase the last " // "
 		}
-		ui->path_input->value(pstr.c_str());
+		ui->path_input->value(c8tomb(pstr.c_str()));
 	}
 
 	// update settings in "Settings"
@@ -196,7 +199,7 @@ namespace mcpppp
 	// update config file to include paths
 	void updatepathconfig()
 	{
-		std::set<std::string> temppaths = paths;
+		std::set<std::u8string> temppaths = paths;
 
 		// input stuff from file
 		std::ifstream configfile("mcpppp-config.json");
@@ -226,7 +229,7 @@ namespace mcpppp
 					{
 						for (const std::string& path : j["gui"]["paths"].get<std::vector<std::string>>())
 						{
-							deletedpaths.erase(path); // we don't need to delete paths which are in gui (we can override)
+							deletedpaths.erase(mbtoc8(path)); // we don't need to delete paths which are in gui (we can override)
 						}
 					}
 				}
@@ -240,13 +243,24 @@ namespace mcpppp
 			{
 				for (const std::string& path : j["paths"].get<std::vector<std::string>>())
 				{
-					temppaths.erase(path); // we only need to add paths which haven't already been added (outside of gui)
+					temppaths.erase(mbtoc8(path)); // we only need to add paths which haven't already been added (outside of gui)
 				}
 			}
 		}
 
-		config["gui"]["paths"] = std::vector<std::string>(temppaths.begin(), temppaths.end());
-		config["gui"]["excludepaths"] = std::vector<std::string>(deletedpaths.begin(), deletedpaths.end());
+		std::vector<std::string> tempv;
+		std::transform(temppaths.begin(), temppaths.end(), std::back_inserter(tempv), [](const std::u8string& s) -> std::string
+			{
+				return c8tomb(s);
+			});
+		config["gui"]["paths"] = tempv;
+		tempv.clear();
+		std::transform(deletedpaths.begin(), deletedpaths.end(), std::back_inserter(tempv), [](const std::u8string& s) -> std::string
+			{
+				return c8tomb(s);
+			});
+		config["gui"]["excludepaths"] = tempv;
+
 		std::ofstream fout("mcpppp-config.json");
 		fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 		fout << config.dump(1, '\t') << std::endl;
@@ -260,17 +274,17 @@ namespace mcpppp
 		int i = 0, dx = 0, dy = 0, w = 0, h = 0, maxsize = 0;
 		ui->paths->clear();
 		// make sure all boxes are same size
-		for (const std::string& str : paths)
+		for (const std::u8string& str : paths)
 		{
-			fl_text_extents(("    " + str).c_str(), dx, dy, w, h);
+			fl_text_extents(c8tomb((u8"    " + str).c_str()), dx, dy, w, h);
 			w = std::lround(w / getscale());
 			maxsize = std::max(maxsize, w);
 		}
-		for (const std::string& str : paths)
+		for (const std::u8string& str : paths)
 		{
 			std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(maxsize, 250), 15);
 			o->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
-			o->copy_label(("    " + str).c_str());
+			o->copy_label(c8tomb((u8"    " + str).c_str()));
 			o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
 			ui->paths->add(o.get());
 			o.release();
@@ -280,16 +294,16 @@ namespace mcpppp
 	}
 
 	// add path to "Edit Paths" and paths
-	void addpath(const std::string& name)
+	void addpath(const std::u8string& name)
 	{
-		if (paths.find(name) != paths.end())
+		if (paths.contains(name))
 		{
 			return;
 		}
 
 		// if name does not end in .minecraft/resourcepacks
-		const size_t find1 = name.rfind(".minecraft/resourcepacks");
-		const size_t find2 = name.rfind(".minecraft\\resourcepacks");
+		const size_t find1 = name.rfind(u8".minecraft/resourcepacks");
+		const size_t find2 = name.rfind(u8".minecraft\\resourcepacks");
 		if (!ui->dontshowwarning->value() && (find1 < name.size() - 24 || find1 == std::string::npos) && (find2 < name.size() - 24 || find2 == std::string::npos))
 		{
 			// don't let user do anything until they close window lol
