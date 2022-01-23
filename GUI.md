@@ -13,8 +13,8 @@ This project uses [FLTK](https://github.com/fltk/fltk) for GUI. It should be rel
 6. **Resourcepacks Location Input** - opens Resourcepacks Location Input menu
 7. **Reload** - reloads resourcepacks found in Resourcepacks List (4)
 8. **Select/Deselct all** - select or deselect all resourcepacks for conversion
-8. **Conversion Selector** - select which conversions to use (FSB, VMT, CIM)
-9. **Run** - starts converting resourcepacks
+9. **Conversion Selector** - select which conversions to use (FSB, VMT, CIM)
+10. **Run** - starts converting resourcepacks
 
 ## Settings Screen
 ![Guisettings](images/guisettings.png)  

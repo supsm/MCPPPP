@@ -12,15 +12,18 @@
 #include "utility.h"
 
 using mcpppp::out;
+using mcpppp::c8tomb;
+using mcpppp::mbtoc8;
 
 namespace vmt
 {
 	static constexpr auto VMT = "reselect";
 
 	// moves vmt pngs to new location
-	static void png(std::string& name, const std::string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& entry)
+	static void png(std::u8string& name, const std::u8string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& entry)
 	{
-		std::string folderpath, curname, curnum;
+		std::string curnum;
+		std::u8string folderpath, curname;
 		while (true)
 		{
 			curnum.clear();
@@ -37,7 +40,7 @@ namespace vmt
 						name = entry.path().filename().u8string();
 						name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
 						folderpath = entry.path().generic_u8string();
-						folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
+						folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 					}
 					curname = entry.path().filename().u8string();
@@ -48,10 +51,10 @@ namespace vmt
 			if (curname == name && !curnum.empty())
 			{
 				folderpath = entry.path().generic_u8string();
-				folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
+				folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 				numbers.push_back(stoi(curnum));
-				mcpppp::copy(entry.path(), std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + entry.path().filename().u8string()));
+				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + entry.path().filename().u8string()));
 				return;
 			}
 			if (numbers.empty())
@@ -62,13 +65,13 @@ namespace vmt
 			std::vector<nlohmann::json> v;
 			for (size_t i = 0; i < numbers.size(); i++)
 			{
-				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers.at(i)) + ".png"}}} });
+				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", u8"minecraft:varied/textures/entity/" + folderpath + name + mbtoc8(std::to_string(numbers.at(i))) + u8".png"}}} });
 			}
 			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
-			if (!std::filesystem::exists(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
+			if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + name + u8".json")))
 			{
-				std::filesystem::create_directories(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath));
-				std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+				std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath));
+				std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + name + u8".json"));
 				fout << j.dump(1, '\t') << std::endl;
 				fout.close();
 			}
@@ -77,13 +80,13 @@ namespace vmt
 	}
 
 	// converts optifine properties to vmt properties json
-	static void prop(const std::string& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
+	static void prop(const std::u8string& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
 		long long curnum;
-		std::string name, folderpath;
+		std::u8string name, folderpath;
 		std::vector<std::string> biomelist = { "ocean", "deep_ocean", "frozen_ocean", "deep_frozen_ocean", "cold_ocean", "deep_cold_ocean", "lukewarm_ocean", "deep_lukewarm_ocean", "warm_ocean", "deep_warm_ocean", "river", "frozen_river", "beach", "stone_shore", "snowy_beach", "forest", "wooded_hills", "flower_forest", "birch_forest", "birch_forest_hills", "tall_birch_forest", "tall_birch_hills", "dark_forest", "dark_forest_hills", "jungle", "jungle_hills", "modified_jungle", "jungle_edge", "modified_jungle_edge", "bamboo_jungle", "bamboo_jungle_hills", "taiga", "taiga_hills", "taiga_mountains", "snowy_taiga", "snowy_taiga_hills", "snowy_taiga_mountains", "giant_tree_taiga", "giant_tree_taiga_hills", "giant_spruce_taiga", "giant_spruce_taiga_hills", "mushroom_fields", "mushroom_field_shore", "swamp", "swamp_hills", "savanna", "savanna_plateau", "shattered_savanna", "shattered_savanna_plateau", "plains", "sunflower_plains", "desert", "desert_hills", "desert_lakes", "snowy_tundra", "snowy_mountains", "ice_spikes", "mountains", "wooded_mountains", "gravelly_mountains", "modified_gravelly_mountains", "mountain_edge", "badlands", "badlands_plateau", "modified_badlands_plateau", "wooded_badlands_plateau", "modified_wooded_badlands_plateau", "eroded_badlands", "dripstone_caves", "lush_caves", "nether_wastes", "crimson_forest", "warped_forest", "soul_sand_valley", "basalt_deltas", "the_end", "small_end_islands", "end_midlands", "end_highlands", "end_barrens", "the_void" };
 		folderpath = entry.path().generic_u8string();
-		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? "/random/entity/" : "/mob/") + (newlocation ? 15 : 5)));
+		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		name = entry.path().stem().u8string();
 		std::string temp, option, value, time1, height1, tempnum;
@@ -152,7 +155,7 @@ namespace vmt
 				minheight.resize(static_cast<size_t>(curnum), INT_MIN);
 				maxheight.resize(static_cast<size_t>(curnum), INT_MIN);
 			}
-			if (option.find("textures.") == 0 || option.find("skins.") == 0)
+			if (option.starts_with("textures.") || option.starts_with("skins."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -164,16 +167,16 @@ namespace vmt
 					{
 						if (temp == "1")
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:textures/entity/" + folderpath + name + ".png");
+							textures.at(static_cast<size_t>(curnum - 1)).push_back(c8tomb(u8"minecraft:textures/entity/" + folderpath + name + u8".png"));
 						}
 						else
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back("minecraft:varied/textures/entity/" + folderpath + name + temp + ".png");
+							textures.at(static_cast<size_t>(curnum - 1)).push_back(c8tomb(u8"minecraft:varied/textures/entity/" + folderpath + name + mbtoc8(temp) + u8".png"));
 						}
 					}
 				}
 			}
-			else if (option.find("weights.") == 0)
+			else if (option.starts_with("weights."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -187,7 +190,7 @@ namespace vmt
 					}
 				}
 			}
-			else if (option.find("biomes.") == 0)
+			else if (option.starts_with("biomes."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -197,6 +200,7 @@ namespace vmt
 					ss >> temp;
 					if (!temp.empty())
 					{
+						// std::string::contains in C++23
 						if (temp.find(':') == std::string::npos) // does not contain a namespace
 						{
 							for (std::string& s : biomelist)
@@ -215,7 +219,7 @@ namespace vmt
 					}
 				}
 			}
-			else if (option.find("heights.") == 0)
+			else if (option.starts_with("heights."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -239,23 +243,22 @@ namespace vmt
 					}
 				}
 			}
-			else if (option.find("minHeight") == 0)
+			else if (option.starts_with("minHeight"))
 			{
 				minheight.at(static_cast<size_t>(curnum - 1)) = stoi(value);
 			}
-			else if (option.find("maxHeight") == 0)
+			else if (option.starts_with("maxHeight"))
 			{
 				maxheight.at(static_cast<size_t>(curnum - 1)) = stoi(value);
 			}
-			else if (option.find("name.") == 0)
+			else if (option.starts_with("name."))
 			{
-				// TODO: find out how non-regex works
-				// pattern/ipattern to regex/iregex conversion
 				temp = value;
 				bool insensitive = false;
-				if (temp.find("regex:") != std::string::npos)
+				if (temp.starts_with("regex:") || temp.starts_with("iregex:"))
 				{
-					insensitive = (temp.find("iregex:") != std::string::npos);
+					// if first character is i, then it is iregex (case insensitive)
+					insensitive = (temp.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -265,9 +268,9 @@ namespace vmt
 						}
 					}
 				}
-				else if (temp.find("pattern:") != std::string::npos)
+				else if (temp.starts_with("pattern:") || temp.starts_with("ipattern:"))
 				{
-					insensitive = (temp.find("ipattern:") != std::string::npos);
+					insensitive = (temp.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -280,15 +283,15 @@ namespace vmt
 				}
 				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, insensitive);
 			}
-			else if (option.find("professions.") == 0)
+			else if (option.starts_with("professions."))
 			{
 				// not sure this is possible
 			}
-			else if (option.find("collarColors.") == 0)
+			else if (option.starts_with("collarColors."))
 			{
 				// not sure this is possible
 			}
-			else if (option.find("baby.") == 0)
+			else if (option.starts_with("baby."))
 			{
 				if (value == "true")
 				{
@@ -299,15 +302,15 @@ namespace vmt
 					baby.at(static_cast<size_t>(curnum - 1)) = 0;
 				}
 			}
-			else if (option.find("health.") == 0)
+			else if (option.starts_with("health."))
 			{
 				// TODO
 			}
-			else if (option.find("moonPhase.") == 0)
+			else if (option.starts_with("moonPhase."))
 			{
 				// not sure this is possible
 			}
-			else if (option.find("dayTime.") == 0)
+			else if (option.starts_with("dayTime."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -331,7 +334,7 @@ namespace vmt
 					}
 				}
 			}
-			else if (option.find("weather.") == 0)
+			else if (option.starts_with("weather."))
 			{
 				ss.clear();
 				ss.str(value);
@@ -464,8 +467,8 @@ namespace vmt
 			tempv.push_back({ {"below", i + 1}, {"then", v.at(i)} });
 		}
 		j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", tempv}}} };
-		std::filesystem::create_directories(path + "/assets/minecraft/varied/textures/entity/" + folderpath);
-		std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+		std::filesystem::create_directories(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath);
+		std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + name + u8".json"));
 		fout << j.dump(1, '\t') << std::endl;
 	}
 
@@ -474,7 +477,7 @@ namespace vmt
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/varied/textures/entity/", zip))
+		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/varied/textures/entity/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -485,7 +488,7 @@ namespace vmt
 				return { checkresults::alrfound, false, false };
 			}
 		}
-		if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/random/entity/", zip))
+		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/random/entity/", zip))
 		{
 			if (reconverting)
 			{
@@ -496,7 +499,7 @@ namespace vmt
 				return { checkresults::valid, true, true };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/optifine/mob/", zip))
+		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -507,7 +510,7 @@ namespace vmt
 				return { checkresults::valid, true, false };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), "assets/minecraft/mcpatcher/mob/", zip))
+		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/mcpatcher/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -525,7 +528,7 @@ namespace vmt
 	}
 
 	// main vmt function
-	void convert(const std::string& path, const std::string& filename, const mcpppp::checkinfo& info)
+	void convert(const std::u8string& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		out(4) << "vmt conversion currently does not work" << std::endl;
 		return;
@@ -533,14 +536,16 @@ namespace vmt
 		// source: assets/minecraft/optifine/random/entity/
 		// destination: assets/minecraft/varied/textures/entity/
 
-		std::string name, folderpath;
+		std::u8string name;
 		std::vector<int> numbers;
-		out(3) << "VMT: Converting Pack " << filename << std::endl;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(std::filesystem::u8path(path + "/assets/minecraft/" + (info.optifine ? "optifine" + std::string(info.newlocation ? "/random/entity/" : "/mob/") : "mcpatcher/mob/"))))
+		out(3) << "VMT: Converting Pack " << c8tomb(filename) << std::endl;
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(
+			std::filesystem::path(path + u8"/assets/minecraft/" + 
+				(info.optifine ? u8"optifine" + std::u8string(info.newlocation ? u8"/random/entity/" : u8"/mob/") : u8"mcpatcher/mob/"))))
 		{
 			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties")
 			{
-				out(1) << "VMT: Converting " + entry.path().filename().u8string() << std::endl;
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
@@ -556,13 +561,13 @@ namespace vmt
 			std::vector<nlohmann::json> v;
 			for (size_t i = 0; i < numbers.size(); i++)
 			{
-				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + folderpath + name + std::to_string(numbers.at(i)) + ".png"}}} });
+				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + c8tomb(name) + std::to_string(numbers.at(i)) + ".png"}}} });
 			}
 			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
 
-			if (!std::filesystem::exists(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json")))
+			if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + name + u8".json")))
 			{
-				std::ofstream fout(std::filesystem::u8path(path + "/assets/minecraft/varied/textures/entity/" + folderpath + name + ".json"));
+				std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + name + u8".json"));
 				fout << j.dump(1, '\t') << std::endl;
 				fout.close();
 			}

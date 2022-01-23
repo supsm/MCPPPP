@@ -30,6 +30,8 @@
 #endif
 
 using mcpppp::out;
+using mcpppp::c8tomb;
+using mcpppp::mbtoc8;
 
 int main(int argc, const char* argv[])
 try
@@ -171,15 +173,15 @@ try
 #ifndef GUI
 	out(3) << "Conversion Started" << std::endl;
 #endif
-	for (const std::string& path : mcpppp::paths)
+	for (const std::u8string& path : mcpppp::paths)
 	{
-		if (!std::filesystem::is_directory(std::filesystem::u8path(path), ec))
+		if (!std::filesystem::is_directory(std::filesystem::path(path), ec))
 		{
-			out(5) << "Invalid path: \'" << path << "\'" << std::endl << ec.message() << std::endl;
+			out(5) << "Invalid path: \'" << c8tomb(path) << "\'" << std::endl << ec.message() << std::endl;
 			continue;
 		}
-		out(2) << "Path: " << path << std::endl;
-		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+		out(2) << "Path: " << c8tomb(path) << std::endl;
+		for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(path)))
 		{
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
