@@ -39,6 +39,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@main
 
+    - name: Install Clang-Tidy
+      run: sudo apt update && sudo apt install clang-tidy-12
+
     - name: Run Clang-Tidy
       run: clang-tidy --config-file=.clang-tidy src/Source.cpp src/fsb.cpp src/vmt.cpp src/cim.cpp src/utility.cpp -- -Iinclude -std=c++20 > clang.log
 
@@ -73,6 +76,8 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
+    - name: Install gcc 10
+      run: sudo apt update && sudo apt install gcc-10 g++-10
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v1
@@ -110,6 +115,9 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
+
+    - name: Install gcc 10
+      run: sudo apt update && sudo apt install gcc-10 g++-10
       
     - name: Download coverity
       run: wget -q --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xzf cov-analysis.tar.gz --strip 1 -C cov-analysis
