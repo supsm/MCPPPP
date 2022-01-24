@@ -115,6 +115,8 @@ jobs:
       env:
         CC: gcc-10
         CXX: g++-10
+    - name: Configure Cov-Build
+      run: .cov-analysis/bin/cov-configure --comptype gcc --compiler gcc-10 --template
     - name: Build
       run: ./cov-analysis/bin/cov-build --dir cov-int cmake --build build --config Release
     - name: Compress

@@ -2,7 +2,7 @@ extraction:
   cpp:
     prepare:
       packages:
-      - g++-10
+      - clang-12
     configure:
       command:
       - cmake -B build
