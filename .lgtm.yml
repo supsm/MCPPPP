@@ -1,0 +1,11 @@
+extraction:
+  cpp:
+    prepare:
+      packages:
+      - g++-10
+    configure:
+      command:
+      - cmake -B build
+    index:
+      build_command:
+      - cmake --build build --config release
