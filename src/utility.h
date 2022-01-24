@@ -99,12 +99,12 @@ namespace mcpppp
 
 	std::string oftoregex(std::string of);
 
-	// I love these new concept things
+	/*// I love these new concept things
 	template<typename T>
 	concept outputtable = requires(T a)
 	{
 		std::stringstream() << a;
-	};
+	};*/
 
 	class outstream
 	{
@@ -132,7 +132,7 @@ namespace mcpppp
 		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
 #endif
 		// template functions must be defined in header
-		template<outputtable T>
+		template<typename T>
 		outstream operator<<(const T& value)
 		{
 			if (cout)
