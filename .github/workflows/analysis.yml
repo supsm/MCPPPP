@@ -18,20 +18,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  clusterfuzz:
-   runs-on: ubuntu-latest
-   strategy:
-     fail-fast: false
-     matrix:
-        sanitizer: [address, undefined, memory]
-   steps:
-   - name: Build Fuzzers (${{ matrix.sanitizer }})
-     id: build
-     uses: google/clusterfuzzlite/actions/build_fuzzers@v1
-     with:
-       sanitizer: ${{ matrix.sanitizer }}
-       upload-build: true
-
   codacy:
     name: Codacy
     runs-on: ubuntu-latest
