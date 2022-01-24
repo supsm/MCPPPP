@@ -103,7 +103,7 @@ jobs:
     - name: Download coverity
       run: wget -q --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xzf cov-analysis.tar.gz --strip 1 -C cov-analysis
     - name: Configure Cmake
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
     - name: Build
       run: ./cov-analysis/bin/cov-build --dir cov-int cmake --build build --config Release
     - name: Compress
@@ -133,19 +133,3 @@ jobs:
         with:
           sarif_file: devskim-results.sarif
 
-
-  flawfinder:
-    name: Flawfinder
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-    - name: Flawfinder scan
-      uses: david-a-wheeler/flawfinder@2.0.19-alpha1
-      with:
-        arguments: "--sarif ./src"
-        output: "flawfinder.sarif"
-    - name: Upload results
-      uses: github/codeql-action/upload-sarif@v1
-      with:
-        sarif_file: flawfinder.sarif
