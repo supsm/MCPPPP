@@ -33,7 +33,7 @@ jobs:
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: rm bin/*windows* && cp build/bin/Release/* bin/
+      run: rm bin/*windows* ; cp build/bin/Release/* bin/
       shell: powershell
     - name: copy files (linux)
       if: ${{ runner.os == 'Linux' }}
@@ -44,27 +44,35 @@ jobs:
 
     - name: rename files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: mv bin/MCPPPP-gui bin/MCPPPP-windows && mv bin/MCPPPP-cli bin/MCPPPP-windows-cli
-    - uses: EndBug/add-and-commit@v7
+      run: mv bin/MCPPPP-gui bin/MCPPPP-windows ; mv bin/MCPPPP-cli bin/MCPPPP-windows-cli
+    - name: add and commit (windows)
+      uses: EndBug/add-and-commit@v7
+      if: ${{ runner.os == 'Windows' }}
       with:
         add: '["bin/*windows*"]'
         message: 'add windows binaries'
         push: true
+
     - name: rename files (linux)
       if: ${{ runner.os == 'Linux' }}
       run: mv bin/MCPPPP-gui bin/MCPPPP-linux && mv bin/MCPPPP-cli bin/MCPPPP-linux-cli
-    - uses: EndBug/add-and-commit@v7
+    - name: add and commit (linux)
+      if: ${{ runner.os == 'Linux' }}
+      uses: EndBug/add-and-commit@v7
       with:
         add: '["bin/*linux*"]'
         message: 'add linux binaries'
         push: true
+
     - name: rename files (mac)
       if: ${{ runner.os == 'macOs' }}
       run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
-    - name: compress files
+    - name: compress files (mac only)
       if: ${{ runner.os == 'macOs' }}
       run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli && rm MCPPPP-mac && rm MCPPPP-mac-cli
-    - uses: EndBug/add-and-commit@v7
+    - name: add and commit (mac)
+      if: ${{ runner.os == 'macOs' }}
+      uses: EndBug/add-and-commit@v7
       with:
         add: '["bin/*mac*"]'
         message: 'add mac binaries'
