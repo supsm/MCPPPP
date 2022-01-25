@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-10.15, windows-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
@@ -44,7 +44,7 @@ jobs:
 
     - name: rename files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: mv bin/MCPPPP-gui bin/MCPPPP-windows ; mv bin/MCPPPP-cli bin/MCPPPP-windows-cli
+      run: mv bin/MCPPPP-gui.exe bin/MCPPPP-windows.exe ; mv bin/MCPPPP-cli.exe bin/MCPPPP-windows-cli.exe
     - name: add and commit (windows)
       uses: EndBug/add-and-commit@v7
       if: ${{ runner.os == 'Windows' }}
