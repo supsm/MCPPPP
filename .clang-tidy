@@ -1,28 +1,33 @@
 ---
-Checks: '
-	clang-diagnostic-*,
-	clang-analyzer-*,
-	clang-diagnostic-*,
-	-clang-diagnostic-c++98-*compat*,
-	-clang-diagnostic-exit-time-destructors,
-	-clang-diagnostic-global-constructors,
-	bugprone-*,
-	clang-analyzer-*,
-	performance-*,
-	portability-*,
-	readability-*,
-	-readability-else-after-return,
-	modernize-*
-	-modernize-use-trailing-return-type,
-	cppcoreguidelines-*,
-	-cppcoreguidelines-avoid-magic-numbers,
-	-cppcoreguidelines-avoid-non-const-global-variables,
-	-cppcoreguidelines-pro-type-reinterpret-cast
-	'
-
+Checks: "\
+clang-diagnostic-*,\
+clang-analyzer-*,\
+clang-diagnostic-*,\
+-clang-diagnostic-c++98-*compat*,\
+-clang-diagnostic-exit-time-destructors,\
+-clang-diagnostic-global-constructors,\
+bugprone-*,\
+clang-analyzer-*,\
+performance-*,\
+portability-*,\
+readability-*,\
+-readability-else-after-return,\
+-readability-magic-numbers,\
+modernize-*,\
+-modernize-use-trailing-return-type,\
+cppcoreguidelines-*,\
+-cppcoreguidelines-avoid-magic-numbers,\
+-cppcoreguidelines-avoid-non-const-global-variables,\
+-cppcoreguidelines-pro-type-reinterpret-cast,\
+-cppcoreguidelines-owning-memory\
+"
 
 WarningsAsErrors: ''
 HeaderFilterRegex: 'src/(convert|utility).h'
 AnalyzeTemporaryDtors: false
+
+CheckOptions:
+  - key:             readability-function-cognitive-complexity.Threshold
+    value:           '100'
 ...
 
