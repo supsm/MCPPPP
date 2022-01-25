@@ -3,13 +3,15 @@
 #include "supsm_mcpppp_jni.h"
 
 using mcpppp::out;
+using mcpppp::c8tomb;
+using mcpppp::mbtoc8;
 
 void run(std::string path, std::string os)
 try
 {
 	out(6) << "MCPPPP mod" << std::endl;
 	out(6) << "Os: " << os << std::endl << std::endl;
-	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::u8path(path)))
+	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(mbtoc8(path))))
 	{
 		mcpppp::convert(entry);
 	}
