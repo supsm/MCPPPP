@@ -66,12 +66,12 @@ jobs:
       run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli && rm MCPPPP-mac && rm MCPPPP-mac-cli
     - uses: EndBug/add-and-commit@v7
       with:
-      add: '["bin/*mac*"]'
-      message: 'add mac binaries'
-      push: true
+        add: '["bin/*mac*"]'
+        message: 'add mac binaries'
+        push: true
 
     - name: capture build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: ${{ runner.os }}
-          path: bin/
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}
+        path: bin/
