@@ -1,3 +1,9 @@
+path_classifiers:
+  library:
+  - "lib/*"
+  - "include/*"
+  - "src/lodepng.cpp"
+  - "src/microtar.cpp"
 extraction:
   cpp:
     prepare:
