@@ -33,18 +33,22 @@ jobs:
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: rm bin/*windows* ; cp build/bin/Release/* bin/
+      run: rm bin/*windows* ; mkdir artifacts; cp build/bin/Release/* artifacts/
       shell: powershell
     - name: copy files (linux)
       if: ${{ runner.os == 'Linux' }}
-      run: rm bin/*linux* && cp build/bin/* bin/ && cp build/libmcpppp.so bin/
+      run: rm bin/*linux* && mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.so artifacts/
     - name: copy files (mac)
       if: ${{ runner.os == 'macOs' }}
-      run: rm bin/*mac* && cp build/bin/* bin/ && cp build/libmcpppp.dylib bin/
+      run: rm bin/*mac* && mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.dylib artifacts/
+
+    - name: copy files again
+      run: cp artifacts/* bin/
 
     - name: rename files (windows)
       if: ${{ runner.os == 'Windows' }}
       run: mv bin/MCPPPP-gui.exe bin/MCPPPP-windows.exe ; mv bin/MCPPPP-cli.exe bin/MCPPPP-windows-cli.exe
+      shell: powershell
     - name: add and commit (windows)
       uses: EndBug/add-and-commit@v7
       if: ${{ runner.os == 'Windows' }}
@@ -82,4 +86,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ runner.os }}
-        path: bin/
+        path: artifacts/
