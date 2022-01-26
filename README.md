@@ -4,7 +4,7 @@
 [![Coverity](https://img.shields.io/coverity/scan/mcpppp.svg)](https://scan.coverity.com/projects/mcpppp)
 [![GitHub Downloads](https://img.shields.io/github/downloads/supsm/mcpppp/total?label=Github%20downloads)](https://github.com/supsm/mcpppp/releases)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/V7z6aY71?label=Modrinth%20downloads)](https://modrinth.com/mod/mcpppp)
-[![Curseforge Downloads](https://cf.way2muchnoise.eu/short_565465.svg)](https://www.curseforge.com/minecraft/mc-mods/mcpppp)
+[![Curseforge Downloads](https://cf.way2muchnoise.eu/565465.svg)](https://www.curseforge.com/minecraft/mc-mods/mcpppp)
 [![License](https://img.shields.io/github/license/supsm/mcpppp)](https://github.com/supsm/mcpppp)
 [![Discord](https://img.shields.io/discord/824116179534348288)](https://discord.gg/waXJDswsaR)  
 A resource pack converter from Optifine format to newer and alternative formats. This project uses C++ and FLTK as the language and base framework. This might seem odd in the Minecraft community, but allows using 25MB of RAM, where other tools use excessive amounts of resources for no reason (LambdAurora's now discontinued MCPP used 50 MB idle). Note that RAM usage varies depending on what is being converted, FSB and zipped resource packs usually will use more. As a native application, it should also perform conversions faster.  
