@@ -53,7 +53,7 @@ jobs:
       uses: EndBug/add-and-commit@v7
       if: ${{ runner.os == 'Windows' }}
       with:
-        add: '["bin/*windows*"]'
+        add: '["bin/*windows*", "bin/mcpppp.dll"]'
         message: 'add windows binaries'
         push: true
 
@@ -64,7 +64,7 @@ jobs:
       if: ${{ runner.os == 'Linux' }}
       uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/*linux*"]'
+        add: '["bin/*linux*", "bin/libmcpppp.so"]'
         message: 'add linux binaries'
         push: true
 
@@ -78,7 +78,7 @@ jobs:
       if: ${{ runner.os == 'macOs' }}
       uses: EndBug/add-and-commit@v7
       with:
-        add: '["bin/*mac*"]'
+        add: '["bin/*mac*", "bin/libmcpppp.dylib"]'
         message: 'add mac binaries'
         push: true
 
