@@ -3,7 +3,7 @@ name: Sync
 on:
   workflow_run:
     workflows:
-    - Compile Mac
+    - Compile
     types:
     - completed
     branches:

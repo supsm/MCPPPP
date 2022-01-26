@@ -287,9 +287,10 @@ namespace fsb
 				{"blend", {{"type", "add"}}},
 				{"rotation",
 				{
-					{"axis", {0.0, 180.0, 0.0}}
+					{"axis", {0.0, 180.0, 0.0}},
+					{"static", {1.0, 1.0, 1.0}}
 				}},
-				{"sunSkyTint", false}
+				{"showStars", false}
 			} }
 		};
 		std::ifstream fin(entry.path());
@@ -461,8 +462,16 @@ namespace fsb
 			}
 		}
 		fin.close();
-		j["properties"]["rotation"]["static"] = { 1, 1, 1 };
-		if (startfadeout == -1)
+		if (startfadein == -1 || endfadein == -1 || endfadeout == -1)
+		{
+			// no time specified, assume always active
+			j["properties"]["fade"]["startFadeIn"] = 0;
+			j["properties"]["fade"]["endFadeIn"] = 0;
+			j["properties"]["fade"]["startFadeOut"] = 0;
+			j["properties"]["fade"]["endFadeOut"] = 0;
+			j["properties"]["fade"]["alwaysOn"] = true;
+		}
+		else if (startfadeout == -1)
 		{
 			j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
 		}
@@ -533,12 +542,12 @@ namespace fsb
 			}
 			source = u8"fabricskyboxes:sky" + sourcefolder + sourcefile;
 		}
-		j["textures"]["top"] = source + u8"_top.png";
-		j["textures"]["bottom"] = source + u8"_bottom.png";
-		j["textures"]["north"] = source + u8"_north.png";
-		j["textures"]["south"] = source + u8"_south.png";
-		j["textures"]["west"] = source + u8"_west.png";
-		j["textures"]["east"] = source + u8"_east.png";
+		j["textures"]["top"] = c8tomb(source) + "_top.png";
+		j["textures"]["bottom"] = c8tomb(source) + "_bottom.png";
+		j["textures"]["north"] = c8tomb(source) + "_north.png";
+		j["textures"]["south"] = c8tomb(source) + "_south.png";
+		j["textures"]["west"] = c8tomb(source) + "_west.png";
+		j["textures"]["east"] = c8tomb(source) + "_east.png";
 		if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/fabricskyboxes/sky/")))
 		{
 			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/fabricskyboxes/sky"));
