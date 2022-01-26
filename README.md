@@ -15,8 +15,7 @@ A resource pack converter from Optifine format to newer and alternative formats.
 [Curseforge](https://www.curseforge.com/minecraft/mc-mods/mcpppp)  
 
 #### Formats
-Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes).  
-[Varied Mob Textures](https://www.curseforge.com/minecraft/mc-mods/varied-mob-textures) isn't updated to 1.17 and doesn't have a set format yet, and [Chime](https://www.curseforge.com/minecraft/mc-mods/chime-fabric) also isn't updated to 1.17. Chime conversion will work if you build from source, but the conversion is not very complete.  
+Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes), [Varied Mob Textures](https://www.curseforge.com/minecraft/mc-mods/varied-mob-textures), and [Chime](https://www.curseforge.com/minecraft/mc-mods/chime-fabric). Fabricskyboxes conversion is the most complete, Varied Mob Textures is probably ok, and Chime isn't very complete.  
 [Centime](https://github.com/SekoiaTree/Centime) will be supported eventually if I have enough time.  
 
 #### Important Note

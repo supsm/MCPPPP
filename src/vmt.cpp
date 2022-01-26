@@ -475,6 +475,9 @@ namespace vmt
 	// check if should be converted
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
 	{
+		// return invalid value because we don't want to convert
+		return { mcpppp::checkresults::noneconvertible, false, false };
+
 		using mcpppp::checkresults;
 		bool reconverting = false;
 		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/varied/textures/entity/", zip))

@@ -878,6 +878,12 @@ namespace mcpppp
 			.default_value(false)
 			.implicit_value(true);
 
+#ifdef GUI
+		parser.add_epilog("If no command line arguments are provided, the normal GUI may be used");
+#else
+		parser.add_epilog("If no command line arguments are provided, the config file may be used. The documentation for that can be found at https://github.com/supsm/MCPPPP/blob/master/CONFIG.md");
+#endif
+
 		parser.add_argument("-v", "--verbose")
 			.help("Outputs more information (can be used upto 2 times)")
 			.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
@@ -950,6 +956,16 @@ namespace mcpppp
 		try
 		{
 			auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
+			resourcepacks.erase(
+				std::remove_if(resourcepacks.begin(), resourcepacks.end(), [](const std::string& s) -> bool
+				{
+					if (!std::filesystem::exists(s))
+					{
+						out(5) << "Invalid pack: " << s << std::endl;
+						return true;
+					}
+					return false;
+				}), resourcepacks.end());
 			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
 				{
 					return std::make_pair(true, std::filesystem::directory_entry(s));
