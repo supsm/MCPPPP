@@ -482,7 +482,10 @@ namespace mcpppp
 		std::uintmax_t size = 0;
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
 		{
-			const std::u8string name = std::filesystem::relative(entry.path(), path).generic_u8string();
+			// I'd prefer to use std::filesystem::relative, but it's too slow when we have thousands of files
+			std::u8string name = entry.path().generic_u8string();
+			name.erase(name.begin(), name.begin() + path.generic_u8string().size() + 1);
+
 			items.emplace_back(entry, name);
 			if (entry.is_regular_file())
 			{
@@ -667,6 +670,7 @@ namespace mcpppp
 				cim::convert(convert, path.filename().u8string(), cim);
 				break;
 			case checkresults::noneconvertible:
+				out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
 				out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;

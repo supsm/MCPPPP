@@ -2,12 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
+#include <algorithm>
+#include <cctype>
 #include <climits>
 #include <filesystem>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
 
+#include "reselect.h"
 #include "convert.h"
 #include "utility.h"
 
@@ -15,71 +19,88 @@ using mcpppp::out;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
+// temporary thing so i can compile
+#define VMT ""
+
 namespace vmt
 {
-	static constexpr auto VMT = "reselect";
+	static std::set<std::string> names;
+
+	// separate name and number (e.g. zombie12 -> zombie, 12)
+	// @param str  filename to separate
+	// @return pair of string (name) and int
+	static std::pair<std::string, int> separate(const std::string& str)
+	{
+		std::string name = str, num;
+		for (size_t i = str.size() - 1; i >= 0; i--)
+		{
+			if (std::isdigit(str[i]) != 0)
+			{
+				num.push_back(str[i]);
+			}
+			else
+			{
+				name.erase(name.begin() + i + 1, name.end());
+				break;
+			}
+		}
+		std::reverse(num.begin(), num.end());
+		return { name, std::stoi(num) };
+	}
 
 	// moves vmt pngs to new location
-	static void png(std::u8string& name, const std::u8string& path, const bool& newlocation, std::vector<int>& numbers, const std::filesystem::directory_entry& entry)
+	// @param path  path of resourcepack being converted
+	// @param optifine  whether to use optifine locations (no = mcpatcher)
+	// @param newlocation  whether to use new optifine location
+	// @param entry  actual png file to convert
+	static void png(const std::u8string& path, const bool& optifine, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
-		std::string curnum;
-		std::u8string folderpath, curname;
-		while (true)
+		const auto p = separate(c8tomb(entry.path().filename().stem().u8string()));
+		const std::string curname = p.first;
+		// current name is new, look for all textures
+		if (!names.contains(curname))
 		{
-			curnum.clear();
-			for (size_t i = entry.path().filename().u8string().size() - 4; i >= 1; i--)
+			std::filesystem::path folderpath;
+			std::vector<reselect> paths = { reselect("default", false) };
+
+			// get directory that files are in
+			const std::filesystem::path location = (optifine ? (newlocation ? u8"assets/minecraft/optifine/random/entity" : u8"assets/optifine/mob") : u8"assets/mcpatcher/mob");
+			// I'd prefer to use std::filesystem::relative here, but given 2 equal paths it returns "." instead of ""
+			std::u8string tempfolderpath = std::filesystem::canonical(path / location).generic_u8string();
+			tempfolderpath.erase(tempfolderpath.begin(),
+				tempfolderpath.begin() + std::filesystem::canonical(entry.path().parent_path()).generic_u8string().size());
+			folderpath = tempfolderpath;
+
+			// search for name1.png, name2.png, etc
+			for (int curnum = 2; curnum < std::numeric_limits<int>::max(); curnum++)
 			{
-				if (entry.path().filename().u8string().at(i - 1) >= '0' && entry.path().filename().u8string().at(i - 1) <= '9')
+				std::filesystem::path texture = entry.path().parent_path() / (mbtoc8(curname + std::to_string(curnum) + ".png"));
+				// doesn't exist, textures have ended
+				if (!std::filesystem::exists(texture))
 				{
-					curnum.insert(curnum.begin(), entry.path().filename().u8string().at(i - 1));
-				}
-				else
-				{
-					if (numbers.empty())
-					{
-						name = entry.path().filename().u8string();
-						name.erase(name.begin() + static_cast<std::string::difference_type>(i), name.end());
-						folderpath = entry.path().generic_u8string();
-						folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
-						folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-					}
-					curname = entry.path().filename().u8string();
-					curname.erase(curname.begin() + static_cast<std::string::difference_type>(i), curname.end());
 					break;
 				}
+
+				mcpppp::copy(texture, std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / mbtoc8(curname + std::to_string(curnum) + ".png"));
+
+				paths.push_back(c8tomb((u8"mcpppp:vmt/" / folderpath / mbtoc8(curname + std::to_string(curnum) + ".png")).generic_u8string()));
 			}
-			if (curname == name && !curnum.empty())
+			names.insert(curname);
+
+			// randomly select between each texture, if there is more than just the default path
+			if (paths.size() > 1)
 			{
-				folderpath = entry.path().generic_u8string();
-				folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
-				folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-				numbers.push_back(stoi(curnum));
-				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + entry.path().filename().u8string()));
-				return;
-			}
-			if (numbers.empty())
-			{
-				return;
-			}
-			// TODO: what am i even doing
-			std::vector<nlohmann::json> v;
-			for (size_t i = 0; i < numbers.size(); i++)
-			{
-				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", u8"minecraft:varied/textures/entity/" + folderpath + name + mbtoc8(std::to_string(numbers.at(i))) + u8".png"}}} });
-			}
-			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
-			if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + name + u8".json")))
-			{
-				std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath));
-				std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + folderpath + name + u8".json"));
-				fout << j.dump(1, '\t') << std::endl;
+				reselect res;
+				res.random(curname, paths);
+				const std::string str = res.to_string();
+				std::ofstream fout(std::filesystem::path(path) / "assets/mcpppp/vmt" / folderpath / (curname + ".reselect"));
+				fout.write(str.c_str(), str.size());
 				fout.close();
 			}
-			numbers.clear();
 		}
 	}
 
-	// converts optifine properties to vmt properties json
+	// converts optifine properties to vmt/reselect
 	static void prop(const std::u8string& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
 		long long curnum;
@@ -475,12 +496,9 @@ namespace vmt
 	// check if should be converted
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
 	{
-		// return invalid value because we don't want to convert
-		return { mcpppp::checkresults::noneconvertible, false, false };
-
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/varied/textures/entity/", zip))
+		if (mcpppp::findfolder(path.u8string(), u8"assets/mcpppp/vmt/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -533,48 +551,39 @@ namespace vmt
 	// main vmt function
 	void convert(const std::u8string& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
-		out(4) << "vmt conversion currently does not work" << std::endl;
-		return;
 		// source: assets/minecraft/*/mob/		< this can be of or mcpatcher, but the one below is of only
 		// source: assets/minecraft/optifine/random/entity/
-		// destination: assets/minecraft/varied/textures/entity/
+		// destination: assets/mcpppp/vmt/
 
-		std::u8string name;
-		std::vector<int> numbers;
 		out(3) << "VMT: Converting Pack " << c8tomb(filename) << std::endl;
+
+		// convert all images first, so the reselect file can be overridden
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
-			std::filesystem::path(path + u8"/assets/minecraft/" + 
+			std::filesystem::path(path + u8"/assets/minecraft/" +
 				(info.optifine ? u8"optifine" + std::u8string(info.newlocation ? u8"/random/entity/" : u8"/mob/") : u8"mcpatcher/mob/"))))
 		{
-			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties")
+			if (entry.path().extension() == ".png")
 			{
 				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
-				png(name, path, info.newlocation, numbers, entry);
+				png(path, info.optifine, info.newlocation, entry);
 			}
-			else if (entry.path().filename().extension() == ".properties")
+		}
+
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(
+			std::filesystem::path(path + u8"/assets/minecraft/" +
+				(info.optifine ? u8"optifine" + std::u8string(info.newlocation ? u8"/random/entity/" : u8"/mob/") : u8"mcpatcher/mob/"))))
+		{
+			if (entry.path().extension() == ".properties")
+			{
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			}
+			if (entry.path().filename().extension() == ".properties")
 			{
 				prop(path, info.newlocation, entry);
 			}
-		}
-		if (!numbers.empty())
-		{
-			std::vector<nlohmann::json> v;
-			for (size_t i = 0; i < numbers.size(); i++)
-			{
-				v.push_back({ {"below", i + 1}, {"then", {{"type", std::string{VMT} + ":constant"}, {"identifier", "minecraft:varied/textures/entity/" + c8tomb(name) + std::to_string(numbers.at(i)) + ".png"}}} });
-			}
-			nlohmann::json j = { {"version", 1}, {"root", {{"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", v.size()}}}, {"options", { {"type", std::string{VMT} + ":range"}, {"when", {{"type", std::string{VMT} + ":random"}, {"min", 0}, {"max", numbers.size() + 1}}}, {"options", v} } }}} };
-
-			if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + name + u8".json")))
-			{
-				std::ofstream fout(std::filesystem::path(path + u8"/assets/minecraft/varied/textures/entity/" + name + u8".json"));
-				fout << j.dump(1, '\t') << std::endl;
-				fout.close();
-			}
-			numbers.clear();
 		}
 	}
 };

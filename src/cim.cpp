@@ -595,7 +595,6 @@ namespace cim
 		}
 		else
 		{
-			out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 			return { checkresults::noneconvertible, false, false };
 		}
 	}
