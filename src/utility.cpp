@@ -510,6 +510,7 @@ namespace mcpppp
 
 	static std::string hash(const std::filesystem::path& path, const bool& zip)
 	{
+		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
 		if (zip)
 		{
 			const std::uintmax_t filesize = std::filesystem::file_size(path);
@@ -538,7 +539,7 @@ namespace mcpppp
 				{
 					const std::uintmax_t filesize = item.first.file_size();
 					std::vector<char> file_contents(filesize);
-					std::ifstream fin(item.first.path());
+					std::ifstream fin(item.first.path(), std::ios::binary);
 					fin.read(file_contents.data(), filesize);
 					fin.close();
 					mtar_write_file_header(&tar, c8tomb(item.second.c_str()), filesize);
@@ -636,6 +637,10 @@ namespace mcpppp
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/fabricskyboxes"));
 					fsb::convert(convert, path.filename().u8string(), fsb);
 				}
+				else
+				{
+					out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				}
 				break;
 			}
 		}
@@ -658,6 +663,10 @@ namespace mcpppp
 					out(3) << "VMT: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/varied/"));
 					vmt::convert(convert, path.filename().u8string(), vmt);
+				}
+				else
+				{
+					out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				}
 				break;
 			}
@@ -682,6 +691,10 @@ namespace mcpppp
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/mcpppp"));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/overrides"));
 					cim::convert(convert, path.filename().u8string(), cim);
+				}
+				else
+				{
+					out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				}
 				break;
 			}
