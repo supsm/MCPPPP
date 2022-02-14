@@ -22,6 +22,7 @@
 #include <variant>
 #include <vector>
 
+#include "constants.h"
 #include "convert.h"
 
 #include "microtar.h"
@@ -207,41 +208,6 @@ namespace mcpppp
 
 	outstream outstream::operator<<(const std::string& str)
 	{
-		if (cout)
-		{
-#ifdef GUI
-			if (argc < 2)
-			{
-				if (first)
-				{
-					sstream << (dotimestamp ? timestamp() : "");
-				}
-				sstream << str;
-			}
-			else
-#endif
-			{
-				if (first)
-				{
-					if (err)
-					{
-						std::cerr << (dotimestamp ? timestamp() : "");
-					}
-					else
-					{
-						std::cout << (dotimestamp ? timestamp() : "");
-					}
-				}
-				if (err)
-				{
-					std::cerr << str;
-				}
-				else
-				{
-					std::cout << str;
-				}
-			}
-		}
 		if (file && logfile.good())
 		{
 			if (first)
@@ -250,64 +216,99 @@ namespace mcpppp
 			}
 			logfile << str;
 		}
+#ifdef GUI
+		// output to sstream regardless of outputlevel
+		if (argc < 2)
+		{
+			if (first)
+			{
+				sstream << (dotimestamp ? timestamp() : "");
+			}
+			sstream << str;
+			first = false;
+			return *this;
+		}
+#endif
+		if (cout)
+		{
+			if (first)
+			{
+				if (err)
+				{
+					std::cerr << (dotimestamp ? timestamp() : "");
+				}
+				else
+				{
+					std::cout << (dotimestamp ? timestamp() : "");
+				}
+			}
+			if (err)
+			{
+				std::cerr << str;
+			}
+			else
+			{
+				std::cout << str;
+			}
+		}
 		first = false;
 		return *this;
 	}
 
 	outstream outstream::operator<<(std::ostream& (*f)(std::ostream&))
 	{
-		if (cout)
-		{
 #ifdef GUI
-			if (argc < 2)
+		if (argc < 2)
+		{
+			if (first)
 			{
-				if (first)
+				sstream << (dotimestamp ? timestamp() : "");
+			}
+			if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
+			{
+				if (sstream.str().empty())
 				{
-					sstream << (dotimestamp ? timestamp() : "");
+					sstream.str(" "); // fltk won't print empty strings
 				}
-				if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
+				while (waitdontoutput)
 				{
-					if (sstream.str().empty())
-					{
-						sstream.str(" "); // fltk won't print empty strings
-					}
-					while (waitdontoutput)
-					{
-						std::this_thread::sleep_for(std::chrono::milliseconds(1));
-					}
-					// add color and output line
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
+				}
+				// add color and output line
+				if (cout)
+				{
 					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
-					outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
-					sstream.str(std::string());
-					sstream.clear();
 				}
-				else
-				{
-					sstream << f;
-				}
+				outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
+				sstream.str(std::string());
+				sstream.clear();
 			}
 			else
-#endif
 			{
-				if (first)
-				{
-					if (err)
-					{
-						std::cerr << (dotimestamp ? timestamp() : "");
-					}
-					else
-					{
-						std::cout << (dotimestamp ? timestamp() : "");
-					}
-				}
+				sstream << f;
+			}
+		}
+#endif
+		if (cout)
+		{
+			if (first)
+			{
 				if (err)
 				{
-					std::cerr << f;
+					std::cerr << (dotimestamp ? timestamp() : "");
 				}
 				else
 				{
-					std::cout << f;
+					std::cout << (dotimestamp ? timestamp() : "");
 				}
+			}
+			if (err)
+			{
+				std::cerr << f;
+			}
+			else
+			{
+				std::cout << f;
 			}
 		}
 		if (file && logfile.good())
@@ -341,15 +342,26 @@ namespace mcpppp
 		}
 		if (std::filesystem::exists(to))
 		{
-			std::filesystem::remove(to);
+			try
+			{
+				std::filesystem::remove(to);
+			}
+			catch (const std::filesystem::filesystem_error& e)
+			{
+				out(5) << "Error removing file:" << std::endl << e.what() << std::endl;
+			}
 		}
-		try
+		if (!std::filesystem::exists(to.parent_path()))
 		{
-			std::filesystem::create_directories(to.parent_path());
-		}
-		catch (const std::filesystem::filesystem_error& e)
-		{
-			out(5) << "Error creating directory:" << std::endl << e.what() << std::endl;
+			try
+			{
+				std::filesystem::create_directories(to.parent_path());
+			}
+			catch (const std::filesystem::filesystem_error& e)
+			{
+				out(5) << "Error creating directory:" << std::endl << e.what() << std::endl;
+				return;
+			}
 		}
 		try
 		{
@@ -361,13 +373,13 @@ namespace mcpppp
 		}
 	}
 
-	void checkpackver(const std::filesystem::path& path)
+	static int getpackver(const std::filesystem::path& path)
 	{
 		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
 		if (!std::filesystem::is_regular_file(pack_mcmeta))
 		{
 			out(4) << "pack.mcmeta not found; in " << c8tomb(path.filename().u8string()) << std::endl;
-			return;
+			return -1;
 		}
 		nlohmann::json j;
 		std::ifstream fin(pack_mcmeta);
@@ -376,22 +388,7 @@ namespace mcpppp
 			fin >> j;
 			if (j["pack"]["pack_format"].get<int>() != PACK_VER)
 			{
-				std::stringstream ss;
-				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
-					<< "Version found : " << j["pack"]["pack_format"].get<int>() << "\nLatest version : " << PACK_VER;
-				// output it again since it doesn't like \n or something
-				out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
-					<< "Version found : " << j["pack"]["pack_format"].get<int>() << std::endl
-					<< "Latest version : " << PACK_VER << std::endl;
-#ifdef GUI
-				wait_close = true;
-				const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
-				Fl::awake(alert, const_cast<char*>(ss.str().c_str()));
-				while (wait_close)
-				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				}
-#endif
+				return j["pack"]["pack_format"].get<int>();
 			}
 		}
 		catch (const nlohmann::json::exception& e)
@@ -399,6 +396,7 @@ namespace mcpppp
 			out(4) << "Json error while parsing pack.mcmeta from " << c8tomb(path.filename().u8string()) << ":\n" << e.what() << std::endl;
 		}
 		fin.close();
+		return -1;
 	}
 
 	static bool findzipitem(const std::u8string& ziparchive, const std::u8string& itemtofind)
@@ -432,7 +430,7 @@ namespace mcpppp
 		}
 	}
 
-	void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
+	static void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 	{
 		zipa.Open(c8tomb(path.u8string()));
 		const std::u8string folder = path.stem().u8string();
@@ -441,7 +439,7 @@ namespace mcpppp
 		zipa.ExtractAll("mcpppp-temp/" + c8tomb(folder) + '/');
 	}
 
-	void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
+	static void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 	{
 		out(3) << "Compressing " + c8tomb(folder) << std::endl;
 		Zippy::ZipEntryData zed;
@@ -504,7 +502,7 @@ namespace mcpppp
 
 	static std::string hash(const std::vector<char>& v)
 	{
-		const XXH128_hash_t rawhash = XXH128(v.data(), v.size(), 0);
+		const XXH128_hash_t rawhash = XXH3_128bits(v.data(), v.size());
 		return gethex(rawhash);
 	}
 
@@ -539,7 +537,7 @@ namespace mcpppp
 				{
 					const std::uintmax_t filesize = item.first.file_size();
 					std::vector<char> file_contents(filesize);
-					std::ifstream fin(item.first.path(), std::ios::binary);
+					std::ifstream fin(item.first.path(), std::ios::in | std::ios::binary);
 					fin.read(file_contents.data(), filesize);
 					fin.close();
 					mtar_write_file_header(&tar, c8tomb(item.second.c_str()), filesize);
@@ -584,9 +582,17 @@ namespace mcpppp
 				return (info.results == checkresults::valid || info.results == checkresults::reconverting);
 			}
 		};
+		const auto isreconvert = [](const checkinfo& info, const bool& doconversion) -> bool
+		{
+			if (!doconversion || !autoreconvert)
+			{
+				return false;
+			}
+			return info.results == checkresults::reconverting;
+		};
 
-		// skip hashing if none are valid
-		if (isvalid(fsb, dofsb) || isvalid(vmt, dovmt) || isvalid(cim, docim))
+		// only compute hash if possibly reconverting
+		if (isreconvert(fsb, dofsb) || isreconvert(vmt, dovmt) || isreconvert(cim, docim))
 		{
 			hashvalue = hash(path, zip);
 			if (hashes.contains(c8tomb(path.generic_u8string())) && hashes[c8tomb(path.generic_u8string())] != hashvalue)
@@ -595,25 +601,26 @@ namespace mcpppp
 			}
 			else
 			{
-				// don't reconvert if pack isn't changed
+				// don't reconvert if pack hasn't changed
 				// also has the added benefit of not reconverting packs that haven't been previously hashed,
 				// which could prevent data loss
 				reconvert = false;
 			}
 
-			// if we aren't reconverting, reconverting result is not valid
-			// if we are reconverting, it is valid
-			if (isvalid(fsb, dofsb, !reconvert) || isvalid(vmt, dovmt, !reconvert) || isvalid(cim, docim, !reconvert))
+		}
+
+		// if we aren't reconverting, reconverting result is not valid
+		// if we are reconverting, it is valid
+		if (isvalid(fsb, dofsb, !reconvert) || isvalid(vmt, dovmt, !reconvert) || isvalid(cim, docim, !reconvert))
+		{
+			if (zip)
 			{
-				if (zip)
-				{
-					unzip(path, zipa);
-					convert = u8"mcpppp-temp/" + folder;
-				}
-				else
-				{
-					convert = path.u8string();
-				}
+				unzip(path, zipa);
+				convert = u8"mcpppp-temp/" + folder;
+			}
+			else
+			{
+				convert = path.u8string();
 			}
 		}
 
@@ -706,7 +713,7 @@ namespace mcpppp
 			return false;
 		}
 
-		checkpackver(convert);
+		const int packver = getpackver(convert);
 		if (zip)
 		{
 			rezip(folder, zipa);
@@ -715,6 +722,27 @@ namespace mcpppp
 		hashvalue = hash(path, zip);
 		hashes[c8tomb(path.generic_u8string())] = hashvalue;
 		savehashes();
+
+		if (packver != -1)
+		{
+			std::stringstream ss;
+			ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
+				<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
+			// output it again since it doesn't like \n or something
+			out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
+				<< "Version found : " << packver << std::endl
+				<< "Latest version : " << PACK_VER << std::endl;
+#ifdef GUI
+			wait_close = true;
+			const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
+			Fl::awake(alert, const_cast<char*>(ss.str().c_str()));
+			while (wait_close)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
+#endif
+		}
+
 		return true;
 	}
 
@@ -892,106 +920,106 @@ namespace mcpppp
 					std::exit(0);
 				})
 			.nargs(0)
-			.default_value(false)
-			.implicit_value(true);
+					.default_value(false)
+					.implicit_value(true);
 
 #ifdef GUI
-		parser.add_epilog("If no command line arguments are provided, the normal GUI may be used");
+				parser.add_epilog("If no command line arguments are provided, the normal GUI may be used");
 #else
-		parser.add_epilog("If no command line arguments are provided, the config file may be used. The documentation for that can be found at https://github.com/supsm/MCPPPP/blob/master/CONFIG.md");
+				parser.add_epilog("If no command line arguments are provided, the config file may be used. The documentation for that can be found at https://github.com/supsm/MCPPPP/blob/master/CONFIG.md");
 #endif
 
-		parser.add_argument("-v", "--verbose")
-			.help("Outputs more information (can be used upto 2 times)")
-			.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
-			.nargs(0)
-			.default_value(false)
-			.implicit_value(true)
-			.append();
+				parser.add_argument("-v", "--verbose")
+					.help("Outputs more information (can be used upto 2 times)")
+					.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
+					.nargs(0)
+					.default_value(false)
+					.implicit_value(true)
+					.append();
 
-		parser.add_argument("--pauseOnExit")
-			.help("Wait for enter key to be pressed once execution has been finished")
-			.default_value(std::string(pauseonexit ? "true" : "false"));
-		parser.add_argument("--log")
-			.help("Log file where logs will be stored")
-			.default_value(logfilename);
-		parser.add_argument("--timestamp")
-			.help("Add timestamp to output")
-			.default_value(std::string(dotimestamp ? "true" : "false"));
-		parser.add_argument("--autoDeleteTemp")
-			.help("Automatically delete `mcpppp-temp` folder on startup")
-			.default_value(std::string(autodeletetemp ? "true" : "false"));
-		parser.add_argument("--autoReconvert")
-			.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
-			.default_value(std::string(autoreconvert ? "true" : "false"));
-		parser.add_argument("--fsbTransparent")
-			.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
-			.default_value(std::string(fsbtransparent ? "true" : "false"));
+				parser.add_argument("--pauseOnExit")
+					.help("Wait for enter key to be pressed once execution has been finished")
+					.default_value(std::string(pauseonexit ? "true" : "false"));
+				parser.add_argument("--log")
+					.help("Log file where logs will be stored")
+					.default_value(logfilename);
+				parser.add_argument("--timestamp")
+					.help("Add timestamp to output")
+					.default_value(std::string(dotimestamp ? "true" : "false"));
+				parser.add_argument("--autoDeleteTemp")
+					.help("Automatically delete `mcpppp-temp` folder on startup")
+					.default_value(std::string(autodeletetemp ? "true" : "false"));
+				parser.add_argument("--autoReconvert")
+					.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
+					.default_value(std::string(autoreconvert ? "true" : "false"));
+				parser.add_argument("--fsbTransparent")
+					.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
+					.default_value(std::string(fsbtransparent ? "true" : "false"));
 
-		parser.add_argument("resourcepacks")
-			.help("The resourcepacks to convert")
-			.remaining();
+				parser.add_argument("resourcepacks")
+					.help("The resourcepacks to convert")
+					.remaining();
 
-		try
-		{
-			parser.parse_args(argc, argv);
-		}
-		catch (const std::runtime_error& e)
-		{
-			out(5) << e.what() << std::endl;
-			std::exit(-1);
-		}
-
-		const auto truefalse = [](const std::string& str) -> bool
-		{
-			if (lowercase(str) == "true")
-			{
-				return true;
-			}
-			else if (lowercase(str) == "false")
-			{
-				return false;
-			}
-			else
-			{
-				out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
-				return false;
-			}
-		};
-
-		pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
-		if (parser.is_used("--log"))
-		{
-			logfilename = parser.get<std::string>("--log");
-			logfile.open(logfilename);
-		}
-		dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
-		autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
-		autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
-		fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
-
-		try
-		{
-			auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
-			resourcepacks.erase(
-				std::remove_if(resourcepacks.begin(), resourcepacks.end(), [](const std::string& s) -> bool
+				try
 				{
-					if (!std::filesystem::exists(s))
+					parser.parse_args(argc, argv);
+				}
+				catch (const std::runtime_error& e)
+				{
+					out(5) << e.what() << std::endl;
+					std::exit(-1);
+				}
+
+				const auto truefalse = [](const std::string& str) -> bool
+				{
+					if (lowercase(str) == "true")
 					{
-						out(5) << "Invalid pack: " << s << std::endl;
 						return true;
 					}
-					return false;
-				}), resourcepacks.end());
-			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
+					else if (lowercase(str) == "false")
+					{
+						return false;
+					}
+					else
+					{
+						out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
+						return false;
+					}
+				};
+
+				pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
+				if (parser.is_used("--log"))
 				{
-					return std::make_pair(true, std::filesystem::directory_entry(s));
-				});
-		}
-		catch (const std::logic_error& e)
-		{
-			out(5) << e.what() << std::endl;
-			std::exit(0);
-		}
+					logfilename = parser.get<std::string>("--log");
+					logfile.open(logfilename);
+				}
+				dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
+				autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
+				autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
+				fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
+
+				try
+				{
+					auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
+					resourcepacks.erase(
+						std::remove_if(resourcepacks.begin(), resourcepacks.end(), [](const std::string& s) -> bool
+							{
+								if (!std::filesystem::exists(s))
+								{
+									out(5) << "Invalid pack: " << s << std::endl;
+									return true;
+								}
+								return false;
+							}), resourcepacks.end());
+					std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
+						{
+							return std::make_pair(true, std::filesystem::directory_entry(s));
+						});
+				}
+				catch (const std::logic_error& e)
+				{
+					out(5) << e.what() << std::endl;
+					std::exit(0);
+				}
 	}
 }

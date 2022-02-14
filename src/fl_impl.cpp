@@ -304,6 +304,12 @@ void updateoutputlevel(Fl_Value_Slider* o, void* v)
 	}
 	ui->output->bottomline(ui->output->size());
 	mcpppp::waitdontoutput = false;
+	// save outputlevel setting
+	mcpppp::config["gui"]["settings"]["outputLevel"] = mcpppp::outputlevel;
+	std::ofstream fout("mcpppp-config.json");
+	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
+	fout << mcpppp::config.dump(1, '\t') << std::endl;
+	fout.close();
 }
 
 // callback for closing main window

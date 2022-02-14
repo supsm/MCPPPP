@@ -180,7 +180,7 @@ namespace fsb
 		checkError(lodepng::decode(image, w, h, state, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
 		{
-			out(4) << "FSB: Wrong dimensions: " << c8tomb(entry.path().u8string()) << std::endl << "will be cropped to proper dimensions" << std::endl;
+			out(2) << "(warn) FSB: Wrong dimensions: " << c8tomb(entry.path().u8string()) << std::endl << "will be cropped to proper dimensions" << std::endl;
 		}
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
@@ -359,7 +359,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -379,7 +379,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -395,7 +395,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -448,7 +448,7 @@ namespace fsb
 							}
 							catch (const std::invalid_argument& e)
 							{
-								out(5) << "Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 								return;
 							}
 						}
@@ -493,7 +493,7 @@ namespace fsb
 			}
 			else
 			{
-				out(4) << "FSB: File not found: " << c8tomb(u8temp) + ".png" << std::endl;
+				out(2) << "(warn) FSB: File not found: " << c8tomb(u8temp) + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
 				lodepng::save_file(buffer, c8tomb(path + u8"/assets/fabricskyboxes/sky" + origsource + u8"_top.png"));
 				lodepng::save_file(buffer, c8tomb(path + u8"/assets/fabricskyboxes/sky" + origsource + u8"_bottom.png"));
@@ -529,7 +529,7 @@ namespace fsb
 			else
 			{
 
-				out(4) << "FSB: File not found: " << c8tomb(sourcefolder + sourcefile) + ".png" << std::endl;
+				out(2) << "(warn) FSB: File not found: " << c8tomb(sourcefolder + sourcefile) + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
 				lodepng::save_file(buffer, c8tomb(path + u8"/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + u8"_top.png"));
 				lodepng::save_file(buffer, c8tomb(path + u8"/assets/fabricskyboxes/sky" + sourcefolder + sourcefile + u8"_bottom.png"));

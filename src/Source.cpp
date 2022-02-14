@@ -17,6 +17,7 @@
 #include <sstream>
 #include <vector>
 
+#include "constants.h"
 #include "utility.h"
 
 #ifdef GUI

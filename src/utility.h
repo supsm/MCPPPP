@@ -4,9 +4,6 @@
 
 #pragma once
 
-constexpr auto VERSION = "0.7.0"; // MCPPPP version
-constexpr int PACK_VER = 8; // pack.mcmeta pack format
-
 #ifdef _WIN32
 #define NOMINMAX
 #endif
@@ -135,43 +132,6 @@ namespace mcpppp
 		template<typename T>
 		outstream operator<<(const T& value)
 		{
-			if (cout)
-			{
-#ifdef GUI
-				// if there are no command line arguments, print to gui
-				// otherwise, print to command line like cli
-				if (argc < 2)
-				{
-					if (first)
-					{
-						sstream << (dotimestamp ? timestamp() : "");
-					}
-					sstream << value;
-				}
-				else
-#endif
-				{
-					if (first)
-					{
-						if (err)
-						{
-							std::cerr << (dotimestamp ? timestamp() : "");
-						}
-						else
-						{
-							std::cout << (dotimestamp ? timestamp() : "");
-						}
-					}
-					if (err)
-					{
-						std::cerr << value;
-					}
-					else
-					{
-						std::cout << value;
-					}
-				}
-			}
 			if (file && logfile.good())
 			{
 				if (first)
@@ -179,6 +139,42 @@ namespace mcpppp
 					logfile << timestamp();
 				}
 				logfile << value;
+			}
+#ifdef GUI
+			// if there are no command line arguments, ignore level print to gui
+			// otherwise, print to command line like cli
+			if (argc < 2)
+			{
+				if (first)
+				{
+					sstream << (dotimestamp ? timestamp() : "");
+				}
+				sstream << value;
+				first = false;
+				return *this;
+			}
+#endif
+			if (cout)
+			{
+				if (first)
+				{
+					if (err)
+					{
+						std::cerr << (dotimestamp ? timestamp() : "");
+					}
+					else
+					{
+						std::cout << (dotimestamp ? timestamp() : "");
+					}
+				}
+				if (err)
+				{
+					std::cerr << value;
+				}
+				else
+				{
+					std::cout << value;
+				}
 			}
 			first = false;
 			return *this;
@@ -193,13 +189,7 @@ namespace mcpppp
 
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
 
-	void checkpackver(const std::filesystem::path& path);
-
 	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip);
-
-	void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa);
-
-	void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa);
 
 	bool convert(const std::filesystem::path& path, const bool& dofsb = true, const bool& dovmt = true, const bool& docim = true);
 

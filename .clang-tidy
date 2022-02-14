@@ -13,6 +13,7 @@ portability-*,\
 readability-*,\
 -readability-else-after-return,\
 -readability-magic-numbers,\
+-readability-isolate-declaration,\
 modernize-*,\
 -modernize-use-trailing-return-type,\
 cppcoreguidelines-*,\
