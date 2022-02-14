@@ -2,11 +2,13 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/supsm/mcpppp/badge)](https://www.codefactor.io/repository/github/supsm/mcpppp)
 [![Codacy](https://app.codacy.com/project/badge/Grade/78de1baf045f4931ab13ccd7664c8d74)](https://www.codacy.com/gh/supsm/MCPPPP/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=supsm/MCPPPP&amp;utm_campaign=Badge_Grade)
 [![Coverity](https://img.shields.io/coverity/scan/mcpppp.svg)](https://scan.coverity.com/projects/mcpppp)
+[![GitHub Build Status](https://img.shields.io/github/workflow/status/supsm/mcpppp/Compile)](https://github.com/supsm/MCPPPP/actions/workflows/compile.yml)  
+[![Latest Release](https://img.shields.io/github/v/release/supsm/mcpppp)](https://github.com/supsm/mcpppp/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/supsm/mcpppp/total?label=Github%20downloads)](https://github.com/supsm/mcpppp/releases)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/V7z6aY71?label=Modrinth%20downloads)](https://modrinth.com/mod/mcpppp)
-[![Curseforge Downloads](https://cf.way2muchnoise.eu/short_565465.svg)](https://www.curseforge.com/minecraft/mc-mods/mcpppp)
+[![Curseforge Downloads](https://cf.way2muchnoise.eu/565465.svg)](https://www.curseforge.com/minecraft/mc-mods/mcpppp)  
 [![License](https://img.shields.io/github/license/supsm/mcpppp)](https://github.com/supsm/mcpppp)
-[![Discord](https://img.shields.io/discord/824116179534348288)](https://discord.gg/waXJDswsaR)  
+[![Discord](https://img.shields.io/discord/824116179534348288?logo=discord)](https://discord.gg/waXJDswsaR)  
 A resource pack converter from Optifine format to newer and alternative formats. This project uses C++ and FLTK as the language and base framework. This might seem odd in the Minecraft community, but allows using 25MB of RAM, where other tools use excessive amounts of resources for no reason (LambdAurora's now discontinued MCPP used 50 MB idle). Note that RAM usage varies depending on what is being converted, FSB and zipped resource packs usually will use more. As a native application, it should also perform conversions faster.  
 
 ### Links  

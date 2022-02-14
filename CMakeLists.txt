@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
 
 project(MCPPPP
 	DESCRIPTION "A resource pack converter from Optifine/MCPatcher formats to other formats"
@@ -7,6 +7,8 @@ project(MCPPPP
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS FALSE)
+
+set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
 
 option(MCPPPP_CLI "Build CLI version of MCPPPP" TRUE)
 option(MCPPPP_GUI "Build GUI version of MCPPPP" TRUE)
