@@ -17,7 +17,7 @@ constexpr int PACK_VER = 8; // pack.mcmeta pack format
 namespace vmt
 {
 	// list of biomes
-	inline std::array<std::string, 98> biomelist =
+	inline const std::array<std::string, 98> biomelist =
 	{
 		"badlands",
 		"badlands_plateau",
@@ -120,8 +120,87 @@ namespace vmt
 	};
 
 
+	// list of healths for each valid mob
+	inline const std::unordered_map<std::string, int> mob_healths =
+	{
+		{ "axolotl", 14 },
+		{ "bat", 6 },
+		{ "bee", 10 },
+		{ "blaze", 20 },
+		{ "cat", 10 },
+		{ "cave_spider", 12 },
+		{ "chicken", 4 },
+		{ "cod", 3 },
+		{ "cow", 10 },
+		{ "creeper", 20 },
+		{ "dolphin", 10 },
+		{ "donkey", 30 },
+		{ "drowned", 20 },
+		{ "elder_guardian", 80 },
+		{ "ender_dragon", 200 },
+		{ "enderman", 40 },
+		{ "endermite", 8 },
+		{ "evoker", 24 },
+		{ "fox", 10 },
+		{ "ghast", 10 },
+		{ "giant", 100 },
+		{ "glow_squid", 10 },
+		{ "goat", 10 },
+		{ "guardian", 30 },
+		{ "hoglin", 40 },
+		{ "horse", 30 },
+		{ "husk", 20 },
+		{ "illusioner", 32 },
+		{ "iron_golem", 100 },
+		{ "llama", 30 },
+		{ "magma_cube", 16 },
+		{ "mooshroom", 10 },
+		{ "mule", 30 },
+		{ "ocelot", 10 },
+		{ "panda", 20 },
+		{ "parrot", 6 },
+		{ "phantom", 20 },
+		{ "pig", 10 },
+		{ "piglin", 16 },
+		{ "piglin_brute", 50 },
+		{ "pillager", 24 },
+		{ "polar_bear", 30 },
+		{ "pufferfish", 3 },
+		{ "rabbit", 3 },
+		{ "ravager", 100 },
+		{ "salmon", 3 },
+		{ "sheep", 8 },
+		{ "shulker", 30 },
+		{ "silverfish", 8 },
+		{ "skeleton", 20 },
+		{ "skeleton_horse", 15 },
+		{ "slime", 16 },
+		{ "snow_golem", 4 },
+		{ "spider", 16 },
+		{ "squid", 10 },
+		{ "stray", 20 },
+		{ "strider", 20 },
+		{ "trader_llama", 30 },
+		{ "tropical_fish", 3 },
+		{ "turtle", 30 },
+		{ "vex", 14 },
+		{ "villager", 20 },
+		{ "vindicator", 24 },
+		{ "wandering_trader", 20 },
+		{ "witch", 26 },
+		{ "wither", 300 },
+		{ "wither_skeleton", 20 },
+		{ "wolf", 20 },
+		{ "zoglin", 40 },
+		{ "zombie", 20 },
+		{ "zombie_horse", 15 },
+		{ "zombie_villager", 20 },
+		{ "zombified_piglin", 20 },
+	};
+
+
 	// list of mobs reselect supports, excluding "special" mobs
-	inline std::array<std::string, 63> mobs =
+	inline const std::array<std::string, 63> normal_mobs =
 	{
 		"bat",
 		"bee",
@@ -274,7 +353,7 @@ namespace vmt
 	};
 
 	// special mobs which have different types
-	inline std::array<special_mob, 11> special_mobs =
+	inline const std::array<special_mob, 11> special_mobs =
 	{ {
 		{
 			"axolotl", "axolotl", "axolotl_variant", special_mob::match_type::name_type,
