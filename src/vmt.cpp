@@ -9,6 +9,7 @@
 #include <map>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <unordered_set>
 #include <vector>
 
@@ -149,10 +150,11 @@ namespace vmt
 		std::vector<std::vector<int>>& weights,
 		std::vector<std::vector<std::string>>& biomes,
 		std::vector<std::vector<std::pair<std::string, std::string>>>& heights,
-		std::vector<double>& minheight,
-		std::vector<double>& maxheight,
+		std::vector<std::string>& minheight,
+		std::vector<std::string>& maxheight,
 		std::vector<std::pair<std::string, match_type>>& names,
 		std::vector<int>& baby,
+		std::vector<std::vector<std::tuple<std::string, std::string, bool>>>& healths,
 		std::vector<std::vector<std::pair<std::string, std::string>>>& times,
 		std::vector<std::array<bool, 4>>& weather)
 	{
@@ -162,7 +164,7 @@ namespace vmt
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		name = c8tomb(entry.path().stem().u8string());
-		std::string temp, option, value, time1, height1, tempnum;
+		std::string temp, option, value, tempnum;
 		std::stringstream ss;
 		std::ifstream fin(entry.path());
 		while (fin)
@@ -217,8 +219,8 @@ namespace vmt
 				heights.resize(static_cast<size_t>(curnum));
 				names.resize(static_cast<size_t>(curnum), std::make_pair("", match_type::normal));
 				weather.resize(static_cast<size_t>(curnum), { false, false, false, false });
-				minheight.resize(static_cast<size_t>(curnum), std::numeric_limits<double>::min());
-				maxheight.resize(static_cast<size_t>(curnum), std::numeric_limits<double>::min());
+				minheight.resize(static_cast<size_t>(curnum));
+				maxheight.resize(static_cast<size_t>(curnum));
 			}
 			if (option.starts_with("textures.") || option.starts_with("skins."))
 			{
@@ -330,7 +332,7 @@ namespace vmt
 					ss >> temp;
 					if (!temp.empty())
 					{
-						height1.clear();
+						std::string height1;
 						for (size_t i = 0; i < temp.size(); i++)
 						{
 							if (temp.at(i) == '-')
@@ -346,25 +348,11 @@ namespace vmt
 			}
 			else if (option.starts_with("minHeight"))
 			{
-				try
-				{
-					minheight.at(static_cast<size_t>(curnum - 1)) = std::stod(value);
-				}
-				catch (const std::invalid_argument& e)
-				{
-					out(5) << "VMT Error: " << e.what() << std::endl << "stod argument: " << value;
-				}
+				minheight.at(static_cast<size_t>(curnum - 1)) = value;
 			}
 			else if (option.starts_with("maxHeight"))
 			{
-				try
-				{
-					maxheight.at(static_cast<size_t>(curnum - 1)) = std::stod(value);
-				}
-				catch (const std::invalid_argument& e)
-				{
-					out(5) << "VMT Error: " << e.what() << std::endl << "stod argument: " << value;
-				}
+				maxheight.at(static_cast<size_t>(curnum - 1)) = value;
 			}
 			else if (option.starts_with("name."))
 			{
@@ -410,7 +398,42 @@ namespace vmt
 			}
 			else if (option.starts_with("health."))
 			{
-				// TODO
+				// clear if already has elements (should not happen!)
+				if (!healths.at(static_cast<size_t>(curnum - 1)).empty())
+				{
+					out(2) << "(warn) VMT: Duplicate predicate healths." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					healths.at(static_cast<size_t>(curnum - 1)).clear();
+				}
+				ss.clear();
+				ss.str(value);
+				while (ss)
+				{
+					temp = "";
+					ss >> temp;
+					if (!temp.empty())
+					{
+						std::string health1;
+						for (size_t i = 0; i < temp.size(); i++)
+						{
+							if (temp.at(i) == '-')
+							{
+								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
+								break;
+							}
+							health1 += temp.at(i);
+						}
+						if (temp.back() == '%')
+						{
+							// remove percent
+							temp.pop_back();
+							healths.at(static_cast<size_t>(curnum - 1)).emplace_back(health1, temp, true);
+						}
+						else
+						{
+							healths.at(static_cast<size_t>(curnum - 1)).emplace_back(health1, temp, false);
+						}
+					}
+				}
 			}
 			else if (option.starts_with("moonPhase."))
 			{
@@ -432,7 +455,7 @@ namespace vmt
 					ss >> temp;
 					if (!temp.empty())
 					{
-						time1.clear();
+						std::string time1;
 						for (size_t i = 0; i < temp.size(); i++)
 						{
 							if (temp.at(i) == '-')
@@ -483,12 +506,13 @@ namespace vmt
 		std::vector<std::vector<int>> weights;
 		std::vector<std::vector<std::string>> biomes;
 		std::vector<std::vector<std::pair<std::string, std::string>>> heights;
-		std::vector<double> minheight, maxheight;
+		std::vector<std::string> minheight, maxheight;
 		std::vector<std::pair<std::string, match_type>> names;
 		std::vector<int> baby;
+		std::vector<std::vector<std::tuple<std::string, std::string, bool>>> healths;
 		std::vector<std::vector<std::pair<std::string, std::string>>> times;
 		std::vector<std::array<bool, 4>> weather;
-		read_prop(newlocation, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, times, weather);
+		read_prop(newlocation, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
 		if (!folderpath.empty())
 		{
 			folderpath.pop_back(); // remove trailing /
@@ -497,7 +521,7 @@ namespace vmt
 		// check that mob is valid
 		int sm_ind = -1;
 		std::string raw_type;
-		if (!std::binary_search(mobs.begin(), mobs.end(), name))
+		if (!std::binary_search(normal_mobs.begin(), normal_mobs.end(), name))
 		{
 			bool found = false;
 			for (int i = 0; i < special_mobs.size(); i++)
@@ -518,6 +542,28 @@ namespace vmt
 				return;
 			}
 		}
+
+		const auto formatdecimal = [&name](std::string& s) -> void
+		{
+			// make sure double is valid
+			try
+			{
+				double d = std::stod(s);
+			}
+			catch (const std::invalid_argument& e)
+			{
+				out(5) << "VMT Error: " << e.what() << " in " << name << std::endl << "stod argument: " << s << std::endl;
+				s = "-6969.42"; // error value, may be useful in identifying what error happened
+				return;
+			}
+
+			// make it a decimal by adding .0 if necessary
+			// std::string::contains in C++23
+			if (s.find('.') == std::string::npos)
+			{
+				s += ".0";
+			}
+		};
 
 		reselect res, defaultstatement = reselect("default", false);
 		std::vector<reselect> conditions;
@@ -551,57 +597,6 @@ namespace vmt
 
 			// order is important! faster things should be evaluated first, to take advantage of short-circuit evaluation
 			// as of 2/9/22, the cost is "regex >>> string comparison > anything else that operates on strings > everything else"
-			if (!heights.at(i).empty())
-			{
-				std::vector<std::string> tempv;
-				std::transform(heights.at(i).begin(), heights.at(i).end(), std::back_inserter(tempv), [&name](std::pair<std::string, std::string> p) -> std::string
-					{
-						// make sure double is valid
-						try
-						{
-							double d = std::stod(p.first);
-							double d2 = std::stod(p.second);
-						}
-						catch (const std::invalid_argument& e)
-						{
-							out(5) << "VMT Error: " << e.what() << std::endl << "stod argument: " << p.first << ", " << p.second << std::endl;
-							return std::string();
-						}
-
-						// make it a decimal
-						// std::string::contains in C++23
-						if (p.first.find('.') == std::string::npos)
-						{
-							p.first += ".0";
-						}
-						if (p.second.find('.') == std::string::npos)
-						{
-							p.second += ".0";
-						}
-						return '(' + name + ".y >= " + p.first + " and " +
-							name + ".y <= " + p.second + ')';
-					});
-				temp_conditions.push_back(reselect::construct_or(tempv));
-			}
-			else if (minheight.at(i) != std::numeric_limits<double>::min() || maxheight.at(i) != std::numeric_limits<double>::min()) // heights.n overrides minHeight, maxHeight
-			{
-				std::stringstream ss;
-				if (minheight.at(i) != std::numeric_limits<double>::min())
-				{
-					ss << std::fixed << std::setprecision(2) <<
-						name << ".y >= " << minheight.at(i);
-				}
-				if (maxheight.at(i) != std::numeric_limits<double>::min())
-				{
-					if (!ss.str().empty())
-					{
-						ss << " and ";
-					}
-					ss << std::fixed << std::setprecision(2) <<
-						name << ".y <= " << maxheight.at(i);
-				}
-				temp_conditions.push_back(reselect(ss.str(), false));
-			}
 			if (baby.at(i) != -1)
 			{
 				if (baby.at(i))
@@ -613,6 +608,69 @@ namespace vmt
 					temp_conditions.push_back(reselect("not " + name + ".is_baby", false));
 				}
 			}
+
+			if (!heights.at(i).empty())
+			{
+				std::vector<std::string> tempv;
+				std::transform(heights.at(i).begin(), heights.at(i).end(), std::back_inserter(tempv), [&name, &formatdecimal](std::pair<std::string, std::string> p) -> std::string
+					{
+						formatdecimal(p.first);
+						formatdecimal(p.second);
+						return '(' + name + ".y >= " + p.first + " and " +
+							name + ".y <= " + p.second + ')';
+					});
+				temp_conditions.push_back(reselect::construct_or(tempv));
+			}
+			// heights.n overrides minHeight, maxHeight
+			// valid if either minheight or maxheight is set
+			else if (!minheight.at(i).empty() || !maxheight.at(i).empty())
+			{
+				std::string s, cur_minheight = minheight.at(i), cur_maxheight = maxheight.at(i);
+				formatdecimal(cur_minheight);
+				formatdecimal(cur_maxheight);
+				if (!minheight.at(i).empty())
+				{
+					s += name + ".y >= " + cur_minheight;
+				}
+				if (!maxheight.at(i).empty())
+				{
+					if (!s.empty())
+					{
+						s += " and ";
+					}
+					s += name + ".y <= " + cur_maxheight;
+				}
+				temp_conditions.push_back(reselect(s, false));
+			}
+
+			if (!healths.at(i).empty())
+			{
+				std::vector<std::string> tempv;
+				std::transform(healths.at(i).begin(), healths.at(i).end(), std::back_inserter(tempv), [&name, &formatdecimal](const std::tuple<std::string, std::string, bool>& t) -> std::string
+					{
+						// for readability
+						std::string lower = std::get<0>(t), upper = std::get<1>(t);
+						const bool percent = std::get<2>(t);
+
+						formatdecimal(lower);
+						formatdecimal(upper);
+						if (percent) // if percent
+						{
+							// TODO: replace with actual max health once it is implemented
+							std::string maxhealth = std::to_string(mob_healths.at(name));
+							formatdecimal(maxhealth);
+							return '(' + name + ".health * 100.0 / " + maxhealth + " >= " + lower + " and " +
+								name + ".health * 100 / " + maxhealth + " <= " + upper + ')';
+						}
+						else // if value
+						{
+							return '(' + name + ".health >= " + lower + " and " +
+								name + ".health <= " + upper + ')';
+						}
+					});
+				temp_conditions.push_back(reselect::construct_or(tempv));
+			}
+
 			if (!biomes.at(i).empty())
 			{
 				std::vector<std::string> tempv;
@@ -622,6 +680,7 @@ namespace vmt
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
 			}
+
 			if (!names.at(i).first.empty())
 			{
 				std::string condition = name + ".has_name and ";
@@ -639,6 +698,7 @@ namespace vmt
 				}
 				temp_conditions.push_back(reselect(condition, false));
 			}
+
 
 			if (temp_conditions.empty())
 			{
@@ -671,7 +731,7 @@ namespace vmt
 		{
 			const special_mob s = special_mobs.at(sm_ind);
 			const std::string type = s.get_typename(raw_type);
-			s_mobs[name].push_back({ type, s.reselect_func, res });
+			s_mobs.at(name).push_back({ type, s.reselect_func, res });
 		}
 	}
 
