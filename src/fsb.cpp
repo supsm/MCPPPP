@@ -148,7 +148,7 @@ namespace fsb
 
 	static constexpr void checkError(const unsigned int& i)
 	{
-		if (i)
+		if (i != 0)
 		{
 			out(5) << "FSB: png error: " << lodepng_error_text(i) << std::endl;
 		}

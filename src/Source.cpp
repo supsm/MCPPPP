@@ -186,7 +186,7 @@ try
 		{
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
-				mcpppp::entries.push_back(std::make_pair(true, entry));
+				mcpppp::entries.emplace_back(true, entry);
 #ifdef GUI
 				mcpppp::addpack(entry.path().filename().u8string(), true);
 #endif
