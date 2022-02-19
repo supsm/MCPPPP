@@ -799,7 +799,7 @@ namespace mcpppp
 			try
 			{
 				int temp = j.get<int>();
-				if (static_cast<bool>(item.min) && static_cast<bool>(item.max) && (temp < item.min || temp > item.max))
+				if (item.min != 0 && item.max != 0 && (temp < item.min || temp > item.max))
 				{
 					out(5) << "Not a valid value for " << option << ": " << temp << "; Expected integer between " << item.min << " and " << item.max << std::endl;
 				}
@@ -914,7 +914,7 @@ namespace mcpppp
 		// default one also has -v, which we are using as verbose
 		parser.add_argument("--version")
 			.help("prints version information and exits")
-			.action([&](const auto&)
+			.action([&](const auto& a)
 				{
 					std::cout << "MCPPPP " << VERSION;
 					std::exit(0);

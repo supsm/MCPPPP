@@ -22,9 +22,6 @@ using mcpppp::out;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
-// temporary thing so i can compile
-#define VMT ""
-
 namespace vmt
 {
 	static std::unordered_set<std::string> png_names;
@@ -523,14 +520,13 @@ namespace vmt
 		std::string raw_type;
 		if (!std::binary_search(normal_mobs.begin(), normal_mobs.end(), name))
 		{
-			bool found = false;
 			for (int i = 0; i < special_mobs.size(); i++)
 			{
-				if (special_mobs[i] == std::make_pair(name, c8tomb(folderpath)))
+				if (special_mobs.at(i) == std::make_pair(name, c8tomb(folderpath)))
 				{
 					// if matches, set index and change name
 					sm_ind = i;
-					const auto p = special_mobs[i].split(name);
+					const auto p = special_mobs.at(i).split(name);
 					name = p.first;
 					raw_type = p.second;
 					break;
@@ -548,7 +544,7 @@ namespace vmt
 			// make sure double is valid
 			try
 			{
-				double d = std::stod(s);
+				std::stod(s);
 			}
 			catch (const std::invalid_argument& e)
 			{
@@ -599,13 +595,13 @@ namespace vmt
 			// as of 2/9/22, the cost is "regex >>> string comparison > anything else that operates on strings > everything else"
 			if (baby.at(i) != -1)
 			{
-				if (baby.at(i))
+				if (static_cast<bool>(baby.at(i)))
 				{
-					temp_conditions.push_back(reselect(name + ".is_baby", false));
+					temp_conditions.emplace_back(name + ".is_baby", false);
 				}
 				else
 				{
-					temp_conditions.push_back(reselect("not " + name + ".is_baby", false));
+					temp_conditions.emplace_back("not " + name + ".is_baby", false);
 				}
 			}
 
@@ -640,7 +636,7 @@ namespace vmt
 					}
 					s += name + ".y <= " + cur_maxheight;
 				}
-				temp_conditions.push_back(reselect(s, false));
+				temp_conditions.emplace_back(s, false);
 			}
 
 			if (!healths.at(i).empty())
@@ -696,7 +692,7 @@ namespace vmt
 					condition += name + ".name.lowercase.matches(\"" + mcpppp::lowercase(names.at(i).first) + "\")";
 					break;
 				}
-				temp_conditions.push_back(reselect(condition, false));
+				temp_conditions.emplace_back(condition, false);
 			}
 
 

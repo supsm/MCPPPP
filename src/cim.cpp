@@ -199,7 +199,7 @@ namespace cim
 				}
 				else
 				{
-					texture = "mcpppp:item/" + texture;
+					texture.insert(0, "mcpppp:item/");
 				}
 			}
 			else if (option.starts_with("texture."))
@@ -324,7 +324,7 @@ namespace cim
 					// std::string::contains in C++23
 					if (temp.find(':') == std::string::npos)
 					{
-						temp = "minecraft:" + temp;
+						temp.insert(0, "minecraft:");
 					}
 					enchantments.push_back(temp);
 				}
@@ -407,7 +407,7 @@ namespace cim
 							break;
 						}
 					}
-					temp = std::string("/") + (insensitive ? "(?i)" : "") + temp + "/";
+					temp = std::string("/").append(insensitive ? "(?i)" : "").append(temp).append("/");
 				}
 				else if (temp.starts_with("pattern:") || temp.starts_with("iregex:"))
 				{
@@ -420,7 +420,7 @@ namespace cim
 							break;
 						}
 					}
-					temp = std::string("/") + (insensitive ? "(?i)" : "") + mcpppp::oftoregex(temp) + "/";
+					temp = std::string("/").append(insensitive ? "(?i)" : "").append(mcpppp::oftoregex(temp)).append("/");
 				}
 				if (mcpppp::lowercase(option) == "nbt.display.name")
 				{

@@ -111,7 +111,7 @@ public:
 		// increment tab values
 		for (auto it = start_it; it != end_it; it++)
 		{
-			*it++;
+			(*it)++;
 		}
 	}
 
