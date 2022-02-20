@@ -96,6 +96,15 @@ namespace mcpppp
 
 	std::string oftoregex(std::string of);
 
+	// lol
+	inline char* dupstr(const std::string& s)
+	{
+		// add one for null character
+		char* c = new char[s.size() + 1];
+		std::copy_n(s.begin(), s.size() + 1, c);
+		return c;
+	}
+
 	/*// I love these new concept things
 	template<typename T>
 	concept outputtable = requires(T a)
@@ -111,14 +120,6 @@ namespace mcpppp
 		short level;
 		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept
 			: cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
-		// lol
-		static char* dupstr(const std::string& s)
-		{
-			// add one for null character
-			char* c = new char[s.size() + 1];
-			strncpy(c, s.c_str(), s.size() + 1);
-			return c;
-		}
 #ifdef GUI
 		static void print(void* v);
 #endif

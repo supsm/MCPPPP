@@ -725,21 +725,26 @@ namespace mcpppp
 
 		if (packver != -1)
 		{
-			std::stringstream ss;
-			ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
-				<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
 			// output it again since it doesn't like \n or something
 			out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
 				<< "Version found : " << packver << std::endl
 				<< "Latest version : " << PACK_VER << std::endl;
 #ifdef GUI
+			char* c;
+			{
+				std::stringstream ss;
+				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
+					<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
+				c = dupstr(ss.str());
+			}
 			wait_close = true;
 			const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
-			Fl::awake(alert, const_cast<char*>(ss.str().c_str()));
+			Fl::awake(alert, c);
 			while (wait_close)
 			{
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
+			delete[] c;
 #endif
 		}
 
