@@ -12,6 +12,7 @@ constexpr int PACK_VER = 8; // pack.mcmeta pack format
 #include <functional>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace vmt
