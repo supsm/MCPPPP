@@ -33,54 +33,30 @@ jobs:
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: rm bin/*windows* ; mkdir artifacts; cp build/bin/Release/* artifacts/
+      run: mkdir artifacts; cp build/bin/Release/* artifacts/
       shell: powershell
     - name: copy files (linux)
       if: ${{ runner.os == 'Linux' }}
-      run: rm bin/*linux* && mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.so artifacts/
+      run: mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.so artifacts/
     - name: copy files (mac)
       if: ${{ runner.os == 'macOs' }}
-      run: rm bin/*mac* && mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.dylib artifacts/
-
-    - name: copy files again
-      run: cp artifacts/* bin/
+      run: mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.dylib artifacts/
 
     - name: rename files (windows)
       if: ${{ runner.os == 'Windows' }}
-      run: mv bin/MCPPPP-gui.exe bin/MCPPPP-windows.exe ; mv bin/MCPPPP-cli.exe bin/MCPPPP-windows-cli.exe
+      run: mv artifacts/MCPPPP-gui.exe artifacts/MCPPPP-windows.exe ; mv artifacts/MCPPPP-cli.exe artifacts/MCPPPP-windows-cli.exe
       shell: powershell
-    - name: add and commit (windows)
-      uses: EndBug/add-and-commit@v7
-      if: ${{ runner.os == 'Windows' }}
-      with:
-        add: '["bin/*windows*", "bin/mcpppp.dll"]'
-        message: 'add windows binaries'
-        push: true
 
     - name: rename files (linux)
       if: ${{ runner.os == 'Linux' }}
-      run: mv bin/MCPPPP-gui bin/MCPPPP-linux && mv bin/MCPPPP-cli bin/MCPPPP-linux-cli
-    - name: add and commit (linux)
-      if: ${{ runner.os == 'Linux' }}
-      uses: EndBug/add-and-commit@v7
-      with:
-        add: '["bin/*linux*", "bin/libmcpppp.so"]'
-        message: 'add linux binaries'
-        push: true
+      run: mv artifacts/MCPPPP-gui artifacts/MCPPPP-linux && mv artifacts/MCPPPP-cli artifacts/MCPPPP-linux-cli
 
     - name: rename files (mac)
       if: ${{ runner.os == 'macOs' }}
-      run: mv bin/MCPPPP-gui bin/MCPPPP-mac && mv bin/MCPPPP-cli bin/MCPPPP-mac-cli
+      run: mv artifacts/MCPPPP-gui artifacts/MCPPPP-mac && mv artifacts/MCPPPP-cli artifacts/MCPPPP-mac-cli
     - name: compress files (mac only)
       if: ${{ runner.os == 'macOs' }}
-      run: cd bin && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli && rm MCPPPP-mac && rm MCPPPP-mac-cli
-    - name: add and commit (mac)
-      if: ${{ runner.os == 'macOs' }}
-      uses: EndBug/add-and-commit@v7
-      with:
-        add: '["bin/*mac*", "bin/libmcpppp.dylib"]'
-        message: 'add mac binaries'
-        push: true
+      run: cd artifacts && tar -czvf MCPPPP-mac.tar.gz MCPPPP-mac && tar -czvf MCPPPP-mac-cli.tar.gz MCPPPP-mac-cli && rm MCPPPP-mac && rm MCPPPP-mac-cli
 
     - name: capture build artifacts
       uses: actions/upload-artifact@v2

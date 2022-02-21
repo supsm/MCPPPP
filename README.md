@@ -26,12 +26,13 @@ Some websites have been stealing this project (you'll know what I mean if you se
 ## TLDR
 **Windows**: download `MCPPPP-windows.exe` from releases and double click on it.  
 **Mac**: download `MCPPPP-mac.tar.gz` from releases and double click on it. A file named `MCPPPP-mac` should appear in the same location. Double click on it.  
-**Linux**: download `MCPPPP-linux` (no gui) or `MCPPPP-linux-gui`. Make it executable and run it.  
+**Linux**: download `MCPPPP-linux-cli` (no gui) or `MCPPPP-linux` (has gui). Make it executable and run it.  
 
 ## Use
-Newly compiled binaries for linux, windows, and mac can be found in the repo in the `bin` directory. They may not be stable, and may not contain things from the latest commit. However, these are guaranteed to not immediately crash or have some obvious error. I will add releases when I feel it is stable enough.  
-`MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux-gui` will contain a gui.
-`MCPPPP-linux`, `MCPPPP-windows-cli`, and `MCPPPP-mac-cli` do not contain a gui. There is additional information below (Section **CLI**)  
+Newly compiled binaries for linux, windows, and mac can be found as build artifacts. Note that they may not be stable and may not work properly. I will add releases when I feel it is stable enough.  
+To access build artifacts, head to the [compile](https://github.com/supsm/MCPPPP/actions/workflows/compile.yml) page, click on the top result, then scroll down to artifacts. Download the artifact corresponding to your system, then unzip it.  
+`MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux` will contain a gui.
+`MCPPPP-windows-cli`, `MCPPPP-mac-cli.tar.gz`, and `MCPPPP-linux-cli` do not contain a gui. There is additional information below (Section **CLI**)  
   
 If a folder already contains the output directories (such as `assets/fabricskyboxes`), it will be skipped. If you want to re-convert this pack, delete the directory. MCPPPP will try to be as least invasive as possible, and will only modify these folders.  
 More detailed instructions below  
