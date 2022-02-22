@@ -14,11 +14,11 @@ namespace mcpppp
 {
 	inline bool dofsb = true, dovmt = true, docim = true, running = false;
 	inline int numbuttons = 0;
-	inline std::set<std::u8string> deletedpaths;
+	inline std::set<std::filesystem::path> deletedpaths;
 
 	void guirun();
 
-	void addpack(const std::u8string& name, bool selected);
+	void addpack(const std::filesystem::path& path, bool selected);
 
 	void updatepaths();
 
@@ -28,7 +28,7 @@ namespace mcpppp
 
 	void addpaths();
 
-	void addpath(const std::u8string& name);
+	void addpath(const std::filesystem::path& path);
 
 #ifdef _WIN32
 	std::string winfilebrowser();

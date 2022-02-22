@@ -37,7 +37,7 @@ namespace mcpppp
 	inline std::ofstream logfile("mcpppp-log.txt");
 	static std::string logfilename = "mcpppp-log.txt";
 
-	inline std::set<std::u8string> paths = {};
+	inline std::set<std::filesystem::path> paths = {};
 	inline nlohmann::ordered_json config;
 	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 

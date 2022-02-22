@@ -71,7 +71,7 @@ namespace vmt
 	// @param entry  actual png file to convert
 	static void png(const std::u8string& path, const bool& optifine, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
-		const auto p = separate(c8tomb(entry.path().filename().stem().u8string()));
+		const auto p = separate(c8tomb(entry.path().filename().stem().generic_u8string()));
 		const std::string curname = p.first;
 		// current name is new, look for all textures
 		if (p.second != -1 && !png_names.contains(curname))
@@ -132,7 +132,7 @@ namespace vmt
 
 			if (!png_filenames.contains((folderpath / entry.path().filename()).generic_u8string()))
 			{
-				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / entry.path().filename().u8string());
+				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / entry.path().filename().generic_u8string());
 				png_filenames.insert((folderpath / entry.path().filename()).generic_u8string());
 			}
 		}
@@ -159,8 +159,8 @@ namespace vmt
 		// TODO: there's probably a better way to do this (folderpath)
 		folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-		name = c8tomb(entry.path().stem().u8string());
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().generic_u8string().size()), folderpath.end());
+		name = c8tomb(entry.path().stem().generic_u8string());
 		std::string temp, option, value, tempnum;
 		std::stringstream ss;
 		std::ifstream fin(entry.path());
@@ -736,7 +736,7 @@ namespace vmt
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), u8"assets/vmt/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/vmt/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -747,7 +747,7 @@ namespace vmt
 				return { checkresults::alrfound, false, false };
 			}
 		}
-		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/random/entity/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/random/entity/", zip))
 		{
 			if (reconverting)
 			{
@@ -758,7 +758,7 @@ namespace vmt
 				return { checkresults::valid, true, true };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/mob/", zip))
+		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -769,7 +769,7 @@ namespace vmt
 				return { checkresults::valid, true, false };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/mcpatcher/mob/", zip))
+		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -802,7 +802,7 @@ namespace vmt
 		{
 			if (entry.path().extension() == ".png")
 			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
@@ -816,7 +816,7 @@ namespace vmt
 		{
 			if (entry.path().extension() == ".properties")
 			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
 			}
 			if (entry.path().filename().extension() == ".properties")
 			{

@@ -79,16 +79,16 @@ void reload(Fl_Button* o, void* v)
 	pad->hide();
 	pad->deactivate();
 	ui->scroll->end();
-	for (const std::u8string& path : paths)
+	for (const std::filesystem::path& path : paths)
 	{
-		if (std::filesystem::is_directory(std::filesystem::path(path)))
+		if (std::filesystem::is_directory(path))
 		{
-			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(path)))
+			for (const auto& entry : std::filesystem::directory_iterator(path))
 			{
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
 					entries.push_back(std::make_pair(true, entry));
-					mcpppp::addpack(entry.path().filename().u8string(), true);
+					mcpppp::addpack(entry.path(), true);
 				}
 			}
 		}
@@ -107,14 +107,17 @@ void editpath(Fl_Input* o, void* v)
 	while (str.find(" // ") != std::string::npos)
 	{
 		const size_t i = str.find(" // ");
-		paths.insert(std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
-		deletedpaths.erase(std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i)));
+		const std::u8string temppath = std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i));
+		const std::filesystem::path path = std::filesystem::canonical(temppath);
+		paths.insert(path);
+		deletedpaths.erase(path);
 		str.erase(str.begin(), str.begin() + static_cast<std::string::difference_type>(i + 4));
 	}
 	if (!str.empty())
 	{
-		paths.insert(mbtoc8(str));
-		deletedpaths.erase(mbtoc8(str));
+		const std::filesystem::path path = std::filesystem::canonical(mbtoc8(str));
+		paths.insert(path);
+		deletedpaths.erase(path);
 	}
 	mcpppp::addpaths();
 	mcpppp::updatepathconfig();
@@ -123,18 +126,19 @@ void editpath(Fl_Input* o, void* v)
 // callback for "Add" button in "Edit Paths"
 void addrespath(Fl_Button* o, void* v)
 {
-	std::u8string str;
+	std::filesystem::path path;
 #ifdef _WIN32
-	str = mbtoc8(mcpppp::winfilebrowser());
+	path = mbtoc8(mcpppp::winfilebrowser());
 #else
 	std::unique_ptr<Fl_Native_File_Chooser> chooser = std::make_unique<Fl_Native_File_Chooser>(Fl_Native_File_Chooser::BROWSE_DIRECTORY); // browse directory
 	chooser->show();
-	str = mbtoc8(chooser->filename());
+	path = mbtoc8(chooser->filename());
 #endif
-	if (!str.empty() && !paths.contains(str))
+	path = std::filesystem::canonical(path);
+	if (!path.empty() && !paths.contains(path))
 	{
-		mcpppp::addpath(str);
-		deletedpaths.erase(str);
+		mcpppp::addpath(path);
+		deletedpaths.erase(path);
 		mcpppp::updatepaths();
 		mcpppp::updatepathconfig();
 		ui->edit_paths->redraw();
@@ -152,8 +156,10 @@ void deleterespath(Fl_Button* o, void* v)
 	std::u8string s = mbtoc8(selectedwidget->label());
 	// erase spaces used for padding
 	s.erase(s.begin(), s.begin() + 4);
-	paths.erase(s);
-	deletedpaths.insert(s);
+	std::filesystem::path path = std::filesystem::canonical(s);
+
+	paths.erase(path);
+	deletedpaths.insert(path);
 	selectedwidget.reset();
 	mcpppp::addpaths();
 	mcpppp::updatepaths();
@@ -282,7 +288,7 @@ void selectall(Fl_Check_Button* o, void* v)
 	pad.release();
 	for (auto& entry : entries)
 	{
-		mcpppp::addpack(entry.second.path().filename().u8string(), static_cast<bool>(o->value()));
+		mcpppp::addpack(entry.second.path(), static_cast<bool>(o->value()));
 		entry.first = static_cast<bool>(o->value());
 	}
 	ui->scroll->redraw();

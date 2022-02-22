@@ -26,11 +26,11 @@ namespace cim
 
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().generic_u8string().size()), folderpath.end());
 		if (entry.path().extension() == ".png")
 		{
 			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/mcpppp/textures/item/" + folderpath));
-			std::u8string filename = entry.path().filename().u8string();
+			std::u8string filename = entry.path().filename().generic_u8string();
 			mcpppp::findreplace(filename, u8" ", u8"_");
 			copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/textures/item/" + folderpath + filename));
 		}
@@ -111,7 +111,7 @@ namespace cim
 				}
 			}
 			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/mcpppp/models/item/" + folderpath));
-			std::u8string filename = entry.path().filename().u8string();
+			std::u8string filename = entry.path().filename().generic_u8string();
 			mcpppp::findreplace(filename, u8" ", u8"_");
 			std::ofstream fout(std::filesystem::path(path + u8"/assets/mcpppp/models/item/" + folderpath + filename));
 			fout << j.dump(1, '\t') << std::endl;
@@ -124,7 +124,7 @@ namespace cim
 	{
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().generic_u8string().size()), folderpath.end());
 		std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 		std::vector<nlohmann::json> nbts, predicates, tempp;
@@ -560,7 +560,7 @@ namespace cim
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/overrides/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/overrides/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -571,7 +571,7 @@ namespace cim
 				return { checkresults::alrfound, false, false };
 			}
 		}
-		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/cit/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -582,7 +582,7 @@ namespace cim
 				return { checkresults::valid, true, false };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/mcpatcher/cit/", zip))
+		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -610,7 +610,7 @@ namespace cim
 		{
 			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties" || entry.path().extension() == ".json")
 			{
-				out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				out(1) << "CIM: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
 			}
 			if (entry.path().extension() == ".json" || entry.path().extension() == ".png")
 			{
