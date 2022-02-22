@@ -157,7 +157,7 @@ namespace fsb
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	static void png(const std::u8string& path, const std::u8string& output, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
-		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
 		// skip if already converted
 		// TODO: might cause some issues with reconverting
 		if (std::filesystem::exists(path + output + filename + u8"_top.png") &&
@@ -167,7 +167,7 @@ namespace fsb
 			std::filesystem::exists(path + output + filename + u8"_west.png") &&
 			std::filesystem::exists(path + output + filename + u8"_east.png"))
 		{
-			out(1) << "FSB: " << c8tomb(entry.path().filename().u8string()) << " already found, skipping reconversion" << std::endl;
+			out(1) << "FSB: " << c8tomb(entry.path().filename().generic_u8string()) << " already found, skipping reconversion" << std::endl;
 			return;
 		}
 		unsigned int w, h;
@@ -176,11 +176,11 @@ namespace fsb
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
-		checkError(lodepng::load_file(buffer, c8tomb(entry.path().u8string())));
+		checkError(lodepng::load_file(buffer, c8tomb(entry.path().generic_u8string())));
 		checkError(lodepng::decode(image, w, h, state, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
 		{
-			out(2) << "(warn) FSB: Wrong dimensions: " << c8tomb(entry.path().u8string()) << std::endl << "will be cropped to proper dimensions" << std::endl;
+			out(2) << "(warn) FSB: Wrong dimensions: " << c8tomb(entry.path().generic_u8string()) << std::endl << "will be cropped to proper dimensions" << std::endl;
 		}
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
@@ -265,7 +265,7 @@ namespace fsb
 	static void prop(const std::u8string& path, const std::filesystem::directory_entry& entry)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
-		const std::u8string name = entry.path().stem().u8string();
+		const std::u8string name = entry.path().stem().generic_u8string();
 		std::string option, value, temp;
 		std::u8string source, u8temp;
 		std::vector<uint8_t> buffer;
@@ -287,16 +287,19 @@ namespace fsb
 				{"blend", {{"type", "add"}}},
 				{"rotation",
 				{
-					{"axis", {0.0, 180.0, 0.0}},
-					{"static", {1.0, 1.0, 1.0}}
+					{"axis", {0.0, -180.0, 0.0}},
+					{"static", {1.0, 1.0, 1.0}},
+					{"rotationSpeed", -1.0} // TODO: find a rotation speed
 				}},
 				{"showStars", false}
 			} }
 		};
+
 		std::ifstream fin(entry.path());
 		while (fin)
 		{
 			std::getline(fin, temp);
+
 			option.clear();
 			value.clear();
 			bool isvalue = false;
@@ -327,6 +330,7 @@ namespace fsb
 			{
 				continue;
 			}
+
 			if (option == "source")
 			{
 				source = mbtoc8(value);
@@ -359,7 +363,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -379,7 +383,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -395,7 +399,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 					return;
 				}
 			}
@@ -425,7 +429,7 @@ namespace fsb
 				}
 				j["conditions"]["biomes"] = biomelist;
 			}
-			if (option == "heights")
+			else if (option == "heights")
 			{
 				std::string height, minheight;
 				std::stringstream heights;
@@ -448,7 +452,7 @@ namespace fsb
 							}
 							catch (const std::invalid_argument& e)
 							{
-								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
 								return;
 							}
 						}
@@ -456,12 +460,13 @@ namespace fsb
 				}
 				j["conditions"]["heights"] = heightlist;
 			}
-			if (option == "transition")
+			else if (option == "transition")
 			{
 				// dunno how this works either lol (will be changed when new ver of fsb is released maybe)
 			}
 		}
 		fin.close();
+
 		if (startfadein == -1 || endfadein == -1 || endfadeout == -1)
 		{
 			// no time specified, assume always active
@@ -475,10 +480,11 @@ namespace fsb
 		{
 			j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
 		}
-		if (source.at(0) == '.' && source.at(1) == '/')
+
+		if (source.starts_with(u8"./"))
 		{
 			source.erase(source.begin());
-			std::u8string origsource = source;
+			const std::u8string origsource = source;
 			u8temp = entry.path().parent_path().generic_u8string();
 			if (u8temp.back() == '/')
 			{
@@ -486,7 +492,7 @@ namespace fsb
 			}
 			u8temp += source;
 			source = u8"fabricskyboxes:sky" + source;
-			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(u8temp + u8".png"));
+			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(u8temp + u8".png"));
 			if (image.exists())
 			{
 				png(path, u8"/assets/fabricskyboxes/sky", image, origsource);
@@ -521,10 +527,11 @@ namespace fsb
 			{
 				sourcefolder.insert(sourcefolder.begin(), '/');
 			}
-			std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(path + (source.front() == '/' ? u8"" : u8"/") + source + u8".png"));
+			const std::filesystem::path image_noext = path + (source.front() == '/' ? u8"" : u8"/") + source;
+			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 			if (image.exists())
 			{
-				png(path, u8"/assets/fabricskyboxes/sky" + sourcefolder, image, image.path().filename().u8string());
+				png(path, u8"/assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().generic_u8string());
 			}
 			else
 			{
@@ -542,12 +549,14 @@ namespace fsb
 			}
 			source = u8"fabricskyboxes:sky" + sourcefolder + sourcefile;
 		}
+
 		j["textures"]["top"] = c8tomb(source) + "_top.png";
 		j["textures"]["bottom"] = c8tomb(source) + "_bottom.png";
 		j["textures"]["north"] = c8tomb(source) + "_north.png";
 		j["textures"]["south"] = c8tomb(source) + "_south.png";
 		j["textures"]["west"] = c8tomb(source) + "_west.png";
 		j["textures"]["east"] = c8tomb(source) + "_east.png";
+
 		if (!std::filesystem::exists(std::filesystem::path(path + u8"/assets/fabricskyboxes/sky/")))
 		{
 			std::filesystem::create_directories(std::filesystem::path(path + u8"/assets/fabricskyboxes/sky"));
@@ -561,7 +570,7 @@ namespace fsb
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.u8string(), u8"assets/fabricskyboxes/sky/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/fabricskyboxes/sky/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -572,7 +581,7 @@ namespace fsb
 				return { checkresults::alrfound, false, false };
 			}
 		}
-		if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/optifine/sky/", zip))
+		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/sky/", zip))
 		{
 			if (reconverting)
 			{
@@ -583,7 +592,7 @@ namespace fsb
 				return { checkresults::valid, true, false };
 			}
 		}
-		else if (mcpppp::findfolder(path.u8string(), u8"assets/minecraft/mcpatcher/sky/", zip))
+		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/sky/", zip))
 		{
 			if (reconverting)
 			{
@@ -609,7 +618,7 @@ namespace fsb
 		{
 			if (entry.path().extension() == ".properties")
 			{
-				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
 				prop(path, entry);
 			}
 		}

@@ -143,16 +143,16 @@ namespace mcpppp
 	}
 
 	// add resourcepack to checklist
-	void addpack(const std::u8string& name, bool selected)
+	void addpack(const std::filesystem::path& path, bool selected)
 	{
 		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
-		fl_text_extents(c8tomb(name.c_str()), dx, dy, w, h);
+		fl_text_extents(c8tomb(path.filename().generic_u8string().c_str()), dx, dy, w, h);
 		w = std::lround(w / getscale());
 		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
-		o->copy_label(c8tomb(name.c_str()));
-		o->copy_tooltip(c8tomb(name.c_str()));
+		o->copy_label(c8tomb(path.filename().generic_u8string().c_str()));
+		o->copy_tooltip(c8tomb(path.generic_u8string().c_str()));
 		o->down_box(FL_DOWN_BOX);
 		o->value(static_cast<int>(selected));
 		o->user_data(temp.get());
@@ -168,9 +168,9 @@ namespace mcpppp
 	void updatepaths()
 	{
 		std::u8string pstr;
-		for (const std::u8string& str : paths)
+		for (const std::filesystem::path& str : paths)
 		{
-			pstr.append(str + u8" // ");
+			pstr.append(str.generic_u8string() + u8" // ");
 		}
 		if (!paths.empty())
 		{
@@ -199,7 +199,7 @@ namespace mcpppp
 	// update config file to include paths
 	void updatepathconfig()
 	{
-		std::set<std::u8string> temppaths = paths;
+		auto temppaths = paths;
 
 		// input stuff from file
 		std::ifstream configfile("mcpppp-config.json");
@@ -249,15 +249,15 @@ namespace mcpppp
 		}
 
 		std::vector<std::string> tempv;
-		std::transform(temppaths.begin(), temppaths.end(), std::back_inserter(tempv), [](const std::u8string& s) -> std::string
+		std::transform(temppaths.begin(), temppaths.end(), std::back_inserter(tempv), [](const std::filesystem::path& path) -> std::string
 			{
-				return c8tomb(s);
+				return c8tomb(path.generic_u8string());
 			});
 		config["gui"]["paths"] = tempv;
 		tempv.clear();
-		std::transform(deletedpaths.begin(), deletedpaths.end(), std::back_inserter(tempv), [](const std::u8string& s) -> std::string
+		std::transform(deletedpaths.begin(), deletedpaths.end(), std::back_inserter(tempv), [](const std::filesystem::path& path) -> std::string
 			{
-				return c8tomb(s);
+				return c8tomb(path.generic_u8string());
 			});
 		config["gui"]["excludepaths"] = tempv;
 
@@ -274,17 +274,17 @@ namespace mcpppp
 		int i = 0, dx = 0, dy = 0, w = 0, h = 0, maxsize = 0;
 		ui->paths->clear();
 		// make sure all boxes are same size
-		for (const std::u8string& str : paths)
+		for (const auto& path : paths)
 		{
-			fl_text_extents(c8tomb((u8"    " + str).c_str()), dx, dy, w, h);
+			fl_text_extents(c8tomb((u8"    " + path.filename().generic_u8string()).c_str()), dx, dy, w, h);
 			w = std::lround(w / getscale());
 			maxsize = std::max(maxsize, w);
 		}
-		for (const std::u8string& str : paths)
+		for (const auto& path : paths)
 		{
 			std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(maxsize, 250), 15);
 			o->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
-			o->copy_label(c8tomb((u8"    " + str).c_str()));
+			o->copy_label(c8tomb((u8"    " + path.generic_u8string()).c_str()));
 			o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
 			ui->paths->add(o.get());
 			o.release();
@@ -294,17 +294,17 @@ namespace mcpppp
 	}
 
 	// add path to "Edit Paths" and paths
-	void addpath(const std::u8string& name)
+	void addpath(const std::filesystem::path& path)
 	{
-		if (paths.contains(name))
+		const std::filesystem::path canonical = std::filesystem::canonical(path);
+		if (paths.contains(canonical))
 		{
 			return;
 		}
 
 		// if name does not end in .minecraft/resourcepacks
-		const size_t find1 = name.rfind(u8".minecraft/resourcepacks");
-		const size_t find2 = name.rfind(u8".minecraft\\resourcepacks");
-		if (!ui->dontshowwarning->value() && (find1 < name.size() - 24 || find1 == std::string::npos) && (find2 < name.size() - 24 || find2 == std::string::npos))
+		const size_t find = canonical.generic_u8string().rfind(u8".minecraft/resourcepacks");
+		if (!ui->dontshowwarning->value() && (find < canonical.generic_u8string().size() - 24 || find == std::string::npos))
 		{
 			// don't let user do anything until they close window lol
 			ui->path_warning->set_modal();
@@ -315,7 +315,7 @@ namespace mcpppp
 			}
 		}
 
-		paths.insert(name);
+		paths.insert(canonical);
 		addpaths();
 	}
 
