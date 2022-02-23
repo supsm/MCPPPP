@@ -489,8 +489,8 @@ namespace Zippy
 
             // ===== Close the current archive, delete the file with input filename (if it exists), rename the temporary and call Open.
             Close();
-            std::filesystem::remove(std::filesystem::path(mbtoc8(filename)));
-            std::filesystem::rename(tempPath.c_str(), std::filesystem::path(mbtoc8(filename)));
+            std::filesystem::remove(mbtoc8(filename));
+            std::filesystem::rename(mbtoc8(tempPath), mbtoc8(filename));
             Open(filename);
 
         }
