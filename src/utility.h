@@ -100,8 +100,8 @@ namespace mcpppp
 	inline char* dupstr(const std::string& s)
 	{
 		// add one for null character
-		char* c = new char[s.size() + 1];
-		std::copy_n(s.begin(), s.size() + 1, c);
+		char* c = new char[s.size() + 1]{};
+		std::copy_n(s.begin(), s.size(), c);
 		return c;
 	}
 
