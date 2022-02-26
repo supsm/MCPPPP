@@ -8,9 +8,15 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
 set(CMAKE_CXX_EXTENSIONS FALSE)
 
-set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
-
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded")
+
+include(CheckIPOSupported)
+check_ipo_supported(RESULT result OUTPUT output)
+if (result)
+	set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+else ()
+	message(WARNING "IPO not supported. Error: ${output}")
+endif()
 
 option(MCPPPP_CLI "Build CLI version of MCPPPP" TRUE)
 option(MCPPPP_GUI "Build GUI version of MCPPPP" TRUE)
