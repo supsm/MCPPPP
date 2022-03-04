@@ -10,6 +10,8 @@
 
 #include <atomic>
 #include <fstream>
+#include <iomanip>
+#include <mutex>
 #include <set>
 #include <sstream>
 #include <variant>
@@ -24,6 +26,10 @@
 #include <direct.h> //zippy wants this
 #endif
 #include "Zippy.hpp"
+
+#define XXH_INLINE_ALL
+#define XXH_NO_STREAM
+#include "xxhash.h"
 
 namespace mcpppp
 {
@@ -70,6 +76,8 @@ namespace mcpppp
 	// vector of things already outputted, to be used when outputlevel is changed
 	// level, text
 	inline std::vector<std::pair<short, std::string>> outputted;
+
+	inline std::mutex output_mutex;
 #endif
 
 	inline std::atomic_bool waitdontoutput = false; // don't output probably since output is being redrawn
@@ -191,6 +199,56 @@ namespace mcpppp
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
 
 	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip);
+
+	template<short hash_size = 64>
+	inline std::string gethex(const std::variant<XXH32_hash_t, XXH64_hash_t, XXH128_hash_t>& rawhash)
+	{
+		static_assert(hash_size <= 128, "Hash size must be <=128");
+
+		std::stringstream ss;
+		ss << std::setfill('0') << std::hex;
+
+		if constexpr (hash_size <= 32)
+		{
+			ss << std::setw(hash_size / 4) << std::get<XXH32_hash_t>(rawhash);
+		}
+		else if constexpr (hash_size <= 64) // 32 < size <= 64
+		{
+			ss << std::setw(hash_size / 4) << std::get<XXH64_hash_t>(rawhash);
+		}
+		else // 64 < size <= 128
+		{
+			const auto rawhashval = std::get<XXH128_hash_t>(rawhash);
+			ss << std::setw(16) << rawhashval.high64 <<
+				std::setw((hash_size - 64) / 4) << rawhashval.low64;
+		}
+
+		return ss.str();
+	}
+
+	// seed will be cast to XXH32_hash_t if hash_size <=32
+	template<short hash_size = 64>
+	inline std::string hash(const void* data, const size_t size, const XXH64_hash_t& seed = 0)
+	{
+		static_assert(hash_size <= 128, "Hash size must be <=128");
+
+		std::variant<XXH32_hash_t, XXH64_hash_t, XXH128_hash_t> rawhash;
+
+		if constexpr (hash_size <= 32)
+		{
+			rawhash = XXH32(data, size, static_cast<XXH32_hash_t>(seed));
+		}
+		else if constexpr (hash_size <= 64) // 32 < size <= 64
+		{
+			rawhash = XXH3_64bits_withSeed(data, size, seed);
+		}
+		else // 64 < size <= 128
+		{
+			rawhash = XXH3_128bits_withSeed(data, size, seed);
+		}
+
+		return gethex<hash_size>(rawhash);
+	}
 
 	bool convert(const std::filesystem::path& path, const bool& dofsb = true, const bool& dovmt = true, const bool& docim = true);
 

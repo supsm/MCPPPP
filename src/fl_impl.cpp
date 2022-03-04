@@ -301,6 +301,7 @@ void updateoutputlevel(Fl_Value_Slider* o, void* v)
 	mcpppp::waitdontoutput = true;
 	mcpppp::outputlevel = ui->outputlevelslider->value();
 	ui->output->clear();
+	mcpppp::output_mutex.lock();
 	for (const auto& p : mcpppp::outputted)
 	{
 		if (p.first >= mcpppp::outputlevel)
@@ -308,6 +309,7 @@ void updateoutputlevel(Fl_Value_Slider* o, void* v)
 			ui->output->add(("@S14@C" + std::to_string(mcpppp::outstream::colors.at(p.first - 1)) + "@." + p.second).c_str());
 		}
 	}
+	mcpppp::output_mutex.unlock();
 	ui->output->bottomline(ui->output->size());
 	mcpppp::waitdontoutput = false;
 	// save outputlevel setting

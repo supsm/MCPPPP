@@ -26,10 +26,6 @@
 #include "convert.h"
 
 #include "microtar.h"
-#define XXH_INLINE_ALL
-#define XXH_NO_STREAM
-#include "xxhash.h"
-
 #include "argparse/argparse.hpp"
 
 #ifdef GUI
@@ -279,7 +275,9 @@ namespace mcpppp
 				{
 					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
 				}
+				output_mutex.lock();
 				outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
+				output_mutex.unlock();
 				sstream.str(std::string());
 				sstream.clear();
 			}
@@ -378,7 +376,7 @@ namespace mcpppp
 		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
 		if (!std::filesystem::is_regular_file(pack_mcmeta))
 		{
-			out(4) << "pack.mcmeta not found; in " << c8tomb(path.filename().generic_u8string()) << std::endl;
+			out(4) << "pack.mcmeta not found; in " << c8tomb(path.filename().u8string()) << std::endl;
 			return -1;
 		}
 		nlohmann::json j;
@@ -393,7 +391,7 @@ namespace mcpppp
 		}
 		catch (const nlohmann::json::exception& e)
 		{
-			out(4) << "Json error while parsing pack.mcmeta from " << c8tomb(path.filename().generic_u8string()) << ":\n" << e.what() << std::endl;
+			out(4) << "Json error while parsing pack.mcmeta from " << c8tomb(path.filename().u8string()) << ":\n" << e.what() << std::endl;
 		}
 		fin.close();
 		return -1;
@@ -408,7 +406,7 @@ namespace mcpppp
 		{
 			mz_zip_archive_file_stat stat;
 			mz_zip_reader_file_stat(&archive, i, &stat);
-			if (std::u8string(mbtoc8(stat.m_filename)).rfind(itemtofind, 0) == 0)
+			if (std::u8string(mbtoc8(stat.m_filename)).starts_with(itemtofind))
 			{
 				found = true;
 				break;
@@ -432,7 +430,7 @@ namespace mcpppp
 
 	static void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 	{
-		out(3) << "Extracting " << c8tomb(path.filename().generic_u8string()) << std::endl;
+		out(3) << "Extracting " << c8tomb(path.filename().u8string()) << std::endl;
 		zipa.Open(c8tomb(path.generic_u8string()));
 		const std::u8string folder = path.stem().generic_u8string();
 		std::filesystem::create_directories(std::filesystem::path(u8"mcpppp-temp/" + folder));
@@ -493,22 +491,9 @@ namespace mcpppp
 		return size;
 	}
 
-	static std::string gethex(const XXH128_hash_t& rawhash)
-	{
-		std::stringstream ss;
-		ss << std::setfill('0') << std::setw(16) << std::hex << rawhash.high64 << rawhash.low64;
-		return ss.str();
-	}
-
-	static std::string hash(const std::vector<char>& v)
-	{
-		const XXH128_hash_t rawhash = XXH3_128bits(v.data(), v.size());
-		return gethex(rawhash);
-	}
-
 	static std::string hash(const std::filesystem::path& path, const bool& zip)
 	{
-		out(3) << "Computing Hash: " << c8tomb(path.filename().generic_u8string()) << std::endl;
+		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
 		if (zip)
 		{
 			const std::uintmax_t filesize = std::filesystem::file_size(path);
@@ -516,7 +501,7 @@ namespace mcpppp
 			std::ifstream fin(path);
 			fin.read(file_contents.data(), filesize);
 			fin.close();
-			return hash(file_contents);
+			return hash<128>(file_contents.data(), file_contents.size());
 		}
 		else
 		{
@@ -545,7 +530,7 @@ namespace mcpppp
 				}
 			}
 			mtar_finalize(&tar);
-			std::string hashvalue = hash(mem.data);
+			std::string hashvalue = hash<128>(mem.data.data(), mem.data.size());
 			mtar_close(&tar);
 			return hashvalue;
 		}
@@ -565,7 +550,7 @@ namespace mcpppp
 		// TODO: Do we really need to delete before reconversion?
 		Zippy::ZipArchive zipa;
 		const std::u8string folder = path.stem().generic_u8string();
-		std::string hashvalue;
+		std::string hashvalue, namehash = hash<64>(c8tomb(path.generic_u8string()).data(), path.generic_u8string().size());
 		std::u8string convert;
 		const auto isvalid = [](const checkinfo& info, const bool& doconversion, const bool& strict = false) -> bool
 		{
@@ -594,19 +579,26 @@ namespace mcpppp
 		// only compute hash if possibly reconverting
 		if (isreconvert(fsb, dofsb) || isreconvert(vmt, dovmt) || isreconvert(cim, docim))
 		{
-			hashvalue = hash(path, zip);
-			if (hashes.contains(c8tomb(path.generic_u8string())) && hashes[c8tomb(path.generic_u8string())] != hashvalue)
+			// no point of calculating hash if we have nothing to compare it to
+			if (hashes.contains(namehash))
 			{
-				out(2) << "Pack appears to have changed: " << c8tomb(path.filename().generic_u8string()) << ", reconverting" << std::endl;
+				hashvalue = hash(path, zip);
+				if (hashes[namehash] != hashvalue)
+				{
+					out(2) << "Pack appears to have changed: " << c8tomb(path.filename().u8string()) << ", reconverting" << std::endl;
+				}
+				else
+				{
+					// don't reconvert if pack hasn't changed
+					reconvert = false;
+				}
 			}
 			else
 			{
-				// don't reconvert if pack hasn't changed
-				// also has the added benefit of not reconverting packs that haven't been previously hashed,
+				// don't reconvert packs that haven't been previously hashed,
 				// which could prevent data loss
 				reconvert = false;
 			}
-
 		}
 
 		// if we aren't reconverting, reconverting result is not valid
@@ -629,24 +621,24 @@ namespace mcpppp
 			switch (fsb.results)
 			{
 			case checkresults::valid:
-				fsb::convert(convert, path.filename().generic_u8string(), fsb);
+				fsb::convert(convert, path.filename().u8string(), fsb);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "FSB: Nothing to convert in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "FSB: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
-				out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "FSB: Reconverting " << c8tomb(path.filename().generic_u8string()) << std::endl;
+					out(3) << "FSB: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/fabricskyboxes"));
-					fsb::convert(convert, path.filename().generic_u8string(), fsb);
+					fsb::convert(convert, path.filename().u8string(), fsb);
 				}
 				else
 				{
-					out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+					out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				}
 				break;
 			}
@@ -656,24 +648,24 @@ namespace mcpppp
 			switch (vmt.results)
 			{
 			case checkresults::valid:
-				vmt::convert(convert, path.filename().generic_u8string(), vmt);
+				vmt::convert(convert, path.filename().u8string(), vmt);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "VMT: Nothing to convert in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "VMT: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
-				out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "VMT: Reconverting " << c8tomb(path.filename().generic_u8string()) << std::endl;
+					out(3) << "VMT: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/varied/"));
-					vmt::convert(convert, path.filename().generic_u8string(), vmt);
+					vmt::convert(convert, path.filename().u8string(), vmt);
 				}
 				else
 				{
-					out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+					out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				}
 				break;
 			}
@@ -683,25 +675,25 @@ namespace mcpppp
 			switch (cim.results)
 			{
 			case checkresults::valid:
-				cim::convert(convert, path.filename().generic_u8string(), cim);
+				cim::convert(convert, path.filename().u8string(), cim);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::alrfound:
-				out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+				out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "CIM: Reconverting " << c8tomb(path.filename().generic_u8string()) << std::endl;
+					out(3) << "CIM: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/mcpppp"));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/overrides"));
-					cim::convert(convert, path.filename().generic_u8string(), cim);
+					cim::convert(convert, path.filename().u8string(), cim);
 				}
 				else
 				{
-					out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().generic_u8string()) << ", skipping" << std::endl;
+					out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
 				}
 				break;
 			}
@@ -719,21 +711,21 @@ namespace mcpppp
 			rezip(folder, zipa);
 		}
 
-		hashvalue = hash(path, zip);
-		hashes[c8tomb(path.generic_u8string())] = hashvalue;
+		hashvalue = hash(namehash, zip);
+		hashes[namehash] = hashvalue;
 		savehashes();
 
 		if (packver != -1)
 		{
 			// output it again since it doesn't like \n or something
-			out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().generic_u8string()) << ". This may cause some resourcepacks to break." << std::endl
+			out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
 				<< "Version found : " << packver << std::endl
 				<< "Latest version : " << PACK_VER << std::endl;
 #ifdef GUI
 			char* c;
 			{
 				std::stringstream ss;
-				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().generic_u8string()) << ". This may cause some resourcepacks to break.\n"
+				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
 					<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
 				c = dupstr(ss.str());
 			}
@@ -867,45 +859,51 @@ namespace mcpppp
 		}
 		else
 		{
-			// convert each element to u8string before inserting
-			std::transform(config["paths"].begin(), config["paths"].end(), std::inserter(paths, paths.begin()), [](const std::string& s) -> std::filesystem::path
+			for (auto it = config["paths"].begin(); it != config["paths"].end(); it++)
+			{
+				// check that path exists, otherwise canonical will fail
+				if (std::filesystem::exists(mbtoc8(*it)))
 				{
-					return std::filesystem::canonical(mbtoc8(s));
-				});
+					paths.insert(std::filesystem::canonical(mbtoc8(*it)));
+				}
+				else
+				{
+					out(4) << "Invalid path: " << *it << std::endl;
+				}
+			}
 		}
 #ifdef GUI
 		if (config.contains("gui"))
 		{
 			if (config["gui"].type() == nlohmann::json::value_t::object)
 			{
-				if (config["gui"].contains("settings"))
+				if (config["gui"].contains("settings") && config["gui"]["settings"].type() == nlohmann::json::value_t::object)
 				{
-					if (config["gui"]["settings"].type() == nlohmann::json::value_t::object)
+					for (const auto& j : config["gui"]["settings"].items())
 					{
-						for (const auto& j : config["gui"]["settings"].items())
+						setting(j.key(), j.value());
+					}
+				}
+				if (config["gui"].contains("paths") && config["gui"]["paths"].type() == nlohmann::json::value_t::array)
+				{
+					for (auto it = config["gui"]["paths"].begin(); it != config["gui"]["paths"].end(); it++)
+					{
+						// check that path exists, otherwise canonical will fail
+						if (std::filesystem::exists(mbtoc8(*it)))
 						{
-							setting(j.key(), j.value());
+							paths.insert(std::filesystem::canonical(mbtoc8(*it)));
+						}
+						else
+						{
+							out(4) << "Invalid path: " << *it << std::endl;
 						}
 					}
 				}
-				if (config["gui"].contains("paths"))
+				if (config["gui"].contains("excludepaths") && config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
 				{
-					if (config["gui"]["paths"].type() == nlohmann::json::value_t::array)
+					for (const std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
 					{
-						std::transform(config["gui"]["paths"].begin(), config["gui"]["paths"].end(), std::inserter(paths, paths.begin()), [](const std::string& s) -> std::filesystem::path
-							{
-								return std::filesystem::canonical(mbtoc8(s));
-							});
-					}
-				}
-				if (config["gui"].contains("excludepaths"))
-				{
-					if (config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
-					{
-						for (const std::string& path : config["gui"]["excludepaths"].get<std::vector<std::string>>())
-						{
-							paths.erase(mbtoc8(path));
-						}
+						paths.erase(mbtoc8(path));
 					}
 				}
 			}
@@ -919,112 +917,108 @@ namespace mcpppp
 		// default one also has -v, which we are using as verbose
 		parser.add_argument("--version")
 			.help("prints version information and exits")
-			.action([&](const auto& a)
-				{
-					std::cout << "MCPPPP " << VERSION;
-					std::exit(0);
-				})
+			.action([&](const auto& a) { std::cout << "MCPPPP " << VERSION; std::exit(0); })
 			.nargs(0)
-					.default_value(false)
-					.implicit_value(true);
+			.default_value(false)
+			.implicit_value(true);
 
 #ifdef GUI
-				parser.add_epilog("If no command line arguments are provided, the normal GUI may be used");
+		parser.add_epilog("If no command line arguments are provided, the normal GUI may be used");
 #else
-				parser.add_epilog("If no command line arguments are provided, the config file may be used. The documentation for that can be found at https://github.com/supsm/MCPPPP/blob/master/CONFIG.md");
+		parser.add_epilog("If no command line arguments are provided, the config file may be used. The documentation for that can be found at https://github.com/supsm/MCPPPP/blob/master/CONFIG.md");
 #endif
 
-				parser.add_argument("-v", "--verbose")
-					.help("Outputs more information (can be used upto 2 times)")
-					.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
-					.nargs(0)
-					.default_value(false)
-					.implicit_value(true)
-					.append();
+		parser.add_argument("-v", "--verbose")
+			.help("Outputs more information (can be used upto 2 times)")
+			.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
+			.nargs(0)
+			.default_value(false)
+			.implicit_value(true)
+			.append();
 
-				parser.add_argument("--pauseOnExit")
-					.help("Wait for enter key to be pressed once execution has been finished")
-					.default_value(std::string(pauseonexit ? "true" : "false"));
-				parser.add_argument("--log")
-					.help("Log file where logs will be stored")
-					.default_value(logfilename);
-				parser.add_argument("--timestamp")
-					.help("Add timestamp to output")
-					.default_value(std::string(dotimestamp ? "true" : "false"));
-				parser.add_argument("--autoDeleteTemp")
-					.help("Automatically delete `mcpppp-temp` folder on startup")
-					.default_value(std::string(autodeletetemp ? "true" : "false"));
-				parser.add_argument("--autoReconvert")
-					.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
-					.default_value(std::string(autoreconvert ? "true" : "false"));
-				parser.add_argument("--fsbTransparent")
-					.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
-					.default_value(std::string(fsbtransparent ? "true" : "false"));
+		parser.add_argument("--pauseOnExit")
+			.help("Wait for enter key to be pressed once execution has been finished")
+			.default_value(std::string(pauseonexit ? "true" : "false"));
+		parser.add_argument("--log")
+			.help("Log file where logs will be stored")
+			.default_value(logfilename);
+		parser.add_argument("--timestamp")
+			.help("Add timestamp to output")
+			.default_value(std::string(dotimestamp ? "true" : "false"));
+		parser.add_argument("--autoDeleteTemp")
+			.help("Automatically delete `mcpppp-temp` folder on startup")
+			.default_value(std::string(autodeletetemp ? "true" : "false"));
+		parser.add_argument("--autoReconvert")
+			.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
+			.default_value(std::string(autoreconvert ? "true" : "false"));
+		parser.add_argument("--fsbTransparent")
+			.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
+			.default_value(std::string(fsbtransparent ? "true" : "false"));
 
-				parser.add_argument("resourcepacks")
-					.help("The resourcepacks to convert")
-					.remaining();
+		parser.add_argument("resourcepacks")
+			.help("The resourcepacks to convert")
+			.remaining();
 
-				try
-				{
-					parser.parse_args(argc, argv);
-				}
-				catch (const std::runtime_error& e)
-				{
-					out(5) << e.what() << std::endl;
-					std::exit(-1);
-				}
+		try
+		{
+			parser.parse_args(argc, argv);
+		}
+		catch (const std::runtime_error& e)
+		{
+			out(5) << e.what() << std::endl;
+			std::exit(-1);
+		}
 
-				const auto truefalse = [](const std::string& str) -> bool
-				{
-					if (lowercase(str) == "true")
+		const auto truefalse = [](const std::string& str) -> bool
+		{
+			if (lowercase(str) == "true")
+			{
+				return true;
+			}
+			else if (lowercase(str) == "false")
+			{
+				return false;
+			}
+			else
+			{
+				out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
+				return false;
+			}
+		};
+
+		pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
+		if (parser.is_used("--log"))
+		{
+			logfilename = parser.get<std::string>("--log");
+			logfile.open(logfilename);
+		}
+		dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
+		autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
+		autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
+		fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
+
+		try
+		{
+			auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
+			resourcepacks.erase(
+				std::remove_if(resourcepacks.begin(), resourcepacks.end(), [](const std::string& s) -> bool
 					{
-						return true;
-					}
-					else if (lowercase(str) == "false")
-					{
-						return false;
-					}
-					else
-					{
-						out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
-						return false;
-					}
-				};
-
-				pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
-				if (parser.is_used("--log"))
-				{
-					logfilename = parser.get<std::string>("--log");
-					logfile.open(logfilename);
-				}
-				dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
-				autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
-				autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
-				fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
-
-				try
-				{
-					auto resourcepacks = parser.get<std::vector<std::string>>("resourcepacks");
-					resourcepacks.erase(
-						std::remove_if(resourcepacks.begin(), resourcepacks.end(), [](const std::string& s) -> bool
-							{
-								if (!std::filesystem::exists(s))
-								{
-									out(5) << "Invalid pack: " << s << std::endl;
-									return true;
-								}
-								return false;
-							}), resourcepacks.end());
-					std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
+						if (!std::filesystem::exists(s))
 						{
-							return std::make_pair(true, std::filesystem::directory_entry(s));
-						});
-				}
-				catch (const std::logic_error& e)
+							out(5) << "Invalid pack: " << s << std::endl;
+							return true;
+						}
+						return false;
+					}), resourcepacks.end());
+			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
 				{
-					out(5) << e.what() << std::endl;
-					std::exit(0);
-				}
+					return std::make_pair(true, std::filesystem::directory_entry(s));
+				});
+		}
+		catch (const std::logic_error& e)
+		{
+			out(5) << e.what() << std::endl;
+			std::exit(0);
+		}
 	}
 }

@@ -87,7 +87,7 @@ namespace mcpppp
 			out(4) << "No valid path found, running from default directory: " << c8tomb(getdefaultpath()) << std::endl;
 			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(getdefaultpath())))
 			{
-				convert(entry, dofsb, dovmt, docim);
+				convert(std::filesystem::canonical(entry), dofsb, dovmt, docim);
 			}
 		}
 		running = false;
@@ -147,11 +147,11 @@ namespace mcpppp
 	{
 		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
-		fl_text_extents(c8tomb(path.filename().generic_u8string().c_str()), dx, dy, w, h);
+		fl_text_extents(c8tomb(path.filename().u8string().c_str()), dx, dy, w, h);
 		w = std::lround(w / getscale());
 		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
-		o->copy_label(c8tomb(path.filename().generic_u8string().c_str()));
+		o->copy_label(c8tomb(path.filename().u8string().c_str()));
 		o->copy_tooltip(c8tomb(path.generic_u8string().c_str()));
 		o->down_box(FL_DOWN_BOX);
 		o->value(static_cast<int>(selected));
@@ -276,7 +276,7 @@ namespace mcpppp
 		// make sure all boxes are same size
 		for (const auto& path : paths)
 		{
-			fl_text_extents(c8tomb((u8"    " + path.filename().generic_u8string()).c_str()), dx, dy, w, h);
+			fl_text_extents(c8tomb((u8"    " + path.filename().u8string()).c_str()), dx, dy, w, h);
 			w = std::lround(w / getscale());
 			maxsize = std::max(maxsize, w);
 		}
