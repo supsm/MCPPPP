@@ -157,7 +157,7 @@ namespace fsb
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	static void png(const std::u8string& path, const std::u8string& output, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
-		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
+		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 		// skip if already converted
 		// TODO: might cause some issues with reconverting
 		if (std::filesystem::exists(path + output + filename + u8"_top.png") &&
@@ -167,7 +167,7 @@ namespace fsb
 			std::filesystem::exists(path + output + filename + u8"_west.png") &&
 			std::filesystem::exists(path + output + filename + u8"_east.png"))
 		{
-			out(1) << "FSB: " << c8tomb(entry.path().filename().generic_u8string()) << " already found, skipping reconversion" << std::endl;
+			out(1) << "FSB: " << c8tomb(entry.path().filename().u8string()) << " already found, skipping reconversion" << std::endl;
 			return;
 		}
 		unsigned int w, h;
@@ -531,7 +531,7 @@ namespace fsb
 			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 			if (image.exists())
 			{
-				png(path, u8"/assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().generic_u8string());
+				png(path, u8"/assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
 			}
 			else
 			{
@@ -618,9 +618,9 @@ namespace fsb
 		{
 			if (entry.path().extension() == ".properties")
 			{
-				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
+				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 				prop(path, entry);
 			}
 		}
 	}
-};
+}

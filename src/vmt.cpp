@@ -132,7 +132,7 @@ namespace vmt
 
 			if (!png_filenames.contains((folderpath / entry.path().filename()).generic_u8string()))
 			{
-				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / entry.path().filename().generic_u8string());
+				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / entry.path().filename().u8string());
 				png_filenames.insert((folderpath / entry.path().filename()).generic_u8string());
 			}
 		}
@@ -159,7 +159,7 @@ namespace vmt
 		// TODO: there's probably a better way to do this (folderpath)
 		folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
-		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().generic_u8string().size()), folderpath.end());
+		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		name = c8tomb(entry.path().stem().generic_u8string());
 		std::string temp, option, value, tempnum;
 		std::stringstream ss;
@@ -218,6 +218,7 @@ namespace vmt
 				weather.resize(static_cast<size_t>(curnum), { false, false, false, false });
 				minheight.resize(static_cast<size_t>(curnum));
 				maxheight.resize(static_cast<size_t>(curnum));
+				healths.resize(static_cast<size_t>(curnum));
 			}
 			if (option.starts_with("textures.") || option.starts_with("skins."))
 			{
@@ -727,7 +728,7 @@ namespace vmt
 		{
 			const special_mob s = special_mobs.at(sm_ind);
 			const std::string type = s.get_typename(raw_type);
-			s_mobs.at(name).push_back({ type, s.reselect_func, res });
+			s_mobs[name].push_back({ type, s.reselect_func, res });
 		}
 	}
 
@@ -802,7 +803,7 @@ namespace vmt
 		{
 			if (entry.path().extension() == ".png")
 			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
@@ -816,32 +817,33 @@ namespace vmt
 		{
 			if (entry.path().extension() == ".properties")
 			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().generic_u8string()) << std::endl;
-			}
-			if (entry.path().filename().extension() == ".properties")
-			{
+				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				if (entry.path().filename().u8string() == u8"axolotl_cyan.properties")
+				{
+					DebugBreak();
+				}
 				prop(path, info.newlocation, entry);
 			}
-		}
 
-		// output special mob reselect files
-		for (const auto& p : s_mobs)
-		{
-			reselect res;
-			std::vector<std::string> conditions;
-			std::vector<reselect> statements;
-			for (const auto& m : p.second)
+			// output special mob reselect files
+			for (const auto& p : s_mobs)
 			{
-				conditions.push_back(p.first + '.' + m.reselect_func + " == \"" + m.type + '\"');
-				statements.push_back(m.data);
+				reselect res;
+				std::vector<std::string> conditions;
+				std::vector<reselect> statements;
+				for (const auto& m : p.second)
+				{
+					conditions.push_back(p.first + '.' + m.reselect_func + " == \"" + m.type + '\"');
+					statements.push_back(m.data);
+				}
+
+				res.add_if(conditions, statements);
+
+				std::filesystem::create_directories(path + u8"/assets/vmt/");
+				std::ofstream fout(std::filesystem::path(path + u8"/assets/vmt/" + mbtoc8(p.first) + u8".reselect"));
+				fout << res.get_string() << std::endl;
+				fout.close();
 			}
-
-			res.add_if(conditions, statements);
-
-			std::filesystem::create_directories(path + u8"/assets/vmt/");
-			std::ofstream fout(std::filesystem::path(path + u8"/assets/vmt/" + mbtoc8(p.first) + u8".reselect"));
-			fout << res.get_string() << std::endl;
-			fout.close();
 		}
 	}
-};
+}
