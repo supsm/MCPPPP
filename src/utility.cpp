@@ -711,7 +711,7 @@ namespace mcpppp
 			rezip(folder, zipa);
 		}
 
-		hashvalue = hash(namehash, zip);
+		hashvalue = hash(path, zip);
 		hashes[namehash] = hashvalue;
 		savehashes();
 

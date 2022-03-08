@@ -64,13 +64,20 @@ namespace vmt
 		}
 	}
 
+	static std::string getfilenamehash(const std::filesystem::path& path)
+	{
+		const std::u8string u8s = std::filesystem::canonical(path).generic_u8string();
+		return mcpppp::hash<32>(u8s.data(), u8s.size());
+	}
+
 	// moves vmt pngs to new location
 	// @param path  path of resourcepack being converted
 	// @param optifine  whether to use optifine locations (no = mcpatcher)
 	// @param newlocation  whether to use new optifine location
 	// @param entry  actual png file to convert
-	static void png(const std::u8string& path, const bool& optifine, const bool& newlocation, const std::filesystem::directory_entry& entry)
+	static void png(const std::filesystem::path& path, const bool& optifine, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
+		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(getfilenamehash(path));
 		const auto p = separate(c8tomb(entry.path().filename().stem().generic_u8string()));
 		const std::string curname = p.first;
 		// current name is new, look for all textures
@@ -100,9 +107,9 @@ namespace vmt
 					break;
 				}
 
-				mcpppp::copy(texture, std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / curfilename);
+				mcpppp::copy(texture, path / u8"assets" / mcnamespace / u8"vmt" / folderpath / curfilename);
 
-				paths.push_back(static_cast<reselect>(c8tomb((u8"mcpppp:vmt/" / folderpath / curfilename).generic_u8string())));
+				paths.push_back(static_cast<reselect>(c8tomb(((mcnamespace + u8":vmt") / folderpath / curfilename).generic_u8string())));
 
 				png_filenames.insert((folderpath / curfilename).generic_u8string());
 			}
@@ -114,7 +121,7 @@ namespace vmt
 				reselect res;
 				res.add_random(curname, paths);
 				const std::string str = res.get_string();
-				std::ofstream fout(std::filesystem::path(path) / "assets/vmt" / (curname + ".reselect"));
+				std::ofstream fout(path / "assets/vmt" / (curname + ".reselect"));
 				fout.write(str.c_str(), str.size());
 				fout.close();
 			}
@@ -132,7 +139,7 @@ namespace vmt
 
 			if (!png_filenames.contains((folderpath / entry.path().filename()).generic_u8string()))
 			{
-				mcpppp::copy(entry.path(), std::filesystem::path(path + u8"/assets/mcpppp/vmt/") / folderpath / entry.path().filename().u8string());
+				mcpppp::copy(entry.path(), path / u8"assets" / mcnamespace / u8"vmt" / folderpath / entry.path().filename().u8string());
 				png_filenames.insert((folderpath / entry.path().filename()).generic_u8string());
 			}
 		}
@@ -140,7 +147,7 @@ namespace vmt
 
 	enum class match_type { normal, regex, iregex };
 
-	static void read_prop(const bool& newlocation, const std::filesystem::directory_entry& entry,
+	static void read_prop(const std::filesystem::path& path, const bool& newlocation, const std::filesystem::directory_entry& entry,
 		std::string& name,
 		std::u8string& folderpath,
 		std::vector<std::vector<std::string>>& textures,
@@ -249,7 +256,7 @@ namespace vmt
 						}
 						else
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back(c8tomb(u8"mcpppp:vmt/" + folderpath + mbtoc8(name) + mbtoc8(temp) + u8".png"));
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + getfilenamehash(path) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
 						}
 					}
 				}
@@ -496,7 +503,7 @@ namespace vmt
 	}
 
 	// converts optifine properties to vmt/reselect
-	static void prop(const std::u8string& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
+	static void prop(const std::filesystem::path& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
 	{
 		std::string name;
 		std::u8string folderpath;
@@ -510,7 +517,7 @@ namespace vmt
 		std::vector<std::vector<std::tuple<std::string, std::string, bool>>> healths;
 		std::vector<std::vector<std::pair<std::string, std::string>>> times;
 		std::vector<std::array<bool, 4>> weather;
-		read_prop(newlocation, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
+		read_prop(path, newlocation, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
 		if (!folderpath.empty())
 		{
 			folderpath.pop_back(); // remove trailing /
@@ -719,8 +726,8 @@ namespace vmt
 
 		if (sm_ind == -1) // if normal supported mob
 		{
-			std::filesystem::create_directories(path + u8"/assets/vmt/");
-			std::ofstream fout(std::filesystem::path(path + u8"/assets/vmt/" + mbtoc8(name) + u8".reselect"));
+			std::filesystem::create_directories(path / u8"assets/vmt/");
+			std::ofstream fout(path / u8"assets/vmt" / (mbtoc8(name) + u8".reselect"));
 			fout << res.get_string() << std::endl;
 			fout.close();
 		}
@@ -788,18 +795,20 @@ namespace vmt
 	}
 
 	// main vmt function
-	void convert(const std::u8string& path, const std::u8string& filename, const mcpppp::checkinfo& info)
+	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		// source: assets/minecraft/*/mob/		< this can be of or mcpatcher, but the one below is of only
 		// source: assets/minecraft/optifine/random/entity/
-		// destination: assets/mcpppp/vmt/
+		// destination: assets/mcpppp_[hash]/vmt/
 
 		out(3) << "VMT: Converting Pack " << c8tomb(filename) << std::endl;
 
 		// convert all images first, so the reselect file can be overridden
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
-			std::filesystem::path(path + u8"/assets/minecraft/" +
-				(info.optifine ? u8"optifine" + std::u8string(info.newlocation ? u8"/random/entity/" : u8"/mob/") : u8"mcpatcher/mob/"))))
+			path / u8"assets/minecraft" /
+				(info.optifine ?
+					u8"optifine" / std::filesystem::path(info.newlocation ? u8"random/entity" : u8"mob") :
+					u8"mcpatcher/mob")))
 		{
 			if (entry.path().extension() == ".png")
 			{
@@ -812,16 +821,14 @@ namespace vmt
 		}
 
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
-			std::filesystem::path(path + u8"/assets/minecraft/" +
-				(info.optifine ? u8"optifine" + std::u8string(info.newlocation ? u8"/random/entity/" : u8"/mob/") : u8"mcpatcher/mob/"))))
+			path / u8"assets/minecraft" /
+				(info.optifine ?
+					u8"optifine" / std::filesystem::path(info.newlocation ? u8"random/entity" : u8"mob") :
+					u8"mcpatcher/mob")))
 		{
 			if (entry.path().extension() == ".properties")
 			{
 				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				if (entry.path().filename().u8string() == u8"axolotl_cyan.properties")
-				{
-					DebugBreak();
-				}
 				prop(path, info.newlocation, entry);
 			}
 
@@ -839,8 +846,8 @@ namespace vmt
 
 				res.add_if(conditions, statements);
 
-				std::filesystem::create_directories(path + u8"/assets/vmt/");
-				std::ofstream fout(std::filesystem::path(path + u8"/assets/vmt/" + mbtoc8(p.first) + u8".reselect"));
+				std::filesystem::create_directories(path / u8"assets/vmt");
+				std::ofstream fout(std::filesystem::path(path / u8"assets/vmt" / (mbtoc8(p.first) + u8".reselect")));
 				fout << res.get_string() << std::endl;
 				fout.close();
 			}
