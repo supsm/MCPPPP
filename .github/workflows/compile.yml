@@ -27,6 +27,9 @@ jobs:
     - name: configure cmake
       if: ${{ runner.os != 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
+      env:
+        CC: clang
+        CXX: clang++
 
     - name: build cmake
       run: cmake --build build --config Release
