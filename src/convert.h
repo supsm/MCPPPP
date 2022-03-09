@@ -14,23 +14,24 @@ namespace mcpppp
 	{
 		checkresults results;
 		bool optifine, newlocation;
+		bool iszip;
 	};
 }
 
 namespace fsb
 {
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip);
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }
 
 namespace vmt
 {
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip);
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }
 
 namespace cim
 {
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip);
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }

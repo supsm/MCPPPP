@@ -416,7 +416,7 @@ namespace mcpppp
 		return found;
 	}
 
-	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip)
+	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool zip)
 	{
 		if (zip)
 		{
@@ -476,6 +476,7 @@ namespace mcpppp
 	static std::uintmax_t getitems(const std::filesystem::path& path)
 	{
 		std::uintmax_t size = 0;
+		items.clear();
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(path))
 		{
 			// I'd prefer to use std::filesystem::relative, but it's too slow when we have thousands of files
@@ -491,7 +492,7 @@ namespace mcpppp
 		return size;
 	}
 
-	static std::string hash(const std::filesystem::path& path, const bool& zip)
+	static std::string hash(const std::filesystem::path& path, const bool zip)
 	{
 		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
 		if (zip)
@@ -512,6 +513,7 @@ namespace mcpppp
 			mtar_open_mem(&tar, &mem);
 			// get items and also reserve most of the space needed
 			mem.data.reserve(getitems(path));
+			std::sort(items.begin(), items.end());
 			for (const auto& item : items)
 			{
 				if (item.first.is_directory())
@@ -537,7 +539,7 @@ namespace mcpppp
 	}
 
 	// convert a single folder/file
-	bool convert(const std::filesystem::path& path, const bool& dofsb, const bool& dovmt, const bool& docim)
+	bool convert(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
 		{

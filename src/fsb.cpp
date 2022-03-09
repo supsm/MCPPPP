@@ -29,7 +29,7 @@ namespace fsb
 	}
 
 	// convert red-green-blue color to hue-saturation-value color
-	static void rgb2hsv(double& first, double& second, double& third) noexcept
+	static void rgb2hsv(double first, double second, double third) noexcept
 	{
 		const double r = first * 20 / 51; // convert 0-255 to 0-100
 		const double g = second * 20 / 51;
@@ -72,7 +72,7 @@ namespace fsb
 	}
 
 	// convert hue-saturation-value color to red-green-blue color
-	static void hsv2rgb(double& first, double& second, double& third) noexcept
+	static void hsv2rgb(double first, double second, double third) noexcept
 	{
 		const double c = second * third / 10000;
 		const double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
@@ -117,7 +117,7 @@ namespace fsb
 	}
 
 	// convert black to transparent
-	static void convert(std::vector<uint8_t>& image, const unsigned int& w, const unsigned int& h)
+	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h)
 	{
 		if (!mcpppp::fsbtransparent)
 		{
@@ -146,7 +146,7 @@ namespace fsb
 		}
 	}
 
-	static constexpr void checkError(const unsigned int& i)
+	static constexpr void checkError(const unsigned int i)
 	{
 		if (i != 0)
 		{
@@ -566,10 +566,12 @@ namespace fsb
 		fout.close();
 	}
 
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
 	{
 		using mcpppp::checkresults;
+
 		bool reconverting = false;
+
 		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/fabricskyboxes/sky/", zip))
 		{
 			if (mcpppp::autoreconvert)
@@ -578,35 +580,35 @@ namespace fsb
 			}
 			else
 			{
-				return { checkresults::alrfound, false, false };
+				return { checkresults::alrfound, false, false, zip };
 			}
 		}
 		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/sky/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, true, false };
+				return { checkresults::reconverting, true, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, true, false };
+				return { checkresults::valid, true, false, zip };
 			}
 		}
 		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/sky/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, false, false };
+				return { checkresults::reconverting, false, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, false, false };
+				return { checkresults::valid, false, false, zip };
 			}
 		}
 		else
 		{
 			// no convertible locations found
-			return { checkresults::noneconvertible, false, false };
+			return { checkresults::noneconvertible, false, false, zip };
 		}
 	}
 
