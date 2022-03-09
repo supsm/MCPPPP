@@ -17,20 +17,20 @@ using mcpppp::mbtoc8;
 
 namespace cim
 {
-	static std::string getfilenamehash(const std::filesystem::path& path)
+	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
 	{
-		const std::u8string u8s = std::filesystem::canonical(path).generic_u8string();
+		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
 		return mcpppp::hash<32>(u8s.data(), u8s.size());
 	}
 
 	// converts non-properties (models and textures) to cim
-	static void other(const std::filesystem::path& path, const std::filesystem::directory_entry& entry)
+	static void other(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
 	{
 		// png location (textures): assets/mcpppp_hash/textures/item
 		// json location (models): assets/mcpppp_hash/models/item
 		// mcpppp_hash:item/
 
-		const std::string mcnamespace = "mcpppp_" + getfilenamehash(path);
+		const std::string mcnamespace = "mcpppp_" + getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
@@ -563,7 +563,7 @@ namespace cim
 		}
 	}
 
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
@@ -575,34 +575,34 @@ namespace cim
 			}
 			else
 			{
-				return { checkresults::alrfound, false, false };
+				return { checkresults::alrfound, false, false, zip };
 			}
 		}
 		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/cit/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, true, false };
+				return { checkresults::reconverting, true, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, true, false };
+				return { checkresults::valid, true, false, zip };
 			}
 		}
 		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/cit/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, false, false };
+				return { checkresults::reconverting, false, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, false, false };
+				return { checkresults::valid, false, false, zip };
 			}
 		}
 		else
 		{
-			return { checkresults::noneconvertible, false, false };
+			return { checkresults::noneconvertible, false, false, zip };
 		}
 	}
 
@@ -621,7 +621,7 @@ namespace cim
 			}
 			if (entry.path().extension() == ".json" || entry.path().extension() == ".png")
 			{
-				other(path, entry);
+				other(path, info.iszip, entry);
 			}
 			else if (entry.path().extension() == ".properties")
 			{

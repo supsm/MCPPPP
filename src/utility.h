@@ -126,7 +126,7 @@ namespace mcpppp
 		friend outstream out(const short& level) noexcept;
 		bool cout, file, err, first = false;
 		short level;
-		outstream(const bool& _first, const bool& _cout, const bool& _file, const bool& _err, const short& _level) noexcept
+		outstream(const bool _first, const bool _cout, const bool _file, const bool _err, const short& _level) noexcept
 			: cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
 #ifdef GUI
 		static void print(void* v);
@@ -198,7 +198,7 @@ namespace mcpppp
 
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
 
-	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool& zip);
+	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool zip);
 
 
 	// seed will be cast to XXH32_hash_t if hash_size <=32
@@ -254,7 +254,7 @@ namespace mcpppp
 		return gethex(rawhash);
 	}
 
-	bool convert(const std::filesystem::path& path, const bool& dofsb = true, const bool& dovmt = true, const bool& docim = true);
+	bool convert(const std::filesystem::path& path, const bool dofsb = true, const bool dovmt = true, const bool docim = true);
 
 	void gethashes();
 

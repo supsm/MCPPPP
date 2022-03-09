@@ -64,9 +64,9 @@ namespace vmt
 		}
 	}
 
-	static std::string getfilenamehash(const std::filesystem::path& path)
+	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
 	{
-		const std::u8string u8s = std::filesystem::canonical(path).generic_u8string();
+		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
 		return mcpppp::hash<32>(u8s.data(), u8s.size());
 	}
 
@@ -75,9 +75,9 @@ namespace vmt
 	// @param optifine  whether to use optifine locations (no = mcpatcher)
 	// @param newlocation  whether to use new optifine location
 	// @param entry  actual png file to convert
-	static void png(const std::filesystem::path& path, const bool& optifine, const bool& newlocation, const std::filesystem::directory_entry& entry)
+	static void png(const std::filesystem::path& path, const bool optifine, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry)
 	{
-		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(getfilenamehash(path));
+		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(getfilenamehash(path, zip));
 		const auto p = separate(c8tomb(entry.path().filename().stem().generic_u8string()));
 		const std::string curname = p.first;
 		// current name is new, look for all textures
@@ -147,7 +147,7 @@ namespace vmt
 
 	enum class match_type { normal, regex, iregex };
 
-	static void read_prop(const std::filesystem::path& path, const bool& newlocation, const std::filesystem::directory_entry& entry,
+	static void read_prop(const std::filesystem::path& path, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry,
 		std::string& name,
 		std::u8string& folderpath,
 		std::vector<std::vector<std::string>>& textures,
@@ -256,7 +256,7 @@ namespace vmt
 						}
 						else
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + getfilenamehash(path) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + getfilenamehash(path, zip) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
 						}
 					}
 				}
@@ -503,7 +503,7 @@ namespace vmt
 	}
 
 	// converts optifine properties to vmt/reselect
-	static void prop(const std::filesystem::path& path, const bool& newlocation, const std::filesystem::directory_entry& entry)
+	static void prop(const std::filesystem::path& path, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry)
 	{
 		std::string name;
 		std::u8string folderpath;
@@ -517,7 +517,7 @@ namespace vmt
 		std::vector<std::vector<std::tuple<std::string, std::string, bool>>> healths;
 		std::vector<std::vector<std::pair<std::string, std::string>>> times;
 		std::vector<std::array<bool, 4>> weather;
-		read_prop(path, newlocation, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
+		read_prop(path, newlocation, zip, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
 		if (!folderpath.empty())
 		{
 			folderpath.pop_back(); // remove trailing /
@@ -740,10 +740,12 @@ namespace vmt
 	}
 
 	// check if should be converted
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool& zip)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
 	{
 		using mcpppp::checkresults;
+
 		bool reconverting = false;
+
 		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/vmt/", zip))
 		{
 			if (mcpppp::autoreconvert)
@@ -752,45 +754,45 @@ namespace vmt
 			}
 			else
 			{
-				return { checkresults::alrfound, false, false };
+				return { checkresults::alrfound, false, false, zip };
 			}
 		}
 		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/random/entity/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, true, true };
+				return { checkresults::reconverting, true, true, zip };
 			}
 			else
 			{
-				return { checkresults::valid, true, true };
+				return { checkresults::valid, true, true, zip };
 			}
 		}
 		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/mob/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, true, false };
+				return { checkresults::reconverting, true, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, true, false };
+				return { checkresults::valid, true, false, zip };
 			}
 		}
 		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/mob/", zip))
 		{
 			if (reconverting)
 			{
-				return { checkresults::reconverting, false, false };
+				return { checkresults::reconverting, false, false, zip };
 			}
 			else
 			{
-				return { checkresults::valid, false, false };
+				return { checkresults::valid, false, false, zip };
 			}
 		}
 		else
 		{
-			return { checkresults::noneconvertible, false, false };
+			return { checkresults::noneconvertible, false, false, zip };
 		}
 	}
 
@@ -816,7 +818,7 @@ namespace vmt
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
-				png(path, info.optifine, info.newlocation, entry);
+				png(path, info.optifine, info.newlocation, info.iszip, entry);
 			}
 		}
 
@@ -829,7 +831,7 @@ namespace vmt
 			if (entry.path().extension() == ".properties")
 			{
 				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				prop(path, info.newlocation, entry);
+				prop(path, info.newlocation, info.iszip, entry);
 			}
 
 			// output special mob reselect files

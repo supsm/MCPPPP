@@ -47,7 +47,7 @@ public:
 	// conversion from path to reselect object
 	// @param str  string to add to reselect
 	// @param quotes  whether to add quotes around the string (default true)
-	explicit reselect(const std::string& str, bool quotes = true)
+	explicit reselect(const std::string& str, const bool quotes = true)
 	{
 		// TODO: check for special characters and escape them? (e.g. quotes)
 		if (quotes)
@@ -118,7 +118,7 @@ public:
 	// insert line after pos
 	// @param pos  position after which the line will be inserted
 	// @param line  line to be inserted
-	void insert(int pos, const std::string& line)
+	void insert(const int pos, const std::string& line)
 	{
 		auto it = lines.begin();
 		auto it2 = indentation.begin();
@@ -144,7 +144,7 @@ public:
 	// insert reselect object after pos
 	// @param pos  position after which the object will be inserted
 	// @param res  reselect object to add (indentation is ignored)
-	void insert(int pos, const reselect& res)
+	void insert(const int pos, const reselect& res)
 	{
 		int offset = 0;
 		for (const auto& line : res.lines)
