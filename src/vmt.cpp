@@ -809,7 +809,7 @@ namespace vmt
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
 			path / u8"assets/minecraft" /
 				(info.optifine ?
-					u8"optifine" / std::filesystem::path(info.newlocation ? u8"random/entity" : u8"mob") :
+					u8"optifine" / std::filesystem::path(info.vmt_newlocation ? u8"random/entity" : u8"mob") :
 					u8"mcpatcher/mob")))
 		{
 			if (entry.path().extension() == ".png")
@@ -818,20 +818,20 @@ namespace vmt
 			}
 			if (entry.path().filename().extension() == ".png")
 			{
-				png(path, info.optifine, info.newlocation, info.iszip, entry);
+				png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
 			}
 		}
 
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
 			path / u8"assets/minecraft" /
 				(info.optifine ?
-					u8"optifine" / std::filesystem::path(info.newlocation ? u8"random/entity" : u8"mob") :
+					u8"optifine" / std::filesystem::path(info.vmt_newlocation ? u8"random/entity" : u8"mob") :
 					u8"mcpatcher/mob")))
 		{
 			if (entry.path().extension() == ".properties")
 			{
 				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				prop(path, info.newlocation, info.iszip, entry);
+				prop(path, info.vmt_newlocation, info.iszip, entry);
 			}
 
 			// output special mob reselect files
