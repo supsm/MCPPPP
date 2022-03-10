@@ -67,8 +67,41 @@ jobs:
         name: ${{ runner.os }}
         path: artifacts/
 
-    - name: Sync
-      uses: BetaHuhn/repo-file-sync-action@v1
-      with:
+    - name: copy file (windows)
+      if: ${{ runner.os == 'Windows' }}
+      uses: dmnemec/copy_file_to_another_repo_action@main
+      env:
         GH_PAT: ${{ secrets.GH_PAT }}
-        SKIP_PR: true
+      with:
+        source_file: 'artifacts/mcpppp.dll'
+        destination_repo: 'supsm/MCPPPP@mod'
+        destination_folder: 'src/main/resources'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy windows libraries'
+        
+    - name: copy file (linux)
+      if: ${{ runner.os == 'Linux' }}
+      uses: dmnemec/copy_file_to_another_repo_action@main
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      with:
+        source_file: 'artifacts/libmcpppp.so'
+        destination_repo: 'supsm/MCPPPP@mod'
+        destination_folder: 'src/main/resources'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy linux libraries'
+        
+    - name: copy file (mac)
+      if: ${{ runner.os == 'macOs' }}
+      uses: dmnemec/copy_file_to_another_repo_action@main
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
+      with:
+        source_file: 'artifacts/libmcpppp.dylib'
+        destination_repo: 'supsm/MCPPPP@mod'
+        destination_folder: 'src/main/resources'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy mac libraries'
