@@ -55,7 +55,8 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 This version can also accept command line arguments, but doing so will remove the gui entirely and function like the CLI version.  
 
 ## Build
-Prerequisites: Cmake, compiler with c++17  
+Prerequisites: Git, Cmake, compiler with c++20  
+1. Clone the repository with `git clone https://github.com/supsm/MCPPPP --depth=1` and navigate to the MCPPPP folder  
 To build MCPPPP from source, you should use cmake. There are 3 options for mcpppp, which are `MCPPPP_CLI`, `MCPPPP_GUI`, and `MCPPPP_JNI` (the rest are for fltk and should be ignored). `MCPPPP_JNI` defaults to false, the other two default to true.  
 In cmake-gui, simply check or uncheck these checkboxes.  
 If you wish to use cmake from the command line, 

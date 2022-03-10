@@ -13,7 +13,8 @@ namespace mcpppp
 	struct checkinfo
 	{
 		checkresults results;
-		bool optifine, newlocation;
+		bool optifine;
+		bool vmt_newlocation;
 		bool iszip;
 	};
 }
