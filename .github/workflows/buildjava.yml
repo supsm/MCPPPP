@@ -9,14 +9,16 @@ on:
     branches:
     - mod
     paths:
-    #- 'src/main/java/**'
-    - 'src/main/resources/libmcpppp.dylib'
+    - 'src/main/java/**'
   pull_request:
     branches:
     - mod
     paths:
-    #- 'src/main/java/**'
-    - 'src/main/resources/libmcpppp.dylib'
+    - 'src/main/java/**'
+  workflow_run:
+    workflows: [compile]
+    types:
+    - completed
   workflow_dispatch:
 
 jobs:
