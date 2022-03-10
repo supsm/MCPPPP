@@ -29,7 +29,7 @@ namespace fsb
 	}
 
 	// convert red-green-blue color to hue-saturation-value color
-	static void rgb2hsv(double first, double second, double third) noexcept
+	static void rgb2hsv(double& first, double& second, double& third) noexcept
 	{
 		const double r = first * 20 / 51; // convert 0-255 to 0-100
 		const double g = second * 20 / 51;
@@ -72,7 +72,7 @@ namespace fsb
 	}
 
 	// convert hue-saturation-value color to red-green-blue color
-	static void hsv2rgb(double first, double second, double third) noexcept
+	static void hsv2rgb(double& first, double& second, double& third) noexcept
 	{
 		const double c = second * third / 10000;
 		const double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
