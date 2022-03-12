@@ -224,7 +224,7 @@ namespace fsb
 		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, top, outh, outw / 4, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
@@ -501,12 +501,12 @@ namespace fsb
 			{
 				out(2) << "(warn) FSB: File not found: " << c8tomb(u8temp) + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_top.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_bottom.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_north.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_south.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_west.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_east.png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				buffer.clear();
 				buffer.shrink_to_fit();
 			}
@@ -538,24 +538,24 @@ namespace fsb
 
 				out(2) << "(warn) FSB: File not found: " << c8tomb(sourcefolder + sourcefile) + ".png" << std::endl;
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_top.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_bottom.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_north.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_south.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_west.png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_east.png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				buffer.clear();
 				buffer.shrink_to_fit();
 			}
 			source = u8"fabricskyboxes:sky" + sourcefolder + sourcefile;
 		}
 
-		j["textures"]["top"] = c8tomb(source) + "_top.png";
-		j["textures"]["bottom"] = c8tomb(source) + "_bottom.png";
-		j["textures"]["north"] = c8tomb(source) + "_north.png";
-		j["textures"]["south"] = c8tomb(source) + "_south.png";
-		j["textures"]["west"] = c8tomb(source) + "_west.png";
-		j["textures"]["east"] = c8tomb(source) + "_east.png";
+		j["textures"]["top"] = c8tomb(source) + "_top" + (overworldsky ? "" : "_end") + ".png";
+		j["textures"]["bottom"] = c8tomb(source) + "_bottom" + (overworldsky ? "" : "_end") + ".png";
+		j["textures"]["north"] = c8tomb(source) + "_north" + (overworldsky ? "" : "_end") + ".png";
+		j["textures"]["south"] = c8tomb(source) + "_south" + (overworldsky ? "" : "_end") + ".png";
+		j["textures"]["west"] = c8tomb(source) + "_west" + (overworldsky ? "" : "_end") + ".png";
+		j["textures"]["east"] = c8tomb(source) + "_east" + (overworldsky ? "" : "_end") + ".png";
 
 		if (!std::filesystem::exists(path / u8"assets/fabricskyboxes/sky/"))
 		{
