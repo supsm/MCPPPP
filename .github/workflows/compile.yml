@@ -15,6 +15,9 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
+      with:
+        persist-credentials: false
+        fetch-depth: 0
     - name: setup jdk
 
       uses: actions/setup-java@v1
@@ -32,7 +35,7 @@ jobs:
         CXX: clang++
 
     - name: build cmake
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release --parallel 64
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
@@ -69,9 +72,9 @@ jobs:
 
     - name: copy file (windows)
       if: ${{ runner.os == 'Windows' }}
-      uses: dmnemec/copy_file_to_another_repo_action@main
+      uses: supsm/copy_file_to_another_repo@master
       env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
       with:
         source_file: 'artifacts/mcpppp.dll'
         destination_repo: 'supsm/MCPPPP'
@@ -83,9 +86,9 @@ jobs:
         
     - name: copy file (linux)
       if: ${{ runner.os == 'Linux' }}
-      uses: dmnemec/copy_file_to_another_repo_action@main
+      uses: supsm/copy_file_to_another_repo@master
       env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
       with:
         source_file: 'artifacts/libmcpppp.so'
         destination_repo: 'supsm/MCPPPP'
@@ -97,9 +100,9 @@ jobs:
         
     - name: copy file (mac)
       if: ${{ runner.os == 'macOs' }}
-      uses: dmnemec/copy_file_to_another_repo_action@main
+      uses: supsm/copy_file_to_another_repo@master
       env:
-        GH_PAT: ${{ secrets.GH_PAT }}
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
       with:
         source_file: 'artifacts/libmcpppp.dylib'
         destination_repo: 'supsm/MCPPPP'
