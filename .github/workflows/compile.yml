@@ -15,20 +15,15 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v2
-      with:
-        persist-credentials: false
-        fetch-depth: 0
-    - uses: ilammy/msvc-dev-cmd@v1
-      if: ${{ runner.os == 'Windows' }}
-    - name: setup jdk
 
+    - name: setup jdk
       uses: actions/setup-java@v1
       with:
         java-version: 16
 
     - name: configure cmake with clang-cl
       if: ${{ runner.os == 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -T ClangCL -G Ninja
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -T ClangCL
     - name: configure cmake
       if: ${{ runner.os != 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
