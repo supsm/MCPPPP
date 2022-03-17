@@ -26,7 +26,7 @@ jobs:
 
     - name: configure cmake with clang-cl
       if: ${{ runner.os == 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -T ClangCL
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -T ClangCL -G Ninja
     - name: configure cmake
       if: ${{ runner.os != 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
