@@ -194,7 +194,10 @@ namespace mcpppp
 		outstream operator<<(std::ostream& (*f)(std::ostream&));
 	};
 
-	outstream out(const short& level) noexcept;
+	inline outstream out(const short& level) noexcept
+	{
+		return { true, level >= outputlevel, level >= loglevel, level == 5, level };
+	}
 
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
 
