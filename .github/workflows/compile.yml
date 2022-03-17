@@ -18,6 +18,8 @@ jobs:
       with:
         persist-credentials: false
         fetch-depth: 0
+    - uses: ilammy/msvc-dev-cmd@v1
+      if: ${{ runner.os == 'Windows' }}
     - name: setup jdk
 
       uses: actions/setup-java@v1
