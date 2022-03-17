@@ -621,7 +621,7 @@ namespace fsb
 		const std::filesystem::path overworld = path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world0";
 		if (std::filesystem::exists(overworld))
 		{
-			for (const auto& entry : std::filesystem::directory_iterator())
+			for (const auto& entry : std::filesystem::directory_iterator(overworld))
 			{
 				if (entry.path().extension() == ".properties")
 				{
