@@ -321,11 +321,6 @@ namespace mcpppp
 		return *this;
 	}
 
-	outstream out(const short& level) noexcept
-	{
-		return { true, level >= outputlevel, level >= loglevel, level == 5, level };
-	}
-
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to)
 	{
 		if (!std::filesystem::exists(from))

@@ -618,21 +618,29 @@ namespace fsb
 	{
 		out(3) << "FSB: Converting Pack " << c8tomb(filename) << std::endl;
 		// overworld sky (world0)
-		for (const auto& entry : std::filesystem::directory_iterator(path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world0"))
+		const std::filesystem::path overworld = path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world0";
+		if (std::filesystem::exists(overworld))
 		{
-			if (entry.path().extension() == ".properties")
+			for (const auto& entry : std::filesystem::directory_iterator())
 			{
-				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				prop(path, true, entry);
+				if (entry.path().extension() == ".properties")
+				{
+					out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+					prop(path, true, entry);
+				}
 			}
 		}
 		// end sky (world1)
-		for (const auto& entry : std::filesystem::directory_iterator(path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world1"))
+		const std::filesystem::path end = path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world1";
+		if (std::filesystem::exists(end))
 		{
-			if (entry.path().extension() == ".properties")
+			for (const auto& entry : std::filesystem::directory_iterator(end))
 			{
-				out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				prop(path, false, entry);
+				if (entry.path().extension() == ".properties")
+				{
+					out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+					prop(path, false, entry);
+				}
 			}
 		}
 	}
