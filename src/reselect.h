@@ -298,10 +298,18 @@ public:
 		else
 		{
 			// weighted random selection
-			assert(statements.size() + 1 == weights.size()); // we already removed the last element from statements
-			for (const auto& i : weights)
+
+			// remove statements until statements.size() <= weights.size() - 1
+			while (statements.size() >= weights.size())
 			{
-				weightsum += i;
+				default_statement = statements.back();
+				statements.pop_back();
+			}
+
+			// apparently you can just have extra weights, so use size of statements
+			for (int i = 0; i < statements.size() + 1; i++)
+			{
+				weightsum += weights[i];
 			}
 
 			// functions for convenience and readability
@@ -313,7 +321,7 @@ public:
 			// actual random thingy
 			std::vector<std::string> conditions;
 			int cursum = 0; // current sum of weights
-			for (int i = 0; i < weights.size() - 1; i++)
+			for (int i = 0; i < statements.size(); i++)
 			{
 				conditions.push_back("rand_in(" + std::to_string(cursum + 1) + ", " + std::to_string(cursum + weights[i]) + ")");
 				cursum += weights[i];
