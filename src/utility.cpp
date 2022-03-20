@@ -31,16 +31,12 @@
 #ifdef GUI
 #include <FL/Fl_Text_Buffer.H>
 #include <FL/fl_ask.H>
-
-namespace mcpppp
-{
-	static Fl_Text_Buffer textbuffer;
-}
 #endif
 
 namespace mcpppp
 {
-	static std::atomic_bool wait_close; // wait for dialog to close
+	// wait for dialog to close
+	static std::atomic_bool wait_close;
 
 	[[noreturn]] void exit()
 	{
@@ -59,15 +55,12 @@ namespace mcpppp
 	{
 		std::transform(str.begin(), str.end(), str.begin(), [](const char& c) -> char
 			{
-				if (std::isupper(c))
-				{
-					return c + 32;
-				}
-				return c;
+				return std::tolower(c);
 			});
 		return str;
 	}
 
+	// secure version of localtime
 	static auto localtime_rs(tm* tm, const time_t* time)
 	{
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
@@ -193,51 +186,22 @@ namespace mcpppp
 		return of;
 	}
 
-#ifdef GUI
-	void outstream::print(void* v)
-	{
-		ui->output->add(static_cast<char*>(v));
-		ui->output->bottomline(ui->output->size()); // automatically scroll to the bottom
-		delete[] static_cast<char*>(v);
-	}
-#endif
-
 	outstream outstream::operator<<(const std::string& str)
 	{
 		if (file && logfile.good())
 		{
-			if (first)
-			{
-				logfile << timestamp();
-			}
 			logfile << str;
 		}
 #ifdef GUI
 		// output to sstream regardless of outputlevel
 		if (argc < 2)
 		{
-			if (first)
-			{
-				sstream << (dotimestamp ? timestamp() : "");
-			}
 			sstream << str;
-			first = false;
 			return *this;
 		}
 #endif
 		if (cout)
 		{
-			if (first)
-			{
-				if (err)
-				{
-					std::cerr << (dotimestamp ? timestamp() : "");
-				}
-				else
-				{
-					std::cout << (dotimestamp ? timestamp() : "");
-				}
-			}
 			if (err)
 			{
 				std::cerr << str;
@@ -247,7 +211,6 @@ namespace mcpppp
 				std::cout << str;
 			}
 		}
-		first = false;
 		return *this;
 	}
 
@@ -256,10 +219,6 @@ namespace mcpppp
 #ifdef GUI
 		if (argc < 2)
 		{
-			if (first)
-			{
-				sstream << (dotimestamp ? timestamp() : "");
-			}
 			if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
 			{
 				if (sstream.str().empty())
@@ -289,17 +248,6 @@ namespace mcpppp
 #endif
 		if (cout)
 		{
-			if (first)
-			{
-				if (err)
-				{
-					std::cerr << (dotimestamp ? timestamp() : "");
-				}
-				else
-				{
-					std::cout << (dotimestamp ? timestamp() : "");
-				}
-			}
 			if (err)
 			{
 				std::cerr << f;
@@ -311,13 +259,8 @@ namespace mcpppp
 		}
 		if (file && logfile.good())
 		{
-			if (first)
-			{
-				logfile << timestamp();
-			}
 			logfile << f;
 		}
-		first = false;
 		return *this;
 	}
 
@@ -366,6 +309,9 @@ namespace mcpppp
 		}
 	}
 
+	// get pack version from pack.mcmeta
+	// @param path  path of resource pack (folder)
+	// @return pack version as integer
 	static int getpackver(const std::filesystem::path& path)
 	{
 		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
@@ -392,11 +338,15 @@ namespace mcpppp
 		return -1;
 	}
 
-	static bool findzipitem(const std::u8string& ziparchive, const std::u8string& itemtofind)
+	// find item in zip archive
+	// @param ziparchive  path to zipped resourcepack
+	// @param itemtofind  item to find in zip archive (will match if starts with)
+	// @return whether item is find
+	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string& itemtofind)
 	{
 		bool found = false;
 		mz_zip_archive archive = mz_zip_archive();
-		mz_zip_reader_init_file(&archive, c8tomb(ziparchive.c_str()), 0);
+		mz_zip_reader_init_file(&archive, c8tomb(ziparchive.generic_u8string().c_str()), 0);
 		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive); i++)
 		{
 			mz_zip_archive_file_stat stat;
@@ -411,7 +361,7 @@ namespace mcpppp
 		return found;
 	}
 
-	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool zip)
+	bool findfolder(const std::filesystem::path& path, const std::u8string& tofind, const bool zip)
 	{
 		if (zip)
 		{
@@ -419,10 +369,13 @@ namespace mcpppp
 		}
 		else
 		{
-			return std::filesystem::exists(std::filesystem::path(path + u8'/' + tofind));
+			return std::filesystem::exists(path / tofind);
 		}
 	}
 
+	// unzip a zip file
+	// @param path  path to extract to
+	// @param zip  zip archive to extract
 	static void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 	{
 		out(3) << "Extracting " << c8tomb(path.filename().u8string()) << std::endl;
@@ -432,6 +385,9 @@ namespace mcpppp
 		zipa.ExtractAll("mcpppp-temp/" + c8tomb(folder) + '/');
 	}
 
+	// zip a folder into a zip file
+	// @param folder  folder to zip
+	// @param zipa  zip archive containing zip file name
 	static void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 	{
 		out(3) << "Compressing " + c8tomb(folder) << std::endl;
@@ -466,8 +422,12 @@ namespace mcpppp
 		std::filesystem::remove_all("mcpppp-temp");
 	}
 
+	// items in folder from getitems()
 	static std::vector<std::pair<std::filesystem::directory_entry, std::u8string>> items;
 
+	// get all items in folder into `items`
+	// @param path  folder to get items from
+	// @return number of items
 	static std::uintmax_t getitems(const std::filesystem::path& path)
 	{
 		std::uintmax_t size = 0;
@@ -487,6 +447,10 @@ namespace mcpppp
 		return size;
 	}
 
+	// compute 128-bit hash of resource pack
+	// @param path  path of resource pack
+	// @param zip  whether resource pack is zipped
+	// @return hex of 128-bit hash
 	static std::string hash(const std::filesystem::path& path, const bool zip)
 	{
 		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
@@ -533,7 +497,6 @@ namespace mcpppp
 		}
 	}
 
-	// convert a single folder/file
 	bool convert(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
@@ -767,7 +730,10 @@ namespace mcpppp
 		hashfile.close();
 	}
 
-	void setting(const std::string& option, const nlohmann::json& j)
+	// parse single setting and set necessary variables
+	// @param option  setting name
+	// @param j  value of setting
+	static void setting(const std::string& option, const nlohmann::json& j)
 	{
 		if (!settings.contains(lowercase(option)))
 		{

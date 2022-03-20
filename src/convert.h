@@ -9,7 +9,9 @@
 
 namespace mcpppp
 {
+	// conversion status of resourcepack
 	enum class checkresults { valid, noneconvertible, alrfound, reconverting };
+	// results of check
 	struct checkinfo
 	{
 		checkresults results;
@@ -21,18 +23,47 @@ namespace mcpppp
 
 namespace fsb
 {
+	// get conversion info for resourcepack
+	// @param path  resourcepack to check
+	// @param zip  whether resourcepack is zip
+	// @return check results
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
+
+	// convert fsb part of resourcepack
+	// @param path  resourcepack to convert
+	// @param filename  filename of resourcepack
+	// @param info  conversion info (check results)
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }
 
 namespace vmt
 {
+	// get conversion info for resourcepack
+	// @param path  resourcepack to check
+	// @param zip  whether resourcepack is zip
+	// @return check results
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
+
+
+	// convert vmt part of resourcepack
+	// @param path  resourcepack to convert
+	// @param filename  filename of resourcepack
+	// @param info  conversion info (check results)
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }
 
 namespace cim
 {
+	// get conversion info for resourcepack
+	// @param path  resourcepack to check
+	// @param zip  whether resourcepack is zip
+	// @return check results
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip);
+
+
+	// convert cim part of resourcepack
+	// @param path  resourcepack to convert
+	// @param filename  filename of resourcepack
+	// @param info  conversion info (check results)
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info);
 }

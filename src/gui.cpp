@@ -34,6 +34,7 @@ using mcpppp::mbtoc8;
 
 namespace mcpppp
 {
+	// get default resourcepacks path to use based on system
 	static std::u8string getdefaultpath()
 	{
 #ifdef _WIN32
@@ -77,9 +78,13 @@ namespace mcpppp
 			{
 				valid = true;
 			}
-			else if (p.second.is_directory() || p.second.path().extension() == ".zip")
+			else
 			{
-				valid = true;
+				out(5) << "Conversion failed: " << c8tomb(p.second.path().generic_u8string()) << std::endl;
+				if (p.second.is_directory() || p.second.path().extension() == ".zip")
+				{
+					valid = true;
+				}
 			}
 		}
 		if (!valid)
@@ -87,7 +92,10 @@ namespace mcpppp
 			out(4) << "No valid path found, running from default directory: " << c8tomb(getdefaultpath()) << std::endl;
 			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(getdefaultpath())))
 			{
-				convert(std::filesystem::canonical(entry), dofsb, dovmt, docim);
+				if (!convert(std::filesystem::canonical(entry), dofsb, dovmt, docim))
+				{
+					out(5) << "Conversion failed: " << c8tomb(entry.path().generic_u8string()) << std::endl;
+				}
 			}
 		}
 		running = false;
@@ -125,6 +133,7 @@ namespace mcpppp
 	}
 
 #ifdef _WIN32
+	// get scale of window (windows)
 	static UINT win_getscale() noexcept
 	{
 		SetThreadDpiAwarenessContext(DPI_AWARENESS_CONTEXT_SYSTEM_AWARE);
@@ -132,6 +141,7 @@ namespace mcpppp
 	}
 #endif
 
+	// get scale for text
 	static double getscale()
 	{
 #ifdef _WIN32
@@ -142,7 +152,6 @@ namespace mcpppp
 #endif
 	}
 
-	// add resourcepack to checklist
 	void addpack(const std::filesystem::path& path, bool selected)
 	{
 		// only w is used
@@ -164,7 +173,6 @@ namespace mcpppp
 		numbuttons++;
 	}
 
-	// update paths from "Edit Paths" to path_input
 	void updatepaths()
 	{
 		std::u8string pstr;
@@ -179,7 +187,6 @@ namespace mcpppp
 		ui->path_input->value(c8tomb(pstr.c_str()));
 	}
 
-	// update settings in "Settings"
 	void updatesettings()
 	{
 		ui->autodeletetemptrue->value(static_cast<int>(autodeletetemp));
@@ -196,7 +203,6 @@ namespace mcpppp
 		ui->autoreconvertfalse->value(static_cast<int>(!autoreconvert));
 	}
 
-	// update config file to include paths
 	void updatepathconfig()
 	{
 		auto temppaths = paths;
@@ -267,7 +273,6 @@ namespace mcpppp
 		fout.close();
 	}
 
-	// add paths to "Edit Paths" from paths
 	void addpaths()
 	{
 		// only w, maxsize, and i are used
@@ -293,7 +298,6 @@ namespace mcpppp
 		}
 	}
 
-	// add path to "Edit Paths" and paths
 	void addpath(const std::filesystem::path& path)
 	{
 		const std::filesystem::path canonical = std::filesystem::canonical(path);

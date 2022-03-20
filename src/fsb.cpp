@@ -22,6 +22,7 @@ using mcpppp::mbtoc8;
 
 namespace fsb
 {
+	// compare if two values are equal using epsilon
 	template<class T>
 	static bool compare(T first, T second) noexcept
 	{
@@ -29,6 +30,9 @@ namespace fsb
 	}
 
 	// convert red-green-blue color to hue-saturation-value color
+	// @param first  red (input, 0-255) and hue (output, 0-360)
+	// @param second  green (input, 0-255) and saturation (output, 0-100)
+	// @param third  blue (input, 0-255) and value (output, 0-100)
 	static void rgb2hsv(double& first, double& second, double& third) noexcept
 	{
 		const double r = first * 20 / 51; // convert 0-255 to 0-100
@@ -72,6 +76,9 @@ namespace fsb
 	}
 
 	// convert hue-saturation-value color to red-green-blue color
+	// @param first   hue (output, 0-360) and red (input, 0-255)
+	// @param second  saturation (output, 0-100) and green (input, 0-255)
+	// @param third  value (output, 0-100) and blue (input, 0-255)
 	static void hsv2rgb(double& first, double& second, double& third) noexcept
 	{
 		const double c = second * third / 10000;
@@ -117,6 +124,9 @@ namespace fsb
 	}
 
 	// convert black to transparent
+	// @param image  image to convert
+	// @param w  width of image in pixels
+	// @param h  height of image in pixels
 	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h)
 	{
 		if (!mcpppp::fsbtransparent)
@@ -146,6 +156,8 @@ namespace fsb
 		}
 	}
 
+	// check and handle lodepng error
+	// @param i  error code
 	static constexpr void checkError(const unsigned int i)
 	{
 		if (i != 0)
@@ -155,6 +167,11 @@ namespace fsb
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
+	// @param path  path of resourcepack
+	// @param overworldsky  whether image is of overworld sky (and not end)
+	// @param output  location to output to (relative to `path`)
+	// @param entry  directory entry of image file to convert
+	// @param filename  name of image file (no extension)
 	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
 		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
@@ -262,6 +279,9 @@ namespace fsb
 	}
 
 	// convert optifine properties files into fsb properties json
+	// @param path  path of resourcepack
+	// @param overworldsky  whether properties file is overworld sky (and not end)
+	// @param entry  directory entry of properties file
 	static void prop(const std::filesystem::path& path, const bool overworldsky, const std::filesystem::directory_entry& entry)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
@@ -573,7 +593,7 @@ namespace fsb
 
 		bool reconverting = false;
 
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/fabricskyboxes/sky/", zip))
+		if (mcpppp::findfolder(path, u8"assets/fabricskyboxes/sky/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -584,7 +604,7 @@ namespace fsb
 				return { checkresults::alrfound, false, false, zip };
 			}
 		}
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/sky/", zip))
+		if (mcpppp::findfolder(path, u8"assets/minecraft/optifine/sky/", zip))
 		{
 			if (reconverting)
 			{
@@ -595,7 +615,7 @@ namespace fsb
 				return { checkresults::valid, true, false, zip };
 			}
 		}
-		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/sky/", zip))
+		else if (mcpppp::findfolder(path, u8"assets/minecraft/mcpatcher/sky/", zip))
 		{
 			if (reconverting)
 			{
@@ -613,7 +633,6 @@ namespace fsb
 		}
 	}
 
-	// main fsb function
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		out(3) << "FSB: Converting Pack " << c8tomb(filename) << std::endl;
