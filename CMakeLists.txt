@@ -44,8 +44,8 @@ if (MCPPPP_CLI)
 endif ()
 
 if (MCPPPP_GUI)
-	find_package(fltk 1.3.6)
-	if (NOT fltk_FOUND)
+	find_package(FLTK 1.3.6)
+	if (NOT FLTK_FOUND)
 		set(FLTK_BUILD_TEST FALSE CACHE BOOL "Build test/demo programs" FORCE) # Don't tmake fltk build tests
 		set(FLTK_BUILD_FLUID FALSE CACHE BOOL "Build fluid ui designer" FORCE) # Don't build fluid (I had to add this option myself)
 		set(OPTION_BUILD_HTML_DOCUMENTATION FALSE CACHE BOOL "build html docs" FORCE) # Don't build fltk docs
