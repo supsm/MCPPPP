@@ -24,9 +24,12 @@ using mcpppp::mbtoc8;
 
 namespace vmt
 {
+	// names of png files (axolotl69.png -> "axolotl")
 	static std::unordered_set<std::string> png_names;
+	// filenames of png files (relative to vmt folder)
 	static std::unordered_set<std::u8string> png_filenames;
 
+	// special mob info
 	class s_mob_t
 	{
 	public:
@@ -64,6 +67,10 @@ namespace vmt
 		}
 	}
 
+	// get hash of resourcepack filename
+	// @param path  path to resource pack
+	// @param zip  whether resource pack is zip
+	// @return hex representation of hash
 	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
 	{
 		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
@@ -145,8 +152,27 @@ namespace vmt
 		}
 	}
 
+	// string match type
 	enum class match_type { normal, regex, iregex };
 
+	// read and parse optifine properties file
+	// @param path  path to resource pack
+	// @param newlocation  whether the new location (random/entity) is used instead of old location (mob)
+	// @param zip  whether resource pack is zipped
+	// @param entry  directory entry of properties file to parse
+	// @param name  filename of properties file without extension (output)
+	// @param folderpath  relative path of parent folder of `entry` from vmt folder (output)
+	// @param textures  textures to select from (output)
+	// @param weights  weights to apply on random selection for textures (output)
+	// @param biomes  biome predicates (output)
+	// @param heights  height predicates as a min and max value (output)
+	// @param minheight  minheight predicate for legacy compatibility (output)
+	// @param maxheight  maxheight predicate for legacy compatibility (output)
+	// @param names  name predicates (output)
+	// @param baby  baby predicate (output)
+	// @param healths  health predicates as a tuple of <min, max, ispercent> (output)
+	// @param times  day time predicates (output)
+	// @param weather  [FORMAT SHOULD BE UPDATED] weather predicate (output)
 	static void read_prop(const std::filesystem::path& path, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry,
 		std::string& name,
 		std::u8string& folderpath,
@@ -503,6 +529,10 @@ namespace vmt
 	}
 
 	// converts optifine properties to vmt/reselect
+	// @param path  path to resourcepack
+	// @param newlocation  use new optifine location (random/entity) instead of old location (mob)
+	// @param zip  whether resourcepack is zipped
+	// @param entry  directory entry of properties file
 	static void prop(const std::filesystem::path& path, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry)
 	{
 		std::string name;
@@ -739,14 +769,13 @@ namespace vmt
 		}
 	}
 
-	// check if should be converted
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
 	{
 		using mcpppp::checkresults;
 
 		bool reconverting = false;
 
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/vmt/", zip))
+		if (mcpppp::findfolder(path, u8"assets/vmt/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -757,7 +786,7 @@ namespace vmt
 				return { checkresults::alrfound, false, false, zip };
 			}
 		}
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/random/entity/", zip))
+		if (mcpppp::findfolder(path, u8"assets/minecraft/optifine/random/entity/", zip))
 		{
 			if (reconverting)
 			{
@@ -768,7 +797,7 @@ namespace vmt
 				return { checkresults::valid, true, true, zip };
 			}
 		}
-		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/mob/", zip))
+		else if (mcpppp::findfolder(path, u8"assets/minecraft/optifine/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -779,7 +808,7 @@ namespace vmt
 				return { checkresults::valid, true, false, zip };
 			}
 		}
-		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/mob/", zip))
+		else if (mcpppp::findfolder(path, u8"assets/minecraft/mcpatcher/mob/", zip))
 		{
 			if (reconverting)
 			{
@@ -796,7 +825,6 @@ namespace vmt
 		}
 	}
 
-	// main vmt function
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		// source: assets/minecraft/*/mob/		< this can be of or mcpatcher, but the one below is of only

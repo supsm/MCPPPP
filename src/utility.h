@@ -34,32 +34,53 @@
 namespace mcpppp
 {
 #ifdef GUI
+	// fltk ui object
 	inline std::unique_ptr<UI> ui;
+	// stringstream containing current outputted line
 	inline std::stringstream sstream;
 #endif
+	// number of arguments, copied from main
 	inline int argc = -1;
-	inline bool autodeletetemp = false, pauseonexit = true, dolog = true, dotimestamp = false, autoreconvert = false, fsbtransparent = true;
-	inline int outputlevel = 3, loglevel = 1;
-	inline std::ofstream logfile("mcpppp-log.txt");
-	static std::string logfilename = "mcpppp-log.txt";
 
+	// settings
+	inline bool autodeletetemp = false; // automatically delete mcpppp-temp if found
+	inline bool pauseonexit = true; // pause and ask for user input upon conversion finishing
+	inline bool dolog = true; // log to file
+	inline bool dotimestamp = false; // add timestamp to regular output
+	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
+	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
+	inline int outputlevel = 3; // amount of info to output
+	inline int loglevel = 1; // amount of info to output to log
+	inline std::ofstream logfile("mcpppp-log.txt"); // log file
+	static std::string logfilename = "mcpppp-log.txt"; // name of log file
+
+	// paths to scan for resourcepacks
 	inline std::set<std::filesystem::path> paths = {};
+	// config settings/paths
 	inline nlohmann::ordered_json config;
+	// list of resourcepacks to convert
 	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
 
+	// hashes of converted resourcepacks
 	inline nlohmann::json hashes;
 
 	enum class type { boolean, integer, string };
 
+	// info for each settting item
 	struct setting_item
 	{
+		// data type of setting (bool, int, string, etc
 		type setting_type;
+		// reference of setting variable to update
 		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<int>, std::reference_wrapper<std::string>> var;
+		// default value of setting
 		// json since it is compared with another json value in save_settings
 		nlohmann::json default_val;
+		// minimum and maximum value for integer type settings
 		int min = 0, max = 0;
 	};
 
+	// info about each setting
 	const std::unordered_map<std::string, setting_item> settings =
 	{
 		{"pauseonexit", {type::boolean, std::ref(pauseonexit), pauseonexit}},
@@ -74,37 +95,66 @@ namespace mcpppp
 
 #ifdef GUI
 	// vector of things already outputted, to be used when outputlevel is changed
-	// level, text
+	// pair of {level, text}
 	inline std::vector<std::pair<short, std::string>> outputted;
 
+	// mutex for accessing outputted vector
 	inline std::mutex output_mutex;
 #endif
 
-	inline std::atomic_bool waitdontoutput = false; // don't output probably since output is being redrawn
+	// don't output probably since output is being redrawn
+	inline std::atomic_bool waitdontoutput = false;
 
+	// exit by pausing (if necessary) and exiting with code 0
 	[[noreturn]] void exit();
 
+	// make string lowercase
+	// @param str  string to convert to lowercase (passed by value)
+	// @return lowercase version of `str`
 	std::string lowercase(std::string str);
 
+	// get timestamp of format [hh:mm:ss]
+	// @return current timestamp
 	std::string timestamp();
 
+	// remove underscore '_' character from string
+	// @param str  string to remove underscores from (passed by value)
+	// @return `str` with underscores removed
 	std::string ununderscore(std::string str);
 
+	// find and replace a string with another string
+	// @param source  string to modify
+	// @param find  string to find in `source`
+	// @param replace  string to replace find with
 	void findreplace(std::string& source, const std::string& find, const std::string& replace);
 
+	// find and replace (with u8strings)
+	// @param source  string to modify
+	// @param find  string to find in `source`
+	// @param replace  string to replace `find` with
 	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace);
 
+	// convert std::u8string to std::string
 	std::string c8tomb(const std::u8string& s);
 
+	// convert char8_t[] (u8string) to char[] (string)
 	const char* c8tomb(const char8_t* s);
 
+	// convert std::string to std::u8string
 	std::u8string mbtoc8(const std::string& s);
 
+	// convert char[] (string) to char8_t[] (u8string)
 	const char8_t* mbtoc8(const char* s);
 
+	// convert optifine regex-like format to java regex
+	// @param of  string of optifine format
+	// @return java regex string
 	std::string oftoregex(std::string of);
 
 	// lol
+	// create a char* copy of a string
+	// @param s  string to copy
+	// @return char pointer, copy of `s`
 	inline char* dupstr(const std::string& s)
 	{
 		// add one for null character
@@ -120,19 +170,30 @@ namespace mcpppp
 		std::stringstream() << a;
 	};*/
 
+	// object to conditionally output to log file and regular output
 	class outstream
 	{
 	private:
 		friend outstream out(const short& level) noexcept;
-		bool cout, file, err, first = false;
-		short level;
-		outstream(const bool _first, const bool _cout, const bool _file, const bool _err, const short& _level) noexcept
-			: cout(_cout), file(_file), err(_err), first(_first), level(_level) {}
+		bool cout; // whether to output to regular output
+		bool file; // whether to output to log file
+		bool err; // whether to output to stderr if `cout` is true
+		short level; // current output level, used to determine color of output in gui
+		outstream(const bool _cout, const bool _file, const bool _err, const short& _level) noexcept
+			: cout(_cout), file(_file), err(_err), level(_level) {}
 #ifdef GUI
-		static void print(void* v);
+		// output to gui window
+		// @param v  char* to output, cast to void*
+		static void print(void* v)
+		{
+			ui->output->add(static_cast<char*>(v));
+			ui->output->bottomline(ui->output->size()); // automatically scroll to the bottom
+			delete[] static_cast<char*>(v);
+		}
 #endif
 	public:
 #ifdef GUI
+		// colors to use when outputting
 		// couldn't find a good pre-defined color for warning
 		// this is public so it can be used for redrawing when output level is changed
 		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
@@ -143,10 +204,6 @@ namespace mcpppp
 		{
 			if (file && logfile.good())
 			{
-				if (first)
-				{
-					logfile << timestamp();
-				}
 				logfile << value;
 			}
 #ifdef GUI
@@ -154,28 +211,12 @@ namespace mcpppp
 			// otherwise, print to command line like cli
 			if (argc < 2)
 			{
-				if (first)
-				{
-					sstream << (dotimestamp ? timestamp() : "");
-				}
 				sstream << value;
-				first = false;
 				return *this;
 			}
 #endif
 			if (cout)
 			{
-				if (first)
-				{
-					if (err)
-					{
-						std::cerr << (dotimestamp ? timestamp() : "");
-					}
-					else
-					{
-						std::cout << (dotimestamp ? timestamp() : "");
-					}
-				}
 				if (err)
 				{
 					std::cerr << value;
@@ -185,26 +226,63 @@ namespace mcpppp
 					std::cout << value;
 				}
 			}
-			first = false;
 			return *this;
 		}
 
 		outstream operator<<(const std::string& str);
 
 		outstream operator<<(std::ostream& (*f)(std::ostream&));
-	};
+	}; 
 
+	// create outstream object to output with
+	// @param level  level of output to set
+	// @return outstream object, example usage out(4) << "foo" << ...
 	inline outstream out(const short& level) noexcept
 	{
-		return { true, level >= outputlevel, level >= loglevel, level == 5, level };
+		if (level >= loglevel && logfile.good())
+		{
+			logfile << timestamp();
+		}
+#ifdef GUI
+		if (argc < 2)
+		{
+			sstream << (dotimestamp ? timestamp() : "");
+			return { level >= outputlevel, level >= loglevel, level == 5, level };
+		}
+#endif
+		if (level >= outputlevel)
+		{
+			if (level == 5)
+			{
+				std::cerr << (dotimestamp ? timestamp() : "");
+			}
+			else
+			{
+				std::cout << (dotimestamp ? timestamp() : "");
+			}
+		}
+		return { level >= outputlevel, level >= loglevel, level == 5, level };
 	}
 
+	// copy file/folder to another location
+	// @param from  file/folder to copy
+	// @param to  file/folder to copy to
 	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
 
-	bool findfolder(const std::u8string& path, const std::u8string& tofind, const bool zip);
+	// find folder in resource pack
+	// @param path  path of resource pack to search in
+	// @param tofind  path of folder to find
+	// @param zip  whether the resource pack is a .zip file
+	// @return whether the folder was found
+	bool findfolder(const std::filesystem::path& path, const std::u8string& tofind, const bool zip);
 
 
-	// seed will be cast to XXH32_hash_t if hash_size <=32
+	// hash any arbitrary block of data into hex  
+	// @tparam hash_size  size of hash, may be padded to fit into hex. recommended sizes 32, 64, 128 (max 128, default 64)
+	// @param data  data to hash
+	// @param size  size of data
+	// @param seed  seed to use when hashing (optional, default 0). Will be cast to XXH32_hash_t if hash_size <=32
+	// @return hex representation of hash
 	template<short hash_size = 64>
 	inline std::string hash(const void* data, const size_t size, const XXH64_hash_t& seed = 0)
 	{
@@ -257,15 +335,23 @@ namespace mcpppp
 		return gethex(rawhash);
 	}
 
+	// convert a single resource pack
+	// @param path  path of resource pack to convert
+	// @param dofsb  whether to convert fsb (optional, default true)
+	// @param dovmt  whether to convert vmt (optional, default true)
+	// @param docim  whether to convert cim (optional, default true)
+	// @return whether conversion succeeds
 	bool convert(const std::filesystem::path& path, const bool dofsb = true, const bool dovmt = true, const bool docim = true);
 
+	// read hashes from mcpppp-hashes.json to `hashes`
 	void gethashes();
 
+	// output hashes to mcpppp-hashes.json
 	void savehashes();
 
-	void setting(const std::string& option, const nlohmann::json& j);
-
+	// parse `config` json and set necessary variables
 	void readconfig();
 
+	// parse command-line arguments
 	void parseargs(int argc, const char* argv[]);
 }

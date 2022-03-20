@@ -17,13 +17,20 @@ using mcpppp::mbtoc8;
 
 namespace cim
 {
+	// get hash of resourcepack filename
+	// @param path  path to resource pack
+	// @param zip  whether resource pack is zip
+	// @return hex representation of hash
 	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
 	{
 		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
 		return mcpppp::hash<32>(u8s.data(), u8s.size());
 	}
 
-	// converts non-properties (models and textures) to cim
+	// convert non-properties (models and textures) to cim
+	// @param path  path of resourcepack
+	// @param zip  whether resourcepack is zipped
+	// @param entry  directory entry of model/texture file
 	static void other(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
 	{
 		// png location (textures): assets/mcpppp_hash/textures/item
@@ -126,7 +133,9 @@ namespace cim
 		}
 	}
 
-	// converts cit properties to cim
+	// converts optifine cit properties to cim
+	// @param path  path to resource pack
+	// @param entry  directory entry of properties file
 	static void prop(const std::filesystem::path& path, const std::filesystem::directory_entry& entry)
 	{
 		std::u8string folderpath = entry.path().generic_u8string();
@@ -567,7 +576,7 @@ namespace cim
 	{
 		using mcpppp::checkresults;
 		bool reconverting = false;
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/overrides/", zip))
+		if (mcpppp::findfolder(path, u8"assets/minecraft/overrides/", zip))
 		{
 			if (mcpppp::autoreconvert)
 			{
@@ -578,7 +587,7 @@ namespace cim
 				return { checkresults::alrfound, false, false, zip };
 			}
 		}
-		if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/optifine/cit/", zip))
+		if (mcpppp::findfolder(path, u8"assets/minecraft/optifine/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -589,7 +598,7 @@ namespace cim
 				return { checkresults::valid, true, false, zip };
 			}
 		}
-		else if (mcpppp::findfolder(path.generic_u8string(), u8"assets/minecraft/mcpatcher/cit/", zip))
+		else if (mcpppp::findfolder(path, u8"assets/minecraft/mcpatcher/cit/", zip))
 		{
 			if (reconverting)
 			{
@@ -606,7 +615,6 @@ namespace cim
 		}
 	}
 
-	// main cim function
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
 		// source: assets/minecraft/*/cit (recursive)
