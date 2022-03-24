@@ -80,7 +80,6 @@ namespace mcpppp
 			}
 			else
 			{
-				out(5) << "Conversion failed: " << c8tomb(p.second.path().generic_u8string()) << std::endl;
 				if (p.second.is_directory() || p.second.path().extension() == ".zip")
 				{
 					valid = true;
@@ -92,10 +91,7 @@ namespace mcpppp
 			out(4) << "No valid path found, running from default directory: " << c8tomb(getdefaultpath()) << std::endl;
 			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(getdefaultpath())))
 			{
-				if (!convert(std::filesystem::canonical(entry), dofsb, dovmt, docim))
-				{
-					out(5) << "Conversion failed: " << c8tomb(entry.path().generic_u8string()) << std::endl;
-				}
+				convert(std::filesystem::canonical(entry), dofsb, dovmt, docim);
 			}
 		}
 		running = false;

@@ -41,6 +41,7 @@ namespace cim
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		mcpppp::findreplace(folderpath, u8" ", u8"_");
 		if (entry.path().extension() == ".png")
 		{
 			std::filesystem::create_directories(path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath);
@@ -87,27 +88,34 @@ namespace cim
 						// std::string::contains in C++23
 						if (temp.find(' ') != std::string::npos)
 						{
-							std::string origtemp = temp;
-							mcpppp::findreplace(temp, " ", "_");
+							std::string origtemp;
 							// std::string::contains in C++23
 							if (temp.find(':') == std::string::npos)
 							{
+								// optifine allows spaces somehow
+								origtemp = temp;
+								mcpppp::findreplace(temp, " ", "_");
+								// has no namespace, use default minecraft namespace
 								mcpppp::copy(path / u8"assets/minecraft/textures" / (mbtoc8(origtemp) + u8".png"),
 									path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra/minecraft" / (mbtoc8(temp) + u8".png"));
 								it.value() = mcnamespace + ":extra/minecraft/" + temp;
 							}
 							else
 							{
+								// has a namespace, use it instead
 								std::string ns;
-								for (size_t i = 0; i < origtemp.size(); i++)
+								// remove the namespace
+								for (size_t i = 0; i < temp.size(); i++)
 								{
-									if (origtemp.at(i) == ':')
+									if (temp.at(i) == ':')
 									{
-										origtemp.erase(origtemp.begin(), origtemp.begin() + static_cast<std::string::difference_type>(i));
+										temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i) + 1);
 										break;
 									}
-									ns.push_back(origtemp.at(i));
+									ns.push_back(temp.at(i));
 								}
+								origtemp = temp;
+								mcpppp::findreplace(temp, " ", "_");
 								mcpppp::copy(path / u8"assets" / mbtoc8(ns) / u8"textures" / (mbtoc8(origtemp) + u8".png"),
 									path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / mbtoc8(ns) / (mbtoc8(temp) + u8".png"));
 								it.value() = mcnamespace + ":extra/" + ns + '/' + temp;
@@ -136,11 +144,13 @@ namespace cim
 	// converts optifine cit properties to cim
 	// @param path  path to resource pack
 	// @param entry  directory entry of properties file
-	static void prop(const std::filesystem::path& path, const std::filesystem::directory_entry& entry)
+	static void prop(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
 	{
+		const std::string mcnamespace = "mcpppp_" + getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
+		mcpppp::findreplace(folderpath, u8" ", u8"_");
 		std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
 		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 		std::vector<nlohmann::json> nbts, predicates, tempp;
@@ -205,17 +215,17 @@ namespace cim
 					// assets/mcpppp/textures/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), path / u8"assets/mcpppp/textures/extra" / (mbtoc8(texture) + u8".png"));
+					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / (mbtoc8(texture) + u8".png"));
 					texture.insert(0, "mcpppp:extra/");
 				}
 				else if (texture.at(0) == '.' && texture.at(1) == '/')
 				{
 					texture.erase(texture.begin(), texture.begin() + 2);
-					texture.insert(0, "mcpppp:item/" + c8tomb(folderpath));
+					texture.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
 				else
 				{
-					texture.insert(0, "mcpppp:item/");
+					texture.insert(0, mcnamespace + ":item/");
 				}
 			}
 			else if (option.starts_with("texture."))
@@ -237,17 +247,17 @@ namespace cim
 					// assets/mcpppp/models/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), path / u8"assets/mcpppp/models/extra" / (mbtoc8(model) + u8".png"));
-					model.insert(0, "mcpppp:extra/");
+					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "models/extra" / (mbtoc8(model) + u8".png"));
+					model.insert(0, mcnamespace + ":extra/");
 				}
 				else if (model.at(0) == '.' && model.at(1) == '/')
 				{
 					model.erase(model.begin(), model.begin() + 2);
-					model.insert(0, "mcpppp:item/" + c8tomb(folderpath));
+					model.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
 				else
 				{
-					model.insert(0, "mcpppp:item/");
+					model.insert(0, mcnamespace + ":item/");
 				}
 			}
 			else if (option == "damage")
@@ -621,20 +631,34 @@ namespace cim
 		// destination: assets/minecraft/overrides/item
 
 		out(3) << "CIM: Converting Pack " << c8tomb(filename) << std::endl;
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"cit"))
+
+		std::vector<std::filesystem::directory_entry> otherfiles, propfiles;
+
+		// save other files and prop files so we don't need to iterate over the directory twice
+		for (const auto& entry : std::filesystem::recursive_directory_iterator(
+			path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"cit"))
 		{
-			if (entry.path().extension() == ".png" || entry.path().extension() == ".properties" || entry.path().extension() == ".json")
-			{
-				out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-			}
 			if (entry.path().extension() == ".json" || entry.path().extension() == ".png")
 			{
-				other(path, info.iszip, entry);
+				otherfiles.push_back(entry);
 			}
 			else if (entry.path().extension() == ".properties")
 			{
-				prop(path, entry);
+				propfiles.push_back(entry);
 			}
+		}
+
+		// convert non-prop files first, so they won't be missing when copying
+		for (const auto& entry : otherfiles)
+		{
+			out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			other(path, info.iszip, entry);
+		}
+
+		for (const auto& entry : propfiles)
+		{
+			out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			prop(path, info.iszip, entry);
 		}
 	}
 }
