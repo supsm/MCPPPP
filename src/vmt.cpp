@@ -765,7 +765,7 @@ namespace vmt
 		{
 			const special_mob s = special_mobs.at(sm_ind);
 			const std::string type = s.get_typename(raw_type);
-			s_mobs[name].push_back({ type, s.reselect_func, res });
+			s_mobs[name].emplace_back(type, s.reselect_func, res);
 		}
 	}
 
@@ -833,34 +833,37 @@ namespace vmt
 
 		out(3) << "VMT: Converting Pack " << c8tomb(filename) << std::endl;
 
-		// convert all images first, so the reselect file can be overridden
+		std::vector<std::filesystem::directory_entry> pngfiles, propfiles;
+
+		// save png files and prop files so we don't need to iterate over the directory twice
 		for (const auto& entry : std::filesystem::recursive_directory_iterator(
 			path / u8"assets/minecraft" /
-				(info.optifine ?
-					u8"optifine" / std::filesystem::path(info.vmt_newlocation ? u8"random/entity" : u8"mob") :
-					u8"mcpatcher/mob")))
+			(info.optifine ?
+				u8"optifine" / std::filesystem::path(info.vmt_newlocation ? u8"random/entity" : u8"mob") :
+				u8"mcpatcher/mob")))
 		{
 			if (entry.path().extension() == ".png")
 			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+				pngfiles.push_back(entry);
 			}
-			if (entry.path().filename().extension() == ".png")
+			else if (entry.path().extension() == ".properties")
 			{
-				png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
+				propfiles.push_back(entry);
 			}
 		}
 
-		for (const auto& entry : std::filesystem::recursive_directory_iterator(
-			path / u8"assets/minecraft" /
-				(info.optifine ?
-					u8"optifine" / std::filesystem::path(info.vmt_newlocation ? u8"random/entity" : u8"mob") :
-					u8"mcpatcher/mob")))
+		// convert all images first, so the reselect file can be overridden
+		for (const auto& entry : pngfiles)
 		{
-			if (entry.path().extension() == ".properties")
-			{
-				out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
-				prop(path, info.vmt_newlocation, info.iszip, entry);
-			}
+			out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
+		}
+
+		for (const auto& entry : propfiles)
+		{
+			out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			s_mobs.clear();
+			prop(path, info.vmt_newlocation, info.iszip, entry);
 
 			// output special mob reselect files
 			for (const auto& p : s_mobs)

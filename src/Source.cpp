@@ -203,10 +203,7 @@ try
 	{
 		for (const auto& entry : mcpppp::entries)
 		{
-			if (mcpppp::convert(entry.second))
-			{
-				out(5) << "Conversion failed: " << c8tomb(entry.second.path().generic_u8string());
-			}
+			mcpppp::convert(entry.second);
 		}
 	}
 #else
