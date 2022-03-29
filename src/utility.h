@@ -14,6 +14,7 @@
 #include <mutex>
 #include <set>
 #include <sstream>
+#include <unordered_map>
 #include <variant>
 
 #ifdef GUI
@@ -31,13 +32,20 @@
 #define XXH_NO_STREAM
 #include "xxhash.h"
 
+#define MCPPPP_ASSERT(condition)                                                                  \
+if (!(condition))                                                                                 \
+{                                                                                                 \
+	mcpppp::out(5) << "Assertation failed: " << #condition << std::endl << __LINE__ << std::endl; \
+	abort();                                                                                      \
+}
+
 namespace mcpppp
 {
 #ifdef GUI
 	// fltk ui object
 	inline std::unique_ptr<UI> ui;
 	// stringstream containing current outputted line
-	inline std::stringstream sstream;
+	inline std::ostringstream sstream;
 #endif
 	// number of arguments, copied from main
 	inline int argc = -1;
@@ -106,21 +114,34 @@ namespace mcpppp
 	inline std::atomic_bool waitdontoutput = false;
 
 	// exit by pausing (if necessary) and exiting with code 0
-	[[noreturn]] void exit();
+	inline [[noreturn]] void exit()
+	{
+#ifndef GUI
+		if (pauseonexit)
+		{
+			std::string str;
+			std::cout << "Press enter to continue . . .";
+			getline(std::cin, str);
+		}
+#endif
+		std::exit(0);
+	}
 
 	// make string lowercase
 	// @param str  string to convert to lowercase (passed by value)
 	// @return lowercase version of `str`
-	std::string lowercase(std::string str);
+	std::string lowercase(std::string str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), [](const char& c) -> char
+			{
+				return std::tolower(c);
+			});
+		return str;
+	}
 
 	// get timestamp of format [hh:mm:ss]
 	// @return current timestamp
 	std::string timestamp();
-
-	// remove underscore '_' character from string
-	// @param str  string to remove underscores from (passed by value)
-	// @return `str` with underscores removed
-	std::string ununderscore(std::string str);
 
 	// find and replace a string with another string
 	// @param source  string to modify
@@ -135,21 +156,57 @@ namespace mcpppp
 	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace);
 
 	// convert std::u8string to std::string
-	std::string c8tomb(const std::u8string& s);
+	inline std::string c8tomb(const std::u8string& s)
+	{
+		return std::string(s.begin(), s.end());
+	}
 
 	// convert char8_t[] (u8string) to char[] (string)
-	const char* c8tomb(const char8_t* s);
+	inline const char* c8tomb(const char8_t* s)
+	{
+		return reinterpret_cast<const char*>(s);
+	}
 
 	// convert std::string to std::u8string
-	std::u8string mbtoc8(const std::string& s);
+	inline std::u8string mbtoc8(const std::string& s)
+	{
+		return std::u8string(s.begin(), s.end());
+	}
 
 	// convert char[] (string) to char8_t[] (u8string)
-	const char8_t* mbtoc8(const char* s);
+	inline const char8_t* mbtoc8(const char* s)
+	{
+		return reinterpret_cast<const char8_t*>(s);
+	}
 
-	// convert optifine regex-like format to java regex
-	// @param of  string of optifine format
-	// @return java regex string
-	std::string oftoregex(std::string of);
+	// utility functions exclusively for conversion
+	namespace convert
+	{
+		// remove underscore '_' character from string
+		// @param str  string to remove underscores from (passed by value)
+		// @return `str` with underscores removed
+		std::string ununderscore(std::string str);
+
+		// convert optifine regex-like format to java regex
+		// @param of  string of optifine format
+		// @return java regex string
+		std::string oftoregex(std::string of);
+
+		// get hash of resourcepack filename
+		// @param path  path to resource pack
+		// @param zip  whether resource pack is zip
+		// @return hex representation of hash
+		inline std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
+		{
+			const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
+			return mcpppp::hash<32>(u8s.data(), u8s.size());
+		}
+
+		// parse contents of .properties into map
+		// @param data  contents of properties file
+		// @return vector of key value pairs
+		std::unordered_map<std::string, std::string> parse_properties(const std::string& data);
+	}
 
 	// lol
 	// create a char* copy of a string
@@ -167,7 +224,7 @@ namespace mcpppp
 	template<typename T>
 	concept outputtable = requires(T a)
 	{
-		std::stringstream() << a;
+		std::ostringstream() << a;
 	};*/
 
 	// object to conditionally output to log file and regular output
@@ -232,7 +289,7 @@ namespace mcpppp
 		outstream operator<<(const std::string& str);
 
 		outstream operator<<(std::ostream& (*f)(std::ostream&));
-	}; 
+	};
 
 	// create outstream object to output with
 	// @param level  level of output to set
@@ -290,7 +347,7 @@ namespace mcpppp
 
 		const auto gethex = [](const std::variant<std::monostate, XXH32_hash_t, XXH64_hash_t, XXH128_hash_t>& rawhash) -> std::string
 		{
-			std::stringstream ss;
+			std::ostringstream ss;
 			ss << std::setfill('0') << std::hex;
 
 			if (rawhash.index() == 0) // type is monostate

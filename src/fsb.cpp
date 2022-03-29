@@ -286,7 +286,6 @@ namespace fsb
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		const std::u8string name = entry.path().stem().generic_u8string();
-		std::string option, value, temp;
 		std::u8string source, u8temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
@@ -316,41 +315,14 @@ namespace fsb
 		};
 
 		std::ifstream fin(entry.path());
-		while (fin)
+		const int filesize = std::filesystem::file_size(entry.path());
+		std::string rawdata(filesize, 0);
+		fin.read(rawdata.data(), filesize);
+		fin.close();
+		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+
+		for (const auto& [option, value] : prop_data)
 		{
-			std::getline(fin, temp);
-
-			option.clear();
-			value.clear();
-			bool isvalue = false;
-			for (const char& c : temp)
-			{
-				if (c == '=')
-				{
-					isvalue = true;
-				}
-				else if (!isvalue)
-				{
-					option += c;
-				}
-				else // isvalue
-				{
-					value += c;
-				}
-			}
-			while (option.back() == ' ' || option.back() == '\t')
-			{
-				option.pop_back();
-			}
-			while (value.front() == ' ' || value.front() == '\t')
-			{
-				value.erase(value.begin());
-			}
-			if (temp.empty())
-			{
-				continue;
-			}
-
 			if (option == "source")
 			{
 				source = mbtoc8(value);
@@ -358,12 +330,10 @@ namespace fsb
 			}
 			else if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
 			{
-				temp = value;
-				// apparently \: is valid syntax
-				mcpppp::findreplace(temp, "\\:", ":");
+				std::string temp = value;
 				for (size_t i = 0; i < temp.size(); i++)
 				{
-					if (temp.at(i) == ':')
+					if (temp.at(i) == ':') // time separator
 					{
 						temp.erase(temp.begin() + static_cast<std::string::difference_type>(i));
 						i--;
@@ -403,15 +373,14 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << value << "\"" << std::endl;
 					return;
 				}
 			}
 			else if (option == "axis")
 			{
 				std::string x, y, z;
-				std::stringstream axis;
-				axis.str(value);
+				std::istringstream axis(value);
 				axis >> x >> y >> z;
 				try
 				{
@@ -419,16 +388,15 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << value << "\"" << std::endl;
 					return;
 				}
 			}
 			else if (option == "weather")
 			{
 				std::string weather;
-				std::stringstream weathers;
+				std::istringstream weathers(value);
 				std::vector<std::string> weatherlist;
-				weathers.str(value);
 				while (weathers)
 				{
 					weathers >> weather;
@@ -439,9 +407,8 @@ namespace fsb
 			else if (option == "biomes")
 			{
 				std::string biome;
-				std::stringstream biomes;
+				std::istringstream biomes(value);
 				std::vector<std::string> biomelist;
-				biomes.str(value);
 				while (biomes)
 				{
 					biomes >> biome;
@@ -452,9 +419,8 @@ namespace fsb
 			else if (option == "heights")
 			{
 				std::string height, minheight;
-				std::stringstream heights;
+				std::stringstream heights(value);
 				std::vector<nlohmann::json> heightlist;
-				heights.str(value);
 				while (heights)
 				{
 					height.clear();
@@ -472,7 +438,7 @@ namespace fsb
 							}
 							catch (const std::invalid_argument& e)
 							{
-								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << temp << "\"" << std::endl;
+								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod arguments are \"" << minheight << "\", \"" << height << "\"" << std::endl;
 								return;
 							}
 						}

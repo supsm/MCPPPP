@@ -14,9 +14,9 @@
 #include <vector>
 
 #include "constants.h"
-#include "reselect.h"
 #include "convert.h"
 #include "utility.h"
+#include "reselect.h"
 
 using mcpppp::out;
 using mcpppp::c8tomb;
@@ -67,16 +67,6 @@ namespace vmt
 		}
 	}
 
-	// get hash of resourcepack filename
-	// @param path  path to resource pack
-	// @param zip  whether resource pack is zip
-	// @return hex representation of hash
-	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
-	{
-		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
-		return mcpppp::hash<32>(u8s.data(), u8s.size());
-	}
-
 	// moves vmt pngs to new location
 	// @param path  path of resourcepack being converted
 	// @param optifine  whether to use optifine locations (no = mcpatcher)
@@ -84,7 +74,7 @@ namespace vmt
 	// @param entry  actual png file to convert
 	static void png(const std::filesystem::path& path, const bool optifine, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry)
 	{
-		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(getfilenamehash(path, zip));
+		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(mcpppp::convert::getfilenamehash(path, zip));
 		const auto p = separate(c8tomb(entry.path().filename().stem().generic_u8string()));
 		const std::string curname = p.first;
 		// current name is new, look for all textures
@@ -194,35 +184,17 @@ namespace vmt
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		name = c8tomb(entry.path().stem().generic_u8string());
-		std::string temp, option, value, tempnum;
-		std::stringstream ss;
+		
 		std::ifstream fin(entry.path());
-		while (fin)
+		const int filesize = std::filesystem::file_size(entry.path());
+		std::string rawdata(filesize, 0);
+		fin.read(rawdata.data(), filesize);
+		fin.close();
+		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+
+		for (const auto& [option, value] : prop_data)
 		{
-			std::getline(fin, temp);
-			option.clear();
-			value.clear();
-			bool isvalue = false;
-			if (temp.empty() || temp.front() == '#')
-			{
-				continue;
-			}
-			for (const char& c : temp)
-			{
-				if (c == '=')
-				{
-					isvalue = true;
-				}
-				else if (!isvalue)
-				{
-					option += c;
-				}
-				else // isvalue
-				{
-					value += c;
-				}
-			}
-			tempnum.clear();
+			std::string tempnum;
 			for (size_t i = option.size(); i >= 1; i--)
 			{
 				if (option.at(i - 1) >= '0' && option.at(i - 1) <= '9')
@@ -268,11 +240,10 @@ namespace vmt
 					}
 					textures.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
@@ -282,7 +253,7 @@ namespace vmt
 						}
 						else
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + getfilenamehash(path, zip) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + mcpppp::convert::getfilenamehash(path, zip) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
 						}
 					}
 				}
@@ -295,15 +266,22 @@ namespace vmt
 					out(2) << "(warn) VMT: Duplicate predicate weights." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
 					weights.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
-						weights.at(static_cast<size_t>(curnum - 1)).push_back(stoi(temp));
+						try
+						{
+							weights.at(static_cast<size_t>(curnum - 1)).push_back(stoi(temp));
+						}
+						catch (const std::invalid_argument& e)
+						{
+							out(5) << "VMT Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stoi argument is \"" << value << "\"" << std::endl;
+							return;
+						}
 					}
 				}
 			}
@@ -315,11 +293,10 @@ namespace vmt
 					out(2) << "(warn) VMT: Duplicate predicate biomes." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
 					biomes.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
@@ -329,9 +306,9 @@ namespace vmt
 							// binary search for biome name
 							const auto it = std::lower_bound(biomelist.begin(), biomelist.end(), temp, [](const std::string& a, const std::string& b) -> bool
 								{
-									return mcpppp::lowercase(mcpppp::ununderscore(a)) < mcpppp::lowercase(mcpppp::ununderscore(b));
+									return mcpppp::lowercase(mcpppp::convert::ununderscore(a)) < mcpppp::lowercase(mcpppp::convert::ununderscore(b));
 								});
-							if (it == biomelist.end() || (mcpppp::ununderscore(*it) != mcpppp::lowercase(mcpppp::ununderscore(temp))))
+							if (it == biomelist.end() || (mcpppp::convert::ununderscore(*it) != mcpppp::lowercase(mcpppp::convert::ununderscore(temp))))
 							{
 								out(2) << "(warn) Invalid biome name: " << temp << std::endl;
 							}
@@ -355,11 +332,10 @@ namespace vmt
 					out(2) << "(warn) VMT: Duplicate predicate heights." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
 					heights.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
@@ -387,7 +363,7 @@ namespace vmt
 			}
 			else if (option.starts_with("name."))
 			{
-				temp = value;
+				std::string temp = value;
 				match_type type = match_type::normal;
 				if (temp.starts_with("regex:") || temp.starts_with("iregex:") || temp.starts_with("pattern:") || temp.starts_with("ipattern:"))
 				{
@@ -403,7 +379,7 @@ namespace vmt
 					}
 					if (temp.starts_with("pattern:") || temp.starts_with("ipattern:"))
 					{
-						temp = mcpppp::oftoregex(temp);
+						temp = mcpppp::convert::oftoregex(temp);
 					}
 				}
 				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, type);
@@ -435,11 +411,10 @@ namespace vmt
 					out(2) << "(warn) VMT: Duplicate predicate healths." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
 					healths.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
@@ -478,11 +453,10 @@ namespace vmt
 					out(2) << "(warn) VMT: Duplicate predicate dayTime." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
 					times.at(static_cast<size_t>(curnum - 1)).clear();
 				}
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (!temp.empty())
 					{
@@ -502,11 +476,10 @@ namespace vmt
 			}
 			else if (option.starts_with("weather."))
 			{
-				ss.clear();
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
-					temp = "";
+					std::string temp;
 					ss >> temp;
 					if (temp == "clear")
 					{
@@ -694,7 +667,7 @@ namespace vmt
 							std::string maxhealth = std::to_string(mob_healths.at(name));
 							formatdecimal(maxhealth);
 							return '(' + name + ".health * 100.0 / " + maxhealth + " >= " + lower + " and " +
-								name + ".health * 100 / " + maxhealth + " <= " + upper + ')';
+								name + ".health * 100.0 / " + maxhealth + " <= " + upper + ')';
 						}
 						else // if value
 						{
