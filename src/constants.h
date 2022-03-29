@@ -303,7 +303,7 @@ namespace vmt
 			}
 			std::string item, type;
 			std::vector<std::string> items;
-			std::stringstream ss(source);
+			std::istringstream ss(source);
 			while (std::getline(ss, item, '_'))
 			{
 				if (!item.empty())

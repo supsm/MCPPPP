@@ -38,28 +38,6 @@ namespace mcpppp
 	// wait for dialog to close
 	static std::atomic_bool wait_close;
 
-	[[noreturn]] void exit()
-	{
-#ifndef GUI
-		if (pauseonexit)
-		{
-			std::string str;
-			std::cout << "Press enter to continue . . .";
-			getline(std::cin, str);
-		}
-#endif
-		std::exit(0);
-	}
-
-	std::string lowercase(std::string str)
-	{
-		std::transform(str.begin(), str.end(), str.begin(), [](const char& c) -> char
-			{
-				return std::tolower(c);
-			});
-		return str;
-	}
-
 	// secure version of localtime
 	static auto localtime_rs(tm* tm, const time_t* time)
 	{
@@ -96,12 +74,6 @@ namespace mcpppp
 		return '[' + hour + ':' + min + ':' + sec + "] ";
 	}
 
-	std::string ununderscore(std::string str)
-	{
-		str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
-		return str;
-	}
-
 	void findreplace(std::string& source, const std::string& find, const std::string& replace)
 	{
 		long long pos = -static_cast<long long>(replace.size());
@@ -124,66 +96,267 @@ namespace mcpppp
 		}
 	}
 
-	std::string c8tomb(const std::u8string& s)
+	namespace convert
 	{
-		return std::string(s.begin(), s.end());
-	}
-
-	const char* c8tomb(const char8_t* s)
-	{
-		return reinterpret_cast<const char*>(s);
-	}
-
-	std::u8string mbtoc8(const std::string& s)
-	{
-		return std::u8string(s.begin(), s.end());
-	}
-
-	const char8_t* mbtoc8(const char* s)
-	{
-		return reinterpret_cast<const char8_t*>(s);
-	}
-
-	std::string oftoregex(std::string of)
-	{
-		findreplace(of, ".", "\\.");
-		findreplace(of, "[", "\\[");
-		findreplace(of, "]", "\\]");
-		findreplace(of, "^", "\\^");
-		findreplace(of, "$", "\\$");
-		findreplace(of, "+", "\\+");
-		findreplace(of, "{", "\\{");
-		findreplace(of, "}", "\\}");
-		for (size_t i = 0; i < of.size(); i++)
+		std::string ununderscore(std::string str)
 		{
-			if (of.at(i) == '*')
+			str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+			return str;
+		}
+
+		std::string oftoregex(std::string of)
+		{
+			findreplace(of, ".", "\\.");
+			findreplace(of, "[", "\\[");
+			findreplace(of, "]", "\\]");
+			findreplace(of, "^", "\\^");
+			findreplace(of, "$", "\\$");
+			findreplace(of, "+", "\\+");
+			findreplace(of, "{", "\\{");
+			findreplace(of, "}", "\\}");
+			for (size_t i = 0; i < of.size(); i++)
 			{
-				if (i != 0)
+				if (of.at(i) == '*')
 				{
-					if (of.at(i - 1) == '\\')
+					if (i != 0)
 					{
+						if (of.at(i - 1) == '\\')
+						{
+							continue;
+						}
+					}
+					of.replace(i, 1, ".*");
+					i++;
+				}
+			}
+			for (size_t i = 0; i < of.size(); i++)
+			{
+				if (of.at(i) == '?')
+				{
+					if (i != 0)
+					{
+						if (of.at(i - 1) == '\\')
+						{
+							continue;
+						}
+					}
+					of.replace(i, 1, ".*");
+				}
+			}
+			return of;
+		}
+
+		std::unordered_map<std::string, std::string> parse_properties(const std::string& data)
+		{
+			std::string line;
+			std::istringstream ss(data);
+			std::unordered_map<std::string, std::string> m;
+
+			bool isvalue = false;
+			bool delim_is_space = false;
+			bool skipline = false; // skip current line
+			bool escape = false; // escape next character
+			bool unicode = false;
+			std::string utfcharhex, key, value;
+			const auto add = [&isvalue, &key, &value](const char c) -> void
+			{
+				if (isvalue)
+				{
+					value += c;
+				}
+				else
+				{
+					key += c;
+				}
+			};
+
+			while (std::getline(ss, line))
+			{
+				if (!escape) // keep original things when escaping newline
+				{
+					isvalue = false;
+					delim_is_space = false;
+					skipline = false;
+					key.clear();
+					value.clear();
+				}
+				escape = false; // remove escape
+				bool blank = true; // ignore all blank characters in the beginning of a line
+
+				for (const char& c : line)
+				{
+					if (escape)
+					{
+						switch (c)
+						{
+						case '=': [[fallthrough]];
+						case ':': [[fallthrough]];
+						case ' ': [[fallthrough]];
+						case '\t':
+							add(c); // usually delimiting characters, when escaped just add them
+							break;
+						case '#': [[fallthrough]];
+						case '!':
+							add(c); // usually comments, when escaped just add them
+							break;
+						case '\\':
+							add(c); // backslash character
+							break;
+						case 'n':
+							add('\n'); // newline
+							break;
+						case 't':
+							add('\t'); // tab
+							break;
+						case 'r':
+							add('\r'); // carriage return
+							break;
+						case 'f':
+							add('\f'); // form feed (i have no idea what this does)
+							break;
+						case 'u':
+							unicode = true; // unicode
+							utfcharhex.clear();
+							break;
+						default:
+							add(c);
+						}
+						escape = false;
 						continue;
 					}
-				}
-				of.replace(i, 1, ".*");
-				i++;
-			}
-		}
-		for (size_t i = 0; i < of.size(); i++)
-		{
-			if (of.at(i) == '?')
-			{
-				if (i != 0)
-				{
-					if (of.at(i - 1) == '\\')
+					else if (unicode)
 					{
+						utfcharhex += c;
+						if (utfcharhex.size() >= 4)
+						{
+							char16_t c16 = std::stoi(utfcharhex, nullptr, 16);
+
+							auto cptoutf8 = [](const char32_t c) -> std::string
+							{
+								if (c < 0x80)
+								{
+									// 1 byte (from 7 bits)
+									return std::string{ static_cast<char>(c) };
+								}
+								else if (c < 0x800)
+								{
+									// 2 bytes (from 11 bits)
+									char char1 = 0b11000000 | ((c >> 6) & 0b11111); // first 5 bits
+									char char2 = 0b10000000 | (c & 0b111111); // last 6 bits
+									return std::string{ char1, char2 };
+								}
+								else if (c < 0x10000)
+								{
+									// 3 bytes (from 16 bits)
+									char char1 = 0b11100000 | ((c >> 12) & 0b1111); // first 4 bits
+									char char2 = 0b10000000 | ((c >> 6) & 0b111111); // bits 5-10
+									char char3 = 0b10000000 | (c & 0b111111); // last 6 bits
+									return std::string{ char1, char2, char3 };
+								}
+								else if (c < 0x110000)
+								{
+									// 4 bytes (from 21 bits)
+									char char1 = 0b11110000 | ((c >> 18) & 0b111); // first 3 bits
+									char char2 = 0b10000000 | ((c >> 12) & 0b111111); // bits 4-9
+									char char3 = 0b10000000 | ((c >> 6) & 0b111111); // bits 10-15
+									char char4 = 0b10000000 | (c & 0b111111); // last 6 bits
+									return std::string{ char1, char2, char3, char4 };
+								}
+								else
+								{
+									throw std::invalid_argument("Invalid Unicode Code Point (too large)");
+								}
+							};
+
+							std::string temps = cptoutf8(c16);
+
+							for (const auto& tempc : temps)
+							{
+								add(tempc);
+							}
+							unicode = false;
+						}
 						continue;
 					}
+
+					if (c == '=' || c == ':') // delimiting characters
+					{
+						// if previous character is space delimiter, these act as delimiters
+						// otherwise, add them as a normal character
+						if (isvalue)
+						{
+							if (!value.empty() || !delim_is_space)
+							{
+								value += c;
+							}
+							else
+							{
+								delim_is_space = false;
+							}
+						}
+						else
+						{
+							isvalue = true;
+						}
+						blank = false;
+					}
+					else if (c == ' ' || c == '\t') // spaces/tabs are handled differently based on context
+					{
+						if (isvalue)
+						{
+							// if value is still empty, space acts as delimiter
+							// spaces don't have special meaning when in value, just add it on
+							// blank spaces at the beginning of an escaped line should still be ignored
+							if (!value.empty() && !blank)
+							{
+								value += c;
+							}
+						}
+						else
+						{
+							// ignore if there are only blank characters
+							// otherwise, spaces act as delimiter
+							if (!blank)
+							{
+								isvalue = true;
+								delim_is_space = true;
+							}
+						}
+					}
+					else if (c == '#' || c == '!') // comments
+					{
+						// first non-blank character, skip this line
+						// we use key.empty() here instead of blank because
+						// blank gets reset if we escape a newline
+						if (key.empty())
+						{
+							skipline = true;
+							break;
+						}
+						else
+						{
+							add(c);
+						}
+						blank = false;
+					}
+					else if (c == '\\') // escape
+					{
+						escape = true;
+						blank = false;
+					}
+					else
+					{
+						add(c);
+						blank = false;
+					}
 				}
-				of.replace(i, 1, ".*");
+				if (!skipline && !escape && !key.empty())
+				{
+					m[key] = value;
+				}
 			}
+			return m;
 		}
-		return of;
 	}
 
 	outstream outstream::operator<<(const std::string& str)
@@ -684,7 +857,7 @@ namespace mcpppp
 #ifdef GUI
 			char* c;
 			{
-				std::stringstream ss;
+				std::ostringstream ss;
 				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
 					<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
 				c = dupstr(ss.str());

@@ -17,16 +17,6 @@ using mcpppp::mbtoc8;
 
 namespace cim
 {
-	// get hash of resourcepack filename
-	// @param path  path to resource pack
-	// @param zip  whether resource pack is zip
-	// @return hex representation of hash
-	static std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
-	{
-		const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
-		return mcpppp::hash<32>(u8s.data(), u8s.size());
-	}
-
 	// convert non-properties (models and textures) to cim
 	// @param path  path of resourcepack
 	// @param zip  whether resourcepack is zipped
@@ -37,7 +27,7 @@ namespace cim
 		// json location (models): assets/mcpppp_hash/models/item
 		// mcpppp_hash:item/
 
-		const std::string mcnamespace = "mcpppp_" + getfilenamehash(path, zip);
+		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
@@ -47,7 +37,7 @@ namespace cim
 			std::filesystem::create_directories(path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath);
 			std::u8string filename = entry.path().filename().u8string();
 			mcpppp::findreplace(filename, u8" ", u8"_");
-			copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath / filename);
+			mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath / filename);
 		}
 		else
 		{
@@ -59,7 +49,7 @@ namespace cim
 			if (j.contains("parent"))
 			{
 				temp = j["parent"].get<std::string>();
-				if (temp.at(0) == '.' && temp.at(1) == '/')
+				if (temp.starts_with("./"))
 				{
 					temp.erase(temp.begin(), temp.begin() + 2);
 					temp = mcnamespace + ":item/" + c8tomb(folderpath) + temp;
@@ -79,7 +69,7 @@ namespace cim
 							layer0 = true;
 						}
 						temp = it.value().get<std::string>();
-						if (temp.at(0) == '.' && temp.at(1) == '/')
+						if (temp.starts_with("./"))
 						{
 							temp.erase(temp.begin(), temp.begin() + 2);
 							temp.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
@@ -141,58 +131,94 @@ namespace cim
 		}
 	}
 
-	// converts optifine cit properties to cim
+	// read and parse optifine properties file
 	// @param path  path to resource pack
-	// @param entry  directory entry of properties file
-	static void prop(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
+	// @param zip  whether resourcepack is zipped
+	// @param entry  directory entry of properties file to parse
+	// @param type  type of texture replacement (item, enchantment, armor, elytra) (output)
+	// @param items  items to apply replacement to (output)
+	// @param texture  replacement texture to use (output)
+	// @param model  replacement model to use (output)
+	// @param damages  damage predicates (output)
+	// @param stacksizes  stack size predicates (output)
+	// @param enchantments  enchantment predicates (output)
+	// @param enchantmentlevels  enchantment levels for enchantment predicates (output)
+	// @param hand  hand predicate (ouptut)
+	// @param nbts  nbt predicate. nbt.fireworks.explosions would become { "nbt", "fireworks", "explosions" } (output)
+	// @param name  name predicate (output)	
+	static void read_prop(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry,
+		std::string& type,
+		std::vector<std::string>& items,
+		std::string& texture,
+		std::string& model,
+		std::vector<std::string>& damages,
+		std::vector<std::string>& stacksizes,
+		std::vector<std::string>& enchantments,
+		std::vector<std::string>& enchantmentlevels,
+		std::string& hand,
+		std::vector<nlohmann::json>& nbts,
+		std::string& name)
 	{
-		const std::string mcnamespace = "mcpppp_" + getfilenamehash(path, zip);
+		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		mcpppp::findreplace(folderpath, u8" ", u8"_");
-		std::string temp, option, value, type = "item", texture, model, hand = "anything", first, name;
-		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
-		std::vector<nlohmann::json> nbts, predicates, tempp;
-		std::stack<std::string> nbt;
-		nlohmann::json tempj;
-		std::ifstream fin(entry.path());
-		while (fin)
+
+		// convert range stuff from optifine format (with -) to chime format (with [,] >= <= etc)
+		const auto handlerange = [](const std::string& optifine_range) -> std::string
 		{
-			getline(fin, temp);
-			option.clear();
-			value.clear();
-			bool isvalue = false;
-			if (temp.empty() || temp.at(0) == '#')
+			if (optifine_range.find('-') == std::string::npos)
 			{
-				continue;
+				// no range
+				return optifine_range;
 			}
-			for (const char& c : temp)
+			else if (optifine_range.starts_with('-'))
 			{
-				if (c == '=')
+				// range from anything to number (<=)
+				return std::string("<=").append(optifine_range.begin() + 1, optifine_range.end());
+			}
+			else if (optifine_range.ends_with('-'))
+			{
+				// range from number to anything (>=)
+				return std::string(">=").append(optifine_range.begin(), optifine_range.end() - 1);
+			}
+			else
+			{
+				// range between two numbers
+				for (size_t i = 0; i < optifine_range.size(); i++)
 				{
-					isvalue = true;
-				}
-				else if (!isvalue)
-				{
-					option += c;
-				}
-				else // isvalue
-				{
-					value += c;
+					if (optifine_range.at(i) == '-')
+					{
+						std::string first = optifine_range;
+						first.erase(first.begin() + static_cast<std::string::difference_type>(i), first.end());
+						return std::string(first).append("..").append(optifine_range.begin() + i + 1, optifine_range.end());
+					}
 				}
 			}
+		};
+
+		std::ifstream fin(entry.path());
+		const int filesize = std::filesystem::file_size(entry.path());
+		std::string rawdata(filesize, 0);
+		fin.read(rawdata.data(), filesize);
+		fin.close();
+		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+
+		for (const auto& [option, value] : prop_data)
+		{
 			if (option == "type")
 			{
 				type = value;
 			}
 			else if (option == "items" || option == "matchItems") // matchItems not documented but i found it in a pack
 			{
-				std::stringstream ss;
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
+					std::string temp;
 					ss >> temp;
+					// remove minecraft: namespace
 					if (temp.starts_with("minecraft:"))
 					{
 						temp.erase(temp.begin(), temp.begin() + 10);
@@ -210,22 +236,21 @@ namespace cim
 					texture.erase(texture.end() - 4, texture.end());
 				}
 				// std::string::contains in C++23
-				if (texture.find('/') != std::string::npos && texture.at(0) != '.')
+				if (texture.find('/') != std::string::npos && !texture.starts_with('.'))
 				{
 					// assets/mcpppp/textures/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
 					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / (mbtoc8(texture) + u8".png"));
-					texture.insert(0, "mcpppp:extra/");
-				}
-				else if (texture.at(0) == '.' && texture.at(1) == '/')
-				{
-					texture.erase(texture.begin(), texture.begin() + 2);
-					texture.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
+					texture.insert(0, mcnamespace + ":extra/");
 				}
 				else
 				{
-					texture.insert(0, mcnamespace + ":item/");
+					if (texture.starts_with("./"))
+					{
+						texture.erase(texture.begin(), texture.begin() + 2);
+					}
+					texture.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
 			}
 			else if (option.starts_with("texture."))
@@ -242,60 +267,31 @@ namespace cim
 					model.erase(model.end() - 5, model.end());
 				}
 				// std::string::contains in C++23
-				if (model.find('/') != std::string::npos && model.at(0) != '.')
+				if (model.find('/') != std::string::npos && !model.starts_with('.'))
 				{
 					// assets/mcpppp/models/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "models/extra" / (mbtoc8(model) + u8".png"));
+					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "models/extra" / (mbtoc8(model) + u8".json"));
 					model.insert(0, mcnamespace + ":extra/");
-				}
-				else if (model.at(0) == '.' && model.at(1) == '/')
-				{
-					model.erase(model.begin(), model.begin() + 2);
-					model.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
 				else
 				{
-					model.insert(0, mcnamespace + ":item/");
+					if (model.starts_with("./"))
+					{
+						model.erase(model.begin(), model.begin() + 2);
+					}
+					model.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
 			}
 			else if (option == "damage")
 			{
-				std::stringstream ss;
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
+					std::string temp;
 					ss >> temp;
-					// std::string::contains in C++23
-					if (temp.find('-') == std::string::npos)
-					{
-						damages.push_back("[" + temp + ", " + temp + "]");
-					}
-					else if (temp.at(0) == '-')
-					{
-						temp.erase(temp.begin());
-						damages.push_back("<=" + temp);
-					}
-					else if (temp.at(temp.size() - 1) == '-')
-					{
-						temp.erase(temp.end() - 1);
-						damages.push_back(">=" + temp);
-					}
-					else
-					{
-						for (size_t i = 0; i < temp.size(); i++)
-						{
-							if (temp.at(i) == '-')
-							{
-								first = temp;
-								first.erase(first.begin() + static_cast<std::string::difference_type>(i), first.end());
-								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
-								damages.push_back("[" + first + ", " + temp + "]");
-								break;
-							}
-						}
-					}
+					damages.push_back(handlerange(temp));
 				}
 			}
 			else if (option == "damageMask")
@@ -304,50 +300,23 @@ namespace cim
 			}
 			else if (option == "stackSize")
 			{
-				std::stringstream ss;
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
+					std::string temp;
 					ss >> temp;
-					// std::string::contains in C++23
-					if (temp.find('-') == std::string::npos)
-					{
-						stacksizes.push_back("[" + temp + ", " + temp + "]");
-					}
-					else if (temp.at(0) == '-')
-					{
-						temp.erase(temp.begin());
-						stacksizes.push_back("<=" + temp);
-					}
-					else if (temp.at(temp.size() - 1) == '-')
-					{
-						temp.erase(temp.end() - 1);
-						stacksizes.push_back(">=" + temp);
-					}
-					else
-					{
-						for (size_t i = 0; i < temp.size(); i++)
-						{
-							if (temp.at(i) == '-')
-							{
-								first = temp;
-								first.erase(first.begin() + static_cast<std::string::difference_type>(i), first.end());
-								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
-								stacksizes.push_back("[" + first + ", " + temp + "]");
-								break;
-							}
-						}
-					}
+					stacksizes.push_back(handlerange(temp));
 				}
 			}
 			else if (option == "enchantments")
 			{
-				std::stringstream ss;
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
+					std::string temp;
 					ss >> temp;
 					// std::string::contains in C++23
+					// no namespace, insert default minecraft namespace instead
 					if (temp.find(':') == std::string::npos)
 					{
 						temp.insert(0, "minecraft:");
@@ -357,40 +326,12 @@ namespace cim
 			}
 			else if (option == "enchantmentLevels")
 			{
-				std::stringstream ss;
-				ss.str(value);
+				std::istringstream ss(value);
 				while (ss)
 				{
+					std::string temp;
 					ss >> temp;
-					// std::string::contains in C++23
-					if (temp.find('-') == std::string::npos)
-					{
-						enchantmentlevels.push_back("[" + temp + ", " + temp + "]");
-					}
-					else if (temp.at(0) == '-')
-					{
-						temp.erase(temp.begin());
-						enchantmentlevels.push_back("<=" + temp);
-					}
-					else if (temp.at(temp.size() - 1) == '-')
-					{
-						temp.erase(temp.end() - 1);
-						enchantmentlevels.push_back(">=" + temp);
-					}
-					else
-					{
-						for (size_t i = 0; i < temp.size(); i++)
-						{
-							if (temp.at(i) == '-')
-							{
-								first = temp;
-								first.erase(first.begin() + static_cast<std::string::difference_type>(i), first.end());
-								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
-								enchantmentlevels.push_back("[" + first + ", " + temp + "]");
-								break;
-							}
-						}
-					}
+					enchantmentlevels.push_back(handlerange(temp));
 				}
 			}
 			else if (option == "hand")
@@ -406,7 +347,8 @@ namespace cim
 			}
 			else if (option.starts_with("nbt."))
 			{
-				temp.clear();
+				std::string temp;
+				std::stack<std::string> nbt;
 				for (const char& c : option)
 				{
 					if (c == '.')
@@ -421,10 +363,12 @@ namespace cim
 				}
 				nbt.push(temp);
 				temp = value;
-				if (temp.starts_with("regex:") || temp.starts_with("iregex:"))
+
+				// handle regex/optifine pattern
+				if (value.starts_with("regex:") || value.starts_with("iregex:"))
 				{
 					// if first character is i, then it is iregex (case insensitive)
-					const bool insensitive = (temp.front() == 'i');
+					const bool insensitive = (value.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -435,9 +379,9 @@ namespace cim
 					}
 					temp = std::string("/").append(insensitive ? "(?i)" : "").append(temp).append("/");
 				}
-				else if (temp.starts_with("pattern:") || temp.starts_with("iregex:"))
+				else if (value.starts_with("pattern:") || value.starts_with("ipattern:"))
 				{
-					const bool insensitive = (temp.front() == 'i');
+					const bool insensitive = (value.front() == 'i');
 					for (size_t i = 0; i < temp.size(); i++)
 					{
 						if (temp.at(i) == ':')
@@ -446,15 +390,16 @@ namespace cim
 							break;
 						}
 					}
-					temp = std::string("/").append(insensitive ? "(?i)" : "").append(mcpppp::oftoregex(temp)).append("/");
+					temp = std::string("/").append(insensitive ? "(?i)" : "").append(mcpppp::convert::oftoregex(temp)).append("/");
 				}
+
 				if (mcpppp::lowercase(option) == "nbt.display.name")
 				{
 					name = temp;
 				}
 				else
 				{
-					tempj = { {nbt.top(), temp} };
+					nlohmann::json tempj = { {nbt.top(), temp} };
 					nbt.pop();
 					while (!nbt.empty())
 					{
@@ -465,18 +410,59 @@ namespace cim
 				}
 			}
 		}
+	}
+
+	// converts optifine cit properties to cim
+	// @param path  path to resource pack
+	// @param entry  directory entry of properties file
+	static void prop(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
+	{
+		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
+		std::string type = "item", texture, model, hand = "anything", name;
+		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
+		std::vector<nlohmann::json> nbts, predicates, tempp;
+		std::stack<std::string> nbt;
+		nlohmann::json tempj;
+
+		read_prop(path, zip, entry, type, items, texture, model, damages, stacksizes, enchantments, enchantmentlevels, hand, nbts, name);
+
 		if (type != "item") // TODO: add armor later
 		{
 			return;
 		}
 
 		predicates.clear();
+
+		// create temporary model which points to texture if model is not supplied
+		if (model.empty() && !texture.empty())
+		{
+			model = texture;
+			// replace namespace:item/ with namespace:temp_models/
+			if (model.starts_with(mcnamespace + ":item/"))
+			{
+				// 6 is size of ":item/"
+				model.replace(mcnamespace.size(), 6, ":temp_models/");
+			}
+
+			// model and texture should not contain file extensions, add it here
+			// 13 is size of ":temp_models/"
+			const std::filesystem::path modelpath = path / u8"assets" / mbtoc8(mcnamespace) /
+				mbtoc8(std::string("models/temp_models/").append(model.begin() + mcnamespace.size() + 13, model.end()).append(".json"));
+
+			if (!std::filesystem::exists(modelpath.parent_path()))
+			{
+				std::filesystem::create_directories(modelpath.parent_path());
+			}
+			std::ofstream fout(modelpath);
+			fout << nlohmann::json({ {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}} }).dump(1, '\t') << std::endl;
+		}
 		tempj = { {"model", model} };
+
 		if (hand != "anything")
 		{
 			tempj["predicate"]["entity"]["hand"] = hand;
 		}
-		if (name.empty())
+		if (!name.empty())
 		{
 			tempj["predicate"]["name"] = name;
 		}
