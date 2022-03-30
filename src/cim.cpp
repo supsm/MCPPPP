@@ -215,6 +215,10 @@ namespace cim
 				{
 					std::string temp;
 					ss >> temp;
+					if (temp.empty())
+					{
+						continue;
+					}
 					// remove minecraft: namespace
 					if (temp.starts_with("minecraft:"))
 					{
@@ -233,12 +237,13 @@ namespace cim
 					texture.erase(texture.end() - 4, texture.end());
 				}
 				// std::string::contains in C++23
+				// contains directory separator but does not start with ./
 				if (texture.find('/') != std::string::npos && !texture.starts_with('.'))
 				{
 					// assets/mcpppp/textures/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / (mbtoc8(texture) + u8".png"));
+					mcpppp::copy(path / u8"assets/minecraft" / (mbtoc8(texture) + u8".png"), path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / (mbtoc8(texture) + u8".png"));
 					texture.insert(0, mcnamespace + ":extra/");
 				}
 				else
@@ -264,12 +269,13 @@ namespace cim
 					model.erase(model.end() - 5, model.end());
 				}
 				// std::string::contains in C++23
+				// contains directory separator but does not start with ./
 				if (model.find('/') != std::string::npos && !model.starts_with('.'))
 				{
 					// assets/mcpppp/models/extra
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
-					mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "models/extra" / (mbtoc8(model) + u8".json"));
+					mcpppp::copy(path / u8"assets/minecraft" / (mbtoc8(model) + u8".json"), path / u8"assets" / mbtoc8(mcnamespace) / "models/extra" / (mbtoc8(model) + u8".json"));
 					model.insert(0, mcnamespace + ":extra/");
 				}
 				else
@@ -288,6 +294,10 @@ namespace cim
 				{
 					std::string temp;
 					ss >> temp;
+					if (temp.empty())
+					{
+						continue;
+					}
 					damages.push_back(handlerange(temp));
 				}
 			}
@@ -302,6 +312,10 @@ namespace cim
 				{
 					std::string temp;
 					ss >> temp;
+					if (temp.empty())
+					{
+						continue;
+					}
 					stacksizes.push_back(handlerange(temp));
 				}
 			}
@@ -312,6 +326,10 @@ namespace cim
 				{
 					std::string temp;
 					ss >> temp;
+					if (temp.empty())
+					{
+						continue;
+					}
 					// std::string::contains in C++23
 					// no namespace, insert default minecraft namespace instead
 					if (temp.find(':') == std::string::npos)
@@ -328,6 +346,10 @@ namespace cim
 				{
 					std::string temp;
 					ss >> temp;
+					if (temp.empty())
+					{
+						continue;
+					}
 					enchantmentlevels.push_back(handlerange(temp));
 				}
 			}
@@ -537,7 +559,7 @@ namespace cim
 				for (std::string& s : damages)
 				{
 					tempj = j;
-					tempj["predicate"]["damage"] = s;
+					tempj["predicate"]["durability"] = s;
 					tempp.push_back(tempj);
 				}
 			}
