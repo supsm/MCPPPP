@@ -80,9 +80,7 @@ try
 		{
 			try
 			{
-				const std::uintmax_t filesize = std::filesystem::file_size("mcpppp-config.json");
-				std::vector<char> contents(filesize);
-				configfile.read(contents.data(), static_cast<std::streamsize>(filesize));
+				std::vector<char> contents{ std::istreambuf_iterator<char>(configfile), std::istreambuf_iterator<char>() };
 				mcpppp::config = nlohmann::ordered_json::parse(contents, nullptr, true, true);
 			}
 			catch (const nlohmann::json::exception& e)

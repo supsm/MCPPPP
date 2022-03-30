@@ -96,7 +96,7 @@ namespace mcpppp
 		}
 	}
 
-	namespace convert
+	namespace conv
 	{
 		std::string ununderscore(std::string str)
 		{
@@ -144,6 +144,12 @@ namespace mcpppp
 				}
 			}
 			return of;
+		}
+
+		std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
+		{
+			const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
+			return mcpppp::hash<32>(u8s.data(), u8s.size());
 		}
 
 		std::unordered_map<std::string, std::string> parse_properties(const std::string& data)
@@ -566,19 +572,14 @@ namespace mcpppp
 		out(3) << "Compressing " + c8tomb(folder) << std::endl;
 		Zippy::ZipEntryData zed;
 		const size_t length = 13 + folder.size();
-		size_t filesize;
 		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::path(u8"mcpppp-temp/" + folder)))
 		{
 			if (png.is_directory())
 			{
 				continue;
 			}
-			std::ifstream fin(png.path(), std::ios::binary | std::ios::ate);
-			zed.clear();
-			filesize = png.file_size();
-			zed.resize(filesize);
-			fin.seekg(0, std::ios::beg);
-			fin.read(reinterpret_cast<char*>(zed.data()), static_cast<std::streamsize>(filesize));
+			std::ifstream fin(png.path(), std::ios::binary);
+			zed = std::vector<unsigned char>{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 			fin.close();
 			std::u8string temp = png.path().generic_u8string();
 			temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(length));
@@ -629,10 +630,8 @@ namespace mcpppp
 		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
 		if (zip)
 		{
-			const std::uintmax_t filesize = std::filesystem::file_size(path);
-			std::vector<char> file_contents(filesize);
-			std::ifstream fin(path);
-			fin.read(file_contents.data(), filesize);
+			std::ifstream fin(path, std::ios::binary);
+			std::vector<char> file_contents{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 			fin.close();
 			return hash<128>(file_contents.data(), file_contents.size());
 		}
@@ -888,7 +887,7 @@ namespace mcpppp
 		else
 		{
 			std::uintmax_t filesize = std::filesystem::file_size("mcpppp-hashes.json");
-			std::ifstream hashfile("mcpppp-hashes.json");
+			std::ifstream hashfile("mcpppp-hashes.json", std::ios::binary);
 			std::vector<char> contents(filesize);
 			hashfile.read(contents.data(), filesize);
 			hashfile.close();
