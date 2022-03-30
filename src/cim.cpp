@@ -27,7 +27,7 @@ namespace cim
 		// json location (models): assets/mcpppp_hash/models/item
 		// mcpppp_hash:item/
 
-		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
+		const std::string mcnamespace = "mcpppp_" + mcpppp::conv::getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
@@ -159,7 +159,7 @@ namespace cim
 		std::vector<nlohmann::json>& nbts,
 		std::string& name)
 	{
-		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
+		const std::string mcnamespace = "mcpppp_" + mcpppp::conv::getfilenamehash(path, zip);
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
@@ -199,11 +199,8 @@ namespace cim
 		};
 
 		std::ifstream fin(entry.path());
-		const int filesize = std::filesystem::file_size(entry.path());
-		std::string rawdata(filesize, 0);
-		fin.read(rawdata.data(), filesize);
-		fin.close();
-		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
+		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
 
 		for (const auto& [option, value] : prop_data)
 		{
@@ -390,7 +387,7 @@ namespace cim
 							break;
 						}
 					}
-					temp = std::string("/").append(insensitive ? "(?i)" : "").append(mcpppp::convert::oftoregex(temp)).append("/");
+					temp = std::string("/").append(insensitive ? "(?i)" : "").append(mcpppp::conv::oftoregex(temp)).append("/");
 				}
 
 				if (mcpppp::lowercase(option) == "nbt.display.name")
@@ -417,7 +414,7 @@ namespace cim
 	// @param entry  directory entry of properties file
 	static void prop(const std::filesystem::path& path, const bool zip, const std::filesystem::directory_entry& entry)
 	{
-		const std::string mcnamespace = "mcpppp_" + mcpppp::convert::getfilenamehash(path, zip);
+		const std::string mcnamespace = "mcpppp_" + mcpppp::conv::getfilenamehash(path, zip);
 		std::string type = "item", texture, model, hand = "anything", name;
 		std::vector<std::string> items, enchantments, damages, stacksizes, enchantmentlevels;
 		std::vector<nlohmann::json> nbts, predicates, tempp;
@@ -434,8 +431,14 @@ namespace cim
 		predicates.clear();
 
 		// create temporary model which points to texture if model is not supplied
-		if (model.empty() && !texture.empty())
+		if (model.empty())
 		{
+			// texture and model are both empty, warn and skip
+			if (texture.empty())
+			{
+				out(2) << "(warn) CIM: Texture and Model are both empty in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+				return;
+			}
 			model = texture;
 			// replace namespace:item/ with namespace:temp_models/
 			if (model.starts_with(mcnamespace + ":item/"))
@@ -458,6 +461,8 @@ namespace cim
 		}
 		tempj = { {"model", model} };
 
+		// TODO: skip empty predicates?
+
 		if (hand != "anything")
 		{
 			tempj["predicate"]["entity"]["hand"] = hand;
@@ -467,6 +472,7 @@ namespace cim
 			tempj["predicate"]["name"] = name;
 		}
 		predicates.push_back(tempj);
+
 		if (!nbts.empty())
 		{
 			tempp.clear();
@@ -481,6 +487,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+
 		if (!enchantments.empty())
 		{
 			tempp.clear();
@@ -495,6 +502,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+
 		if (!enchantmentlevels.empty())
 		{
 			tempp.clear();
@@ -520,6 +528,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+
 		if (!damages.empty())
 		{
 			tempp.clear();
@@ -534,6 +543,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+
 		if (!stacksizes.empty())
 		{
 			tempp.clear();
@@ -548,6 +558,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+
 		nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
 		for (const std::string& c : items)
 		{

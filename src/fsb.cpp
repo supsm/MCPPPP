@@ -315,11 +315,8 @@ namespace fsb
 		};
 
 		std::ifstream fin(entry.path());
-		const int filesize = std::filesystem::file_size(entry.path());
-		std::string rawdata(filesize, 0);
-		fin.read(rawdata.data(), filesize);
-		fin.close();
-		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
+		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
 
 		for (const auto& [option, value] : prop_data)
 		{

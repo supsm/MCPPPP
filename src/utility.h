@@ -114,7 +114,7 @@ namespace mcpppp
 	inline std::atomic_bool waitdontoutput = false;
 
 	// exit by pausing (if necessary) and exiting with code 0
-	inline [[noreturn]] void exit()
+	[[noreturn]] inline void exit()
 	{
 #ifndef GUI
 		if (pauseonexit)
@@ -130,7 +130,7 @@ namespace mcpppp
 	// make string lowercase
 	// @param str  string to convert to lowercase (passed by value)
 	// @return lowercase version of `str`
-	std::string lowercase(std::string str)
+	inline std::string lowercase(std::string str)
 	{
 		std::transform(str.begin(), str.end(), str.begin(), [](const char& c) -> char
 			{
@@ -180,7 +180,7 @@ namespace mcpppp
 	}
 
 	// utility functions exclusively for conversion
-	namespace convert
+	namespace conv
 	{
 		// remove underscore '_' character from string
 		// @param str  string to remove underscores from (passed by value)
@@ -196,11 +196,7 @@ namespace mcpppp
 		// @param path  path to resource pack
 		// @param zip  whether resource pack is zip
 		// @return hex representation of hash
-		inline std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
-		{
-			const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
-			return mcpppp::hash<32>(u8s.data(), u8s.size());
-		}
+		std::string getfilenamehash(const std::filesystem::path& path, const bool zip);
 
 		// parse contents of .properties into map
 		// @param data  contents of properties file
@@ -220,12 +216,12 @@ namespace mcpppp
 		return c;
 	}
 
-	/*// I love these new concept things
+	// I love these new concept things
 	template<typename T>
 	concept outputtable = requires(T a)
 	{
 		std::ostringstream() << a;
-	};*/
+	};
 
 	// object to conditionally output to log file and regular output
 	class outstream
@@ -256,7 +252,7 @@ namespace mcpppp
 		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
 #endif
 		// template functions must be defined in header
-		template<typename T>
+		template<outputtable T>
 		outstream operator<<(const T& value)
 		{
 			if (file && logfile.good())

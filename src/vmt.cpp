@@ -74,7 +74,7 @@ namespace vmt
 	// @param entry  actual png file to convert
 	static void png(const std::filesystem::path& path, const bool optifine, const bool newlocation, const bool zip, const std::filesystem::directory_entry& entry)
 	{
-		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(mcpppp::convert::getfilenamehash(path, zip));
+		const std::u8string mcnamespace = u8"mcpppp_" + mbtoc8(mcpppp::conv::getfilenamehash(path, zip));
 		const auto p = separate(c8tomb(entry.path().filename().stem().generic_u8string()));
 		const std::string curname = p.first;
 		// current name is new, look for all textures
@@ -186,11 +186,8 @@ namespace vmt
 		name = c8tomb(entry.path().stem().generic_u8string());
 		
 		std::ifstream fin(entry.path());
-		const int filesize = std::filesystem::file_size(entry.path());
-		std::string rawdata(filesize, 0);
-		fin.read(rawdata.data(), filesize);
-		fin.close();
-		const auto prop_data = mcpppp::convert::parse_properties(rawdata);
+		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
+		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
 
 		for (const auto& [option, value] : prop_data)
 		{
@@ -253,7 +250,7 @@ namespace vmt
 						}
 						else
 						{
-							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + mcpppp::convert::getfilenamehash(path, zip) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
+							textures.at(static_cast<size_t>(curnum - 1)).push_back("mcpppp_" + mcpppp::conv::getfilenamehash(path, zip) + ':' + c8tomb((std::filesystem::path(u8"vmt") / folderpath / mbtoc8(name) / (mbtoc8(temp) + u8".png")).generic_u8string()));
 						}
 					}
 				}
@@ -306,9 +303,9 @@ namespace vmt
 							// binary search for biome name
 							const auto it = std::lower_bound(biomelist.begin(), biomelist.end(), temp, [](const std::string& a, const std::string& b) -> bool
 								{
-									return mcpppp::lowercase(mcpppp::convert::ununderscore(a)) < mcpppp::lowercase(mcpppp::convert::ununderscore(b));
+									return mcpppp::lowercase(mcpppp::conv::ununderscore(a)) < mcpppp::lowercase(mcpppp::conv::ununderscore(b));
 								});
-							if (it == biomelist.end() || (mcpppp::convert::ununderscore(*it) != mcpppp::lowercase(mcpppp::convert::ununderscore(temp))))
+							if (it == biomelist.end() || (mcpppp::conv::ununderscore(*it) != mcpppp::lowercase(mcpppp::conv::ununderscore(temp))))
 							{
 								out(2) << "(warn) Invalid biome name: " << temp << std::endl;
 							}
@@ -379,7 +376,7 @@ namespace vmt
 					}
 					if (temp.starts_with("pattern:") || temp.starts_with("ipattern:"))
 					{
-						temp = mcpppp::convert::oftoregex(temp);
+						temp = mcpppp::conv::oftoregex(temp);
 					}
 				}
 				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, type);
