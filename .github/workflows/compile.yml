@@ -128,10 +128,10 @@ jobs:
       run: mkdir artifacts && cp build/bin/* artifacts/
 
     - name: rename files
-      run: mv artifacts/MCPPPP-cli artifacts/MCPPPP-linux-cli
+      run: mv artifacts/MCPPPP-cli artifacts/MCPPPP-linux-arm-cli
 
     - name: capture build artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ runner.os }}
+        name: Linux-arm
         path: artifacts/
