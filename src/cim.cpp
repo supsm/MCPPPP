@@ -219,6 +219,7 @@ namespace cim
 					}
 				}
 			}
+			return std::string();
 		};
 
 		std::ifstream fin(entry.path());
