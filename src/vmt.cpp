@@ -735,7 +735,7 @@ namespace vmt
 		{
 			const special_mob s = special_mobs.at(sm_ind);
 			const std::string type = s.get_typename(raw_type);
-			s_mobs[name].emplace_back(type, s.reselect_func, res);
+			s_mobs[name].push_back({ type, s.reselect_func, res });
 		}
 	}
 
