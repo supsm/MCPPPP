@@ -108,3 +108,30 @@ jobs:
         user_email: 'supsm2017@gmail.com'
         user_name: 'supsm'
         commit_message: 'copy mac libraries'
+
+  build-linux-arm:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    
+    - run: sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
+    - name: configure cmake
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=FALSE
+      env:
+        CC: gcc-10-aarch64-linux-gnu
+        CXX: g++-10-aarch64-linux-gnu
+
+    - name: build cmake
+      run: cmake --build build --config Release --parallel 64
+      
+    - name: copy files
+      run: mkdir artifacts && cp build/bin/* artifacts/
+
+    - name: rename files
+      run: mv artifacts/MCPPPP-gui artifacts/MCPPPP-linux && mv artifacts/MCPPPP-cli artifacts/MCPPPP-linux-cli
+
+    - name: capture build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}
+        path: artifacts/
