@@ -28,8 +28,8 @@ jobs:
       if: ${{ runner.os != 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
       env:
-        CC: clang-12
-        CXX: clang++-12
+        CC: clang
+        CXX: clang++
 
     - name: build cmake
       run: cmake --build build --config Release --parallel 64
@@ -118,8 +118,8 @@ jobs:
     - name: configure cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=FALSE
       env:
-        CC: gcc-10-aarch64-linux-gnu
-        CXX: g++-10-aarch64-linux-gnu
+        CC: aarch64-linux-gnu-gcc-10
+        CXX: aarch64-linux-gnu-g++-10
 
     - name: build cmake
       run: cmake --build build --config Release --parallel 64
