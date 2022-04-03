@@ -237,7 +237,7 @@ namespace mcpppp
 #ifdef GUI
 		// output to gui window
 		// @param v  char* to output, cast to void*
-		static void print(void* v)
+		static void print(void* v) noexcept
 		{
 			ui->output->add(static_cast<char*>(v));
 			ui->output->bottomline(ui->output->size()); // automatically scroll to the bottom
@@ -253,7 +253,7 @@ namespace mcpppp
 #endif
 		// template functions must be defined in header
 		template<outputtable T>
-		outstream operator<<(const T& value)
+		outstream operator<<(const T& value) noexcept
 		{
 			if (file && logfile.good())
 			{
@@ -282,9 +282,9 @@ namespace mcpppp
 			return *this;
 		}
 
-		outstream operator<<(const std::string& str);
+		outstream operator<<(const std::string& str) noexcept;
 
-		outstream operator<<(std::ostream& (*f)(std::ostream&));
+		outstream operator<<(std::ostream& (*f)(std::ostream&)) noexcept;
 	};
 
 	// create outstream object to output with
@@ -320,7 +320,8 @@ namespace mcpppp
 	// copy file/folder to another location
 	// @param from  file/folder to copy
 	// @param to  file/folder to copy to
-	void copy(const std::filesystem::path& from, const std::filesystem::path& to);
+	// @return whether the file was copied successfully
+	bool copy(const std::filesystem::path& from, const std::filesystem::path& to) noexcept;
 
 	// find folder in resource pack
 	// @param path  path of resource pack to search in

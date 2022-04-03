@@ -365,7 +365,7 @@ namespace mcpppp
 		}
 	}
 
-	outstream outstream::operator<<(const std::string& str)
+	outstream outstream::operator<<(const std::string& str) noexcept
 	{
 		if (file && logfile.good())
 		{
@@ -393,7 +393,7 @@ namespace mcpppp
 		return *this;
 	}
 
-	outstream outstream::operator<<(std::ostream& (*f)(std::ostream&))
+	outstream outstream::operator<<(std::ostream& (*f)(std::ostream&)) noexcept
 	{
 #ifdef GUI
 		if (argc < 2)
@@ -443,17 +443,17 @@ namespace mcpppp
 		return *this;
 	}
 
-	void copy(const std::filesystem::path& from, const std::filesystem::path& to)
+	bool copy(const std::filesystem::path& from, const std::filesystem::path& to) noexcept
 	{
 		if (!std::filesystem::exists(from))
 		{
 			out(5) << "Error: tried to copy nonexistent file" << std::endl << c8tomb(from.generic_u8string()) << std::endl;
-			return;
+			return false;
 		}
 		if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
 		{
 			out(5) << "Error: tried to copy a file to a directory (or vice versa)" << std::endl << c8tomb(from.generic_u8string()) << std::endl << c8tomb(to.generic_u8string()) << std::endl;
-			return;
+			return false;
 		}
 		if (std::filesystem::exists(to))
 		{
@@ -464,6 +464,7 @@ namespace mcpppp
 			catch (const std::filesystem::filesystem_error& e)
 			{
 				out(5) << "Error removing file:" << std::endl << e.what() << std::endl;
+				return false;
 			}
 		}
 		if (!std::filesystem::exists(to.parent_path()))
@@ -475,7 +476,7 @@ namespace mcpppp
 			catch (const std::filesystem::filesystem_error& e)
 			{
 				out(5) << "Error creating directory:" << std::endl << e.what() << std::endl;
-				return;
+				return false;
 			}
 		}
 		try
@@ -485,7 +486,9 @@ namespace mcpppp
 		catch (const std::filesystem::filesystem_error& e)
 		{
 			out(5) << "Error copying file:" << std::endl << e.what() << std::endl;
+			return false;
 		}
+		return true;
 	}
 
 	// get pack version from pack.mcmeta
