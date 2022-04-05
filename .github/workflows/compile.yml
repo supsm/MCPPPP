@@ -23,10 +23,10 @@ jobs:
 
     - name: configure cmake with clang-cl
       if: ${{ runner.os == 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -T ClangCL
-    - name: configure cmake
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -T ClangCL
+    - name: configure cmake with clan
       if: ${{ runner.os != 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
       env:
         CC: clang
         CXX: clang++
@@ -116,7 +116,7 @@ jobs:
     
     - run: sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
     - name: configure cmake
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE
       env:
         CC: aarch64-linux-gnu-gcc-10
         CXX: aarch64-linux-gnu-g++-10
