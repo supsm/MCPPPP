@@ -9,6 +9,7 @@
 #endif
 
 #include <atomic>
+#include <concepts>
 #include <fmt/core.h>
 #include <fstream>
 #include <iomanip>
