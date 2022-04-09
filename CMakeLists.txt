@@ -30,7 +30,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin")
 
 add_library(lodepng STATIC "src/lodepng.cpp" "include/lodepng.h")
 add_library(microtar STATIC "src/microtar.cpp" "include/microtar.h")
-add_library(fmt STATIC "src/format.cc" "include/fmt/core.h" "include/fmt/format.h" "include/fmt/format_inl.h")
+add_library(fmt STATIC "src/format.cc" "include/fmt/core.h" "include/fmt/format.h" "include/fmt/format-inl.h")
 set_property(TARGET lodepng PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 set_property(TARGET microtar PROPERTY POSITION_INDEPENDENT_CODE TRUE)
 set_property(TARGET fmt PROPERTY POSITION_INDEPENDENT_CODE TRUE)
