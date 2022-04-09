@@ -9,7 +9,9 @@
 #endif
 
 #include <atomic>
+#ifdef __cpp_lib_concepts
 #include <concepts>
+#endif
 #include <fmt/core.h>
 #include <fstream>
 #include <iomanip>
@@ -20,6 +22,7 @@
 #include <source_location>
 #endif
 #include <sstream>
+#include <thread>
 #include <unordered_map>
 #include <variant>
 
@@ -270,7 +273,13 @@ namespace mcpppp
 		std::source_location location;
 #endif
 
-		template <std::convertible_to<std::string_view> T>
+		template <
+#ifdef __cpp_lib_concepts
+			std::convertible_to<std::string_view>
+#else
+			typename
+#endif
+			T>
 		consteval format_location(T fmt
 #ifdef __cpp_lib_source_location
 			, std::source_location location = std::source_location::current()
