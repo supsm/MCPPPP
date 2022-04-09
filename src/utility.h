@@ -144,18 +144,18 @@ namespace mcpppp
 		std::exit(0);
 	}
 
-#ifdef __cpp_lib_source_location
 	// add item to pseudotrace, removing excess if necessary
 	// @param item  item to add
 	inline void addtraceitem(const std::source_location& item)
 	{
+#ifdef __cpp_lib_source_location
 		pseudotrace.push_back(item);
 		if (pseudotrace.size() > maxtracesize)
 		{
 			pseudotrace.pop_front();
 		}
-	}
 #endif
+	}
 
 	// make string lowercase
 	// @param str  string to convert to lowercase (passed by value)
@@ -270,13 +270,13 @@ namespace mcpppp
 #endif
 
 		template <std::convertible_to<std::string_view> T>
-		consteval format_location(T fmt,
+		consteval format_location(T fmt
 #ifdef __cpp_lib_source_location
-			std::source_location location = std::source_location::current()
+			, std::source_location location = std::source_location::current()
 #endif
-		) noexcept : fmt(fmt),
+		) noexcept : fmt(fmt)
 #ifdef __cpp_lib_source_location
-			location(location)
+			, location(location)
 #endif
 		{}
 	};
@@ -395,11 +395,11 @@ namespace mcpppp
 		const outstream& operator<<(std::ostream& (*f)(std::ostream&)) const noexcept;
 	};
 
-#ifdef __cpp_lib_source_location
 	// prints all lines from pseudotrace
 	// @param numlines  max number of lines to output, 0 = all lines
 	inline void printpseudotrace(const unsigned int numlines = 0) noexcept
 	{
+#ifdef __cpp_lib_source_location
 		unsigned int num = 0;
 		for (const auto& location : pseudotrace)
 		{
@@ -411,8 +411,8 @@ namespace mcpppp
 			out << '\t' << fmt::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
 			num++;
 		}
-	}
 #endif
+	}
 
 	// wrapper of outstream using fmt::format, with location information
 	// @param fmt  format string, needs to be convertible to std::string_view, needs to be constant expression
@@ -420,9 +420,7 @@ namespace mcpppp
 	template <level_t level, formattable... Args>
 	inline void output(const format_location& fmt, Args&&... args) noexcept
 	{
-#ifdef __cpp_lib_source_location
 		addtraceitem(fmt.location);
-#endif
 
 		if (level >= loglevel && logfile.good())
 		{
@@ -452,19 +450,17 @@ namespace mcpppp
 			outstream out(level >= outputlevel, level >= loglevel, level == level_t::error, level);
 			out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
 		}
-		{
 #ifdef __cpp_lib_source_location
+		{
 			outstream debug_out(level_t::debug >= outputlevel, level_t::debug >= loglevel, false, level_t::debug);
 			debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
-#endif
 		}
+#endif
 
-#ifdef __cpp_lib_source_location
 		if (level == level_t::error)
 		{
 			printpseudotrace(4);
 		}
-#endif
 	}
 
 	// copy file/folder to another location

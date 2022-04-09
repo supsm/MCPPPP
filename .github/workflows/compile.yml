@@ -22,20 +22,19 @@ jobs:
         java-version: 16
 
     # use clang when it supports stuff
+    #- name: configure cmake with clang-cl
+    #  if: ${{ runner.os == 'Windows' }}
+    #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -T ClangCL
+    #- name: configure cmake with clang
+    #  if: ${{ runner.os != 'Windows' }}
+    #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
+    #  env:
+    #    CC: clang
+    #    CXX: clang++
+
+    # temporary until clang support vvv
     - name: configure cmake
-      if: ${{ runner.os != 'Linux' }}
-      #${{ runner.os == 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
-      # -T ClangCL
-    - name: configure cmake with g++-11
-      if: ${{runner.os == 'Linux'}}
-      #${{ runner.os != 'Windows' }}
-      run: |
-        sudo apt install -y gcc-11 g++-11
-        cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
-      env:
-        CC: gcc-11
-        CXX: g++-11
 
     - name: build cmake
       run: cmake --build build --config Release --parallel 64
@@ -120,12 +119,12 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - run: sudo apt install -y gcc-11-aarch64-linux-gnu g++-10-aarch64-linux-gnu
+    - run: sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
     - name: configure cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE
       env:
-        CC: aarch64-linux-gnu-gcc-11
-        CXX: aarch64-linux-gnu-g++-11
+        CC: aarch64-linux-gnu-gcc-10
+        CXX: aarch64-linux-gnu-g++-10
 
     - name: build cmake
       run: cmake --build build --config Release --parallel 64

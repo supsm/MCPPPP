@@ -2,15 +2,16 @@
 #include "utility.h"
 #include "supsm_mcpppp_jni.h"
 
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
 void run(std::string path, std::string os)
 try
 {
-	out(6) << "MCPPPP mod" << std::endl;
-	out(6) << "Os: " << os << std::endl << std::endl;
+	output<level_t::system_info>("MCPPPP mod");
+	output<level_t::system_info>("Os: {}\n", os);
 	for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(mbtoc8(path))))
 	{
 		mcpppp::convert(entry);
@@ -18,27 +19,33 @@ try
 }
 catch (const nlohmann::json::exception& e)
 {
-	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const Zippy::ZipLogicError& e)
 {
-	out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const Zippy::ZipRuntimeError& e)
 {
-	out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const std::filesystem::filesystem_error& e)
 {
-	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const std::exception& e)
 {
-	out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (...)
 {
-	out(5) << "UNKNOWN FATAL ERROR" << std::endl;
+	output<level_t::error>("UNKNOWN FATAL ERROR");
+	mcpppp::printpseudotrace();
 }
 
 std::string tostring(JNIEnv* env, jstring str)
@@ -51,6 +58,6 @@ std::string tostring(JNIEnv* env, jstring str)
 
 JNIEXPORT void JNICALL Java_supsm_mcpppp_jni_run(JNIEnv* env, jobject obj, jstring str, jstring os)
 {
-	mcpppp::autodeletetemp = true, mcpppp::pauseonexit = false, mcpppp::outputlevel = 2, mcpppp::dotimestamp = true, mcpppp::autoreconvert = true;
+	mcpppp::autodeletetemp = true, mcpppp::pauseonexit = false, mcpppp::outputlevel = level_t::info, mcpppp::dotimestamp = true, mcpppp::autoreconvert = true;
 	run(tostring(env, str), tostring(env, os));
 }
