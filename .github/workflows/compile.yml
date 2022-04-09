@@ -63,12 +63,12 @@ jobs:
     - name: create .app files (mac only)
       if: ${{ runner.os == 'macOs' }}
       run: |
-        mkdir MCPPPP-mac-cli.app
-        mkdir MCPPPP-mac-cli.app/contents
-        mkdir MCPPPP-mac-cli.app/contents/macos
-        mkdir MCPPPP-mac-cli.app/contents/resources
-        cp MCPPPP-cli macos/MCPPPP-cli
-        touch MCPPPP-mac-cli.app/contents/macos/Info.plist
+        mkdir artifacts/MCPPPP-mac-cli.app
+        mkdir artifacts/MCPPPP-mac-cli.app/contents
+        mkdir artifacts/MCPPPP-mac-cli.app/contents/macos
+        mkdir artifacts/MCPPPP-mac-cli.app/contents/resources
+        cp artifacts/MCPPPP-cli artifacts/macos/MCPPPP-cli
+        touch artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
         <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -87,18 +87,18 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP-cli</string>
         </dict>
-        </plist>" >> MCPPPP-mac-cli.app/contents/macos/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
 
-        zip MCPPPP-mac-cli.app.zip MCPPPP-mac-cli.app
-        rm -rf MCPPPP-mac-cli.app
+        zip artifacts/MCPPPP-mac-cli.app.zip artifacts/MCPPPP-mac-cli.app
+        rm -rf artifacts/MCPPPP-mac-cli.app
 
 
-        mkdir MCPPPP-mac.app
-        mkdir MCPPPP-mac.app/contents
-        mkdir MCPPPP-mac.app/contents/macos
-        mkdir MCPPPP-mac.app/contents/resources
-        cp MCPPPP macos/MCPPPP
-        touch MCPPPP-mac.app/contents/macos/Info.plist
+        mkdir artifacts/MCPPPP-mac.app
+        mkdir artifacts/MCPPPP-mac.app/contents
+        mkdir artifacts/MCPPPP-mac.app/contents/macos
+        mkdir artifacts/MCPPPP-mac.app/contents/resources
+        cp artifacts/MCPPPP artifacts/macos/MCPPPP
+        touch artifacts/MCPPPP-mac.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
         <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -117,10 +117,10 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP</string>
         </dict>
-        </plist>" >> MCPPPP-mac.app/contents/macos/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac.app/contents/macos/Info.plist
 
-        zip MCPPPP-mac.app.zip MCPPPP-mac.app
-        rm -rf MCPPPP-mac.app
+        zip artifacts/MCPPPP-mac.app.zip artifacts/MCPPPP-mac.app
+        rm -rf artifacts/MCPPPP-mac.app
 
     - name: capture build artifacts
       uses: actions/upload-artifact@v2
