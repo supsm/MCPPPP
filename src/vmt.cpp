@@ -89,7 +89,7 @@ namespace vmt
 				// I'd prefer to use std::filesystem::relative here, but given 2 equal paths it returns "." instead of ""
 				std::u8string tempfolderpath = std::filesystem::canonical(entry.path().parent_path()).generic_u8string();
 				tempfolderpath.erase(tempfolderpath.begin(),
-					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size() + 1);
+					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size());
 				folderpath = tempfolderpath;
 			}
 
@@ -130,7 +130,7 @@ namespace vmt
 				const std::filesystem::path location = (optifine ? (newlocation ? u8"assets/minecraft/optifine/random/entity" : u8"assets/minecraft/optifine/mob") : u8"assets/minecraft/mcpatcher/mob");
 				std::u8string tempfolderpath = std::filesystem::canonical(entry.path().parent_path()).generic_u8string();
 				tempfolderpath.erase(tempfolderpath.begin(),
-					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size() + 1);
+					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size());
 				folderpath = tempfolderpath;
 			}
 
