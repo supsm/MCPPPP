@@ -16,7 +16,8 @@
 #include "lodepng.h"
 #include "json.hpp"
 
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
@@ -162,7 +163,7 @@ namespace fsb
 	{
 		if (i != 0)
 		{
-			out(5) << "FSB: png error: " << lodepng_error_text(i) << std::endl;
+			output<level_t::error>("FSB: png error: {}", lodepng_error_text(i));
 		}
 	}
 
@@ -172,19 +173,19 @@ namespace fsb
 	// @param output  location to output to (relative to `path`)
 	// @param entry  directory entry of image file to convert
 	// @param filename  name of image file (no extension)
-	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output, const std::filesystem::directory_entry& entry, const std::u8string& filename)
+	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
-		out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
 		// skip if already converted
 		// TODO: might cause some issues with reconverting
-		if (std::filesystem::exists(path / output / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
-			std::filesystem::exists(path / output / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
-			std::filesystem::exists(path / output / (filename + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
-			std::filesystem::exists(path / output / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
-			std::filesystem::exists(path / output / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
-			std::filesystem::exists(path / output / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")))
+		if (std::filesystem::exists(path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
+			std::filesystem::exists(path / output_path / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
+			std::filesystem::exists(path / output_path / (filename + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
+			std::filesystem::exists(path / output_path / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
+			std::filesystem::exists(path / output_path / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
+			std::filesystem::exists(path / output_path / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")))
 		{
-			out(1) << "FSB: " << c8tomb(entry.path().filename().u8string()) << " already found, skipping reconversion" << std::endl;
+			output<level_t::detail>("FSB: {} already found, skipping reconversion", c8tomb(entry.path().filename().u8string()));
 			return;
 		}
 		unsigned int w, h;
@@ -197,7 +198,7 @@ namespace fsb
 		checkError(lodepng::decode(image, w, h, state, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
 		{
-			out(2) << "(warn) FSB: Wrong dimensions: " << c8tomb(entry.path().generic_u8string()) << std::endl << "will be cropped to proper dimensions" << std::endl;
+			output<level_t::info>("(warn) FSB: Wrong dimensions: {}\nwill be cropped to proper dimensions", c8tomb(entry.path().generic_u8string()));
 		}
 		image1.reserve(buffer.size() / 6);
 		image2.reserve(buffer.size() / 6);
@@ -236,15 +237,15 @@ namespace fsb
 			}
 		}
 		buffer.clear();
-		std::filesystem::create_directories((path / output / filename).parent_path());
+		std::filesystem::create_directories((path / output_path / filename).parent_path());
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, top, outh, outw / 4, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		image1.clear();
 		image2.clear();
 		image3.clear();
@@ -269,13 +270,13 @@ namespace fsb
 		convert(image3, outw, outh);
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image2, outw / 4, outh, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
-		checkError(lodepng::save_file(buffer, c8tomb((path / output / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 	}
 
 	// convert optifine properties files into fsb properties json
@@ -350,7 +351,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stoi argument is \"" << temp << "\"" << std::endl;
+					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstoi argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), temp);
 					return;
 				}
 			}
@@ -370,7 +371,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << value << "\"" << std::endl;
+					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), value);
 					return;
 				}
 			}
@@ -385,7 +386,7 @@ namespace fsb
 				}
 				catch (const std::invalid_argument& e)
 				{
-					out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod argument is \"" << value << "\"" << std::endl;
+					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), value);
 					return;
 				}
 			}
@@ -435,7 +436,7 @@ namespace fsb
 							}
 							catch (const std::invalid_argument& e)
 							{
-								out(5) << "FSB Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stod arguments are \"" << minheight << "\", \"" << height << "\"" << std::endl;
+								output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod arguments are \"{}\", \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), minheight, height);
 								return;
 							}
 						}
@@ -482,7 +483,7 @@ namespace fsb
 			}
 			else
 			{
-				out(2) << "(warn) FSB: File not found: " << c8tomb(u8temp) + ".png" << std::endl;
+				output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(u8temp));
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
@@ -519,7 +520,7 @@ namespace fsb
 			else
 			{
 
-				out(2) << "(warn) FSB: File not found: " << c8tomb(sourcefolder + sourcefile) + ".png" << std::endl;
+				output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(sourcefolder + sourcefile));
 				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
@@ -598,7 +599,7 @@ namespace fsb
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
 	{
-		out(3) << "FSB: Converting Pack " << c8tomb(filename) << std::endl;
+		output<level_t::important>("FSB: Converting Pack {}", c8tomb(filename));
 		// overworld sky (world0)
 		const std::filesystem::path overworld = path / u8"assets/minecraft" / (info.optifine ? u8"optifine" : u8"mcpatcher") / u8"sky/world0";
 		if (std::filesystem::exists(overworld))
@@ -607,7 +608,7 @@ namespace fsb
 			{
 				if (entry.path().extension() == ".properties")
 				{
-					out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
 					prop(path, true, entry);
 				}
 			}
@@ -620,7 +621,7 @@ namespace fsb
 			{
 				if (entry.path().extension() == ".properties")
 				{
-					out(1) << "FSB: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
 					prop(path, false, entry);
 				}
 			}

@@ -15,6 +15,19 @@ constexpr int PACK_VER = 8; // pack.mcmeta pack format
 #include <unordered_map>
 #include <vector>
 
+namespace mcpppp
+{
+	// maximum number of elements in pseudo-stacktrace (pseudotrace)
+	constexpr int maxtracesize = 100;
+
+	// format string for location info
+	// 0 is file name
+	// 1 is function name
+	// 2 is line number
+	// 3 is column number
+	constexpr std::string_view location_format = "{1}({0}:{2}:{3})";
+}
+
 namespace vmt
 {
 	// list of biomes

@@ -30,7 +30,8 @@
 #include "convert.h"
 #endif
 
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
@@ -85,7 +86,7 @@ try
 			}
 			catch (const nlohmann::json::exception& e)
 			{
-				out(5) << e.what() << std::endl;
+				output<level_t::error>("Error while parsing config: {}", e.what());
 				mcpppp::exit();
 			}
 			mcpppp::readconfig();
@@ -107,14 +108,14 @@ try
 	}
 #endif
 
-	out(6) << "MCPPPP " << VERSION
+	output<level_t::system_info>("MCPPPP {} {}", VERSION,
 #ifdef GUI
-		<< " (GUI)"
+		"(GUI)"
 #else
-		<< " (CLI)"
+		"(CLI)"
 #endif
-		<< std::endl;
-	out(6) << "Os: " <<
+		);
+	output<level_t::system_info>("Os: {}\n",
 #ifdef _WIN64
 		"Win64"
 #elif defined(_WIN32)
@@ -130,21 +131,21 @@ try
 #else
 		"Other"
 #endif
-		<< std::endl << std::endl;
-	out(6) << "autoDeleteTemp  " << (mcpppp::autodeletetemp ? "true" : "false") << std::endl;
-	out(6) << "pauseOnExit     " << (mcpppp::pauseonexit ? "true" : "false") << std::endl;
-	out(6) << "log             " << mcpppp::logfilename << std::endl;
-	out(6) << "timestamp       " << (mcpppp::dotimestamp ? "true" : "false") << std::endl;
-	out(6) << "outputLevel     " << mcpppp::outputlevel << std::endl;
-	out(6) << "logLevel        " << mcpppp::loglevel << std::endl;
-	out(6) << "autoReconvert   " << (mcpppp::autoreconvert ? "true" : "false") << std::endl;
-	out(6) << "fsbTransparent  " << (mcpppp::fsbtransparent ? "true" : "false") << std::endl << std::endl << std::endl;
+		);
+	output<level_t::system_info>("autoDeleteTemp  {}", mcpppp::boolalpha(mcpppp::autodeletetemp));
+	output<level_t::system_info>("pauseOnExit     {}", mcpppp::boolalpha(mcpppp::pauseonexit));
+	output<level_t::system_info>("log             {}", mcpppp::logfilename);
+	output<level_t::system_info>("timestamp       {}", mcpppp::boolalpha(mcpppp::dotimestamp));
+	output<level_t::system_info>("outputLevel     {}", static_cast<int>(mcpppp::outputlevel));
+	output<level_t::system_info>("logLevel        {}", static_cast<int>(mcpppp::loglevel));
+	output<level_t::system_info>("autoReconvert   {}", mcpppp::boolalpha(mcpppp::autoreconvert));
+	output<level_t::system_info>("fsbTransparent  {}\n\n", mcpppp::boolalpha(mcpppp::fsbtransparent));
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
 		if (mcpppp::autodeletetemp)
 		{
-			out(4) << "Folder named \"mcpppp-temp\" found. Removing..." << std::endl;
+			output<level_t::warning>("Folder named \"mcpppp-temp\" found. Removing...");
 			std::filesystem::remove_all("mcpppp-temp");
 		}
 		else
@@ -155,7 +156,7 @@ try
 				Do you want to delete it?", "Don't Delete", "Delete", nullptr))
 			{
 			case 0: // don't delete
-				out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+				output<level_t::error>("Folder named \"mcpppp-temp\" found. Please remove this folder.");
 				break;
 			case 1: // delete
 				std::filesystem::remove_all("mcpppp-temp");
@@ -176,10 +177,10 @@ try
 	{
 		if (!std::filesystem::is_directory(path, ec))
 		{
-			out(5) << "Invalid path: \'" << c8tomb(path.generic_u8string()) << "\'" << std::endl << ec.message() << std::endl;
+			output<level_t::error>("Invalid path: \'{}\'\n{}", c8tomb(path.generic_u8string()), ec.message());
 			continue;
 		}
-		out(2) << "Path: " << c8tomb(path.generic_u8string()) << std::endl;
+		output<level_t::info>("Path: {}", c8tomb(path.generic_u8string()));
 		for (const auto& entry : std::filesystem::directory_iterator(path))
 		{
 			if (entry.is_directory() || entry.path().extension() == ".zip")
@@ -215,25 +216,31 @@ try
 }
 catch (const nlohmann::json::exception& e)
 {
-	out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const Zippy::ZipLogicError& e)
 {
-	out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const Zippy::ZipRuntimeError& e)
 {
-	out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const std::filesystem::filesystem_error& e)
 {
-	out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (const std::exception& e)
 {
-	out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+	output<level_t::error>("FATAL ERROR:\n{}", e.what());
+	mcpppp::printpseudotrace();
 }
 catch (...)
 {
-	out(5) << "UNKNOWN FATAL ERROR" << std::endl;
+	output<level_t::error>("UNKNOWN FATAL ERROR");
+	mcpppp::printpseudotrace();
 }

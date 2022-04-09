@@ -51,7 +51,7 @@ namespace mcpppp
 #endif
 	}
 
-	std::string timestamp()
+	std::string timestamp() noexcept
 	{
 		const time_t timet = time(nullptr);
 		tm timeinfo{};
@@ -71,7 +71,7 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
-		return '[' + hour + ':' + min + ':' + sec + "] ";
+		return std::format("[{}:{}:{}]", hour, min, sec);
 	}
 
 	void findreplace(std::string& source, const std::string& find, const std::string& replace)
@@ -365,7 +365,7 @@ namespace mcpppp
 		}
 	}
 
-	outstream outstream::operator<<(const std::string& str) noexcept
+	const outstream& outstream::operator<<(const std::string& str) const noexcept
 	{
 		if (file && logfile.good())
 		{
@@ -393,31 +393,14 @@ namespace mcpppp
 		return *this;
 	}
 
-	outstream outstream::operator<<(std::ostream& (*f)(std::ostream&)) noexcept
+	const outstream& outstream::operator<<(std::ostream& (*f)(std::ostream&)) const noexcept
 	{
 #ifdef GUI
 		if (argc < 2)
 		{
 			if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
 			{
-				if (sstream.str().empty())
-				{
-					sstream.str(" "); // fltk won't print empty strings
-				}
-				while (waitdontoutput)
-				{
-					std::this_thread::sleep_for(std::chrono::milliseconds(1));
-				}
-				// add color and output line
-				if (cout)
-				{
-					Fl::awake(print, dupstr(("@S14@C" + std::to_string(colors.at(level - 1)) + "@." + sstream.str())));
-				}
-				output_mutex.lock();
-				outputted.emplace_back(level, sstream.str()); // we don't need the modifier stuffs since we can add them later on
-				output_mutex.unlock();
-				sstream.str(std::string());
-				sstream.clear();
+				updateoutput();
 			}
 			else
 			{
@@ -447,12 +430,12 @@ namespace mcpppp
 	{
 		if (!std::filesystem::exists(from))
 		{
-			out(5) << "Error: tried to copy nonexistent file" << std::endl << c8tomb(from.generic_u8string()) << std::endl;
+			output<level_t::error>("Error: tried to copy nonexistent file\n{}", c8tomb(from.generic_u8string()));
 			return false;
 		}
 		if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
 		{
-			out(5) << "Error: tried to copy a file to a directory (or vice versa)" << std::endl << c8tomb(from.generic_u8string()) << std::endl << c8tomb(to.generic_u8string()) << std::endl;
+			output<level_t::error>("Error: tried to copy a file to a directory (or vice versa)\n{}\n{}", c8tomb(from.generic_u8string()), c8tomb(to.generic_u8string()));
 			return false;
 		}
 		if (std::filesystem::exists(to))
@@ -463,7 +446,7 @@ namespace mcpppp
 			}
 			catch (const std::filesystem::filesystem_error& e)
 			{
-				out(5) << "Error removing file:" << std::endl << e.what() << std::endl;
+				output<level_t::error>("Error removing file:\n{}", e.what());
 				return false;
 			}
 		}
@@ -475,7 +458,7 @@ namespace mcpppp
 			}
 			catch (const std::filesystem::filesystem_error& e)
 			{
-				out(5) << "Error creating directory:" << std::endl << e.what() << std::endl;
+				output<level_t::error>("Error creating directory:\n{}", e.what());
 				return false;
 			}
 		}
@@ -485,7 +468,7 @@ namespace mcpppp
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			out(5) << "Error copying file:" << std::endl << e.what() << std::endl;
+			output<level_t::error>("Error copying file:\n{}", e.what());
 			return false;
 		}
 		return true;
@@ -496,10 +479,10 @@ namespace mcpppp
 	// @return pack version as integer
 	static int getpackver(const std::filesystem::path& path)
 	{
-		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta"; // kinda weird, this is how you append filesystem paths
+		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta";
 		if (!std::filesystem::is_regular_file(pack_mcmeta))
 		{
-			out(4) << "pack.mcmeta not found; in " << c8tomb(path.filename().u8string()) << std::endl;
+			output<level_t::warning>("pack.mcmeta not found; in {}", c8tomb(path.filename().u8string()));
 			return -1;
 		}
 		nlohmann::json j;
@@ -514,7 +497,7 @@ namespace mcpppp
 		}
 		catch (const nlohmann::json::exception& e)
 		{
-			out(4) << "Json error while parsing pack.mcmeta from " << c8tomb(path.filename().u8string()) << ":\n" << e.what() << std::endl;
+			output<level_t::warning>("Json error while parsing pack.mcmeta from {}:\n{}", c8tomb(path.filename().u8string()), e.what());
 		}
 		fin.close();
 		return -1;
@@ -560,7 +543,7 @@ namespace mcpppp
 	// @param zip  zip archive to extract
 	static void unzip(const std::filesystem::path& path, Zippy::ZipArchive& zipa)
 	{
-		out(3) << "Extracting " << c8tomb(path.filename().u8string()) << std::endl;
+		output<level_t::important>("Extracting {}", c8tomb(path.filename().u8string()));
 		zipa.Open(c8tomb(path.generic_u8string()));
 		const std::u8string folder = path.stem().generic_u8string();
 		std::filesystem::create_directories(std::filesystem::path(u8"mcpppp-temp/" + folder));
@@ -572,7 +555,7 @@ namespace mcpppp
 	// @param zipa  zip archive containing zip file name
 	static void rezip(const std::u8string& folder, Zippy::ZipArchive& zipa)
 	{
-		out(3) << "Compressing " + c8tomb(folder) << std::endl;
+		output<level_t::important>("Compressing {}", c8tomb(folder));
 		Zippy::ZipEntryData zed;
 		const size_t length = 13 + folder.size();
 		for (const auto& png : std::filesystem::recursive_directory_iterator(std::filesystem::path(u8"mcpppp-temp/" + folder)))
@@ -630,7 +613,7 @@ namespace mcpppp
 	// @return hex of 128-bit hash
 	static std::string hash(const std::filesystem::path& path, const bool zip)
 	{
-		out(3) << "Computing Hash: " << c8tomb(path.filename().u8string()) << std::endl;
+		output<level_t::important>("Computing Hash: {}", c8tomb(path.filename().u8string()));
 		if (zip)
 		{
 			std::ifstream fin(path, std::ios::binary);
@@ -676,7 +659,7 @@ namespace mcpppp
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
 		{
-			out(5) << "Tried to convert invalid pack:" << std::endl << c8tomb(path.generic_u8string());
+			output<level_t::error>("Tried to convert invalid pack:\n{}", c8tomb(path.generic_u8string()));
 			return false;
 		}
 		const bool zip = (path.extension() == ".zip");
@@ -720,7 +703,7 @@ namespace mcpppp
 				hashvalue = hash(path, zip);
 				if (hashes[namehash] != hashvalue)
 				{
-					out(2) << "Pack appears to have changed: " << c8tomb(path.filename().u8string()) << ", reconverting" << std::endl;
+					output<level_t::info>("Pack appears to have changed: {}, reconverting", c8tomb(path.filename().u8string()));
 				}
 				else
 				{
@@ -759,21 +742,21 @@ namespace mcpppp
 				fsb::convert(convert, path.filename().u8string(), fsb);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "FSB: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("FSB: Nothing to convert in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::alrfound:
-				out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("FSB: Fabricskyboxes folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "FSB: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					output<level_t::important>("FSB: Reconverting {}", c8tomb(path.filename().u8string()));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/fabricskyboxes"));
 					fsb::convert(convert, path.filename().u8string(), fsb);
 				}
 				else
 				{
-					out(2) << "FSB: Fabricskyboxes folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+					output<level_t::info>("FSB: Fabricskyboxes folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				}
 				break;
 			}
@@ -786,21 +769,21 @@ namespace mcpppp
 				vmt::convert(convert, path.filename().u8string(), vmt);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "VMT: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("VMT: Nothing to convert in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::alrfound:
-				out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("VMT: Varied Mob Textures folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "VMT: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					output<level_t::important>("VMT: Reconverting {}", c8tomb(path.filename().u8string()));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/varied/"));
 					vmt::convert(convert, path.filename().u8string(), vmt);
 				}
 				else
 				{
-					out(2) << "VMT: Varied Mob Textures folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+					output<level_t::info>("VMT: Varied Mob Textures folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				}
 				break;
 			}
@@ -813,22 +796,22 @@ namespace mcpppp
 				cim::convert(convert, path.filename().u8string(), cim);
 				break;
 			case checkresults::noneconvertible:
-				out(2) << "CIM: Nothing to convert in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("CIM: Nothing to convert in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::alrfound:
-				out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+				output<level_t::info>("CIM: Chime folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				break;
 			case checkresults::reconverting:
 				if (reconvert)
 				{
-					out(3) << "CIM: Reconverting " << c8tomb(path.filename().u8string()) << std::endl;
+					output<level_t::important>("CIM: Reconverting {}", c8tomb(path.filename().u8string()));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/mcpppp"));
 					std::filesystem::remove_all(std::filesystem::path(convert + u8"/assets/minecraft/overrides"));
 					cim::convert(convert, path.filename().u8string(), cim);
 				}
 				else
 				{
-					out(2) << "CIM: Chime folder found in " << c8tomb(path.filename().u8string()) << ", skipping" << std::endl;
+					output<level_t::info>("CIM: Chime folder found in {}, skipping", c8tomb(path.filename().u8string()));
 				}
 				break;
 			}
@@ -852,17 +835,16 @@ namespace mcpppp
 
 		if (packver != -1)
 		{
-			// output it again since it doesn't like \n or something
-			out(4) << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break." << std::endl
-				<< "Version found : " << packver << std::endl
-				<< "Latest version : " << PACK_VER << std::endl;
+			const std::string message = std::format(
+				"Potentially incorrect pack_format in {}. This may cause some resourcepacks to break.\n"
+				"Version found: {}\n"
+				"Latest version: {}",
+				c8tomb(path.filename().u8string()), packver, PACK_VER);
+			output<level_t::warning>("{}", message);
 #ifdef GUI
 			char* c;
 			{
-				std::ostringstream ss;
-				ss << "Potentially incorrect pack_format in " << c8tomb(path.filename().u8string()) << ". This may cause some resourcepacks to break.\n"
-					<< "Version found : " << packver << "\nLatest version : " << PACK_VER;
-				c = dupstr(ss.str());
+				c = dupstr(message);
 			}
 			wait_close = true;
 			const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
@@ -912,7 +894,7 @@ namespace mcpppp
 	{
 		if (!settings.contains(lowercase(option)))
 		{
-			out(4) << "Unknown setting: " << option << std::endl;
+			output<level_t::warning>("Unknown setting: {}", option);
 			return;
 		}
 		const setting_item item = settings.at(lowercase(option));
@@ -926,7 +908,7 @@ namespace mcpppp
 			}
 			catch (const nlohmann::json::exception&)
 			{
-				out(5) << "Not a valid value for " << option << ": " << j << "; Expected bool" << std::endl;
+				output<level_t::error>("Not a valid value for {}: {}; Expected bool", option, j.dump(-1));
 			}
 		}
 		else if (t == type::integer)
@@ -936,13 +918,13 @@ namespace mcpppp
 				int temp = j.get<int>();
 				if (item.min != 0 && item.max != 0 && (temp < item.min || temp > item.max))
 				{
-					out(5) << "Not a valid value for " << option << ": " << temp << "; Expected integer between " << item.min << " and " << item.max << std::endl;
+					output<level_t::error>("Not a valid value for {}: {}; Expected integer between {} and {}", option, temp, item.min, item.max);
 				}
-				std::get<std::reference_wrapper<int>>(var).get() = temp;
+				std::get<std::reference_wrapper<level_t>>(var).get() = level_t(temp);
 			}
 			catch (const nlohmann::json::exception&)
 			{
-				out(5) << "Not a valid value for " << option << ": " << j << "; Expected int" << std::endl;
+				output<level_t::error>("Not a valid value for {}: {}; Expected int", option, j.dump(-1));
 			}
 		}
 		else
@@ -962,7 +944,7 @@ namespace mcpppp
 			}
 			catch (const nlohmann::json::exception&)
 			{
-				out(5) << "Not a valid value for " << option << ": " << j << "; Expected string" << std::endl;
+				output<level_t::error>("Not a valid value for {}: {}; Expected string", option, j.dump(-1));
 			}
 		}
 	}
@@ -972,11 +954,11 @@ namespace mcpppp
 		paths.clear();
 		if (!config.contains("settings"))
 		{
-			out(4) << "No settings found" << std::endl;
+			output<level_t::warning>("No settings found");
 		}
 		else if (config["settings"].type() != nlohmann::json::value_t::object)
 		{
-			out(5) << "settings must be an object, got " << config["settings"].type_name() << std::endl;
+			output<level_t::error>("Settings must be an object, got {}", config["settings"].type_name());
 		}
 		else
 		{
@@ -987,12 +969,12 @@ namespace mcpppp
 		}
 		if (!config.contains("paths"))
 		{
-			out(4) << "No paths found" << std::endl;
+			output<level_t::warning>("No paths found");
 			config["paths"] = nlohmann::json::array();
 		}
 		else if (config["paths"].type() != nlohmann::json::value_t::array)
 		{
-			out(5) << "paths must be an array, got " << config["paths"].type_name() << std::endl;
+			output<level_t::error>("Paths must be an array, got {}", config["paths"].type_name());
 			throw std::invalid_argument(std::string("paths must be array, got ") + config["paths"].type_name());
 		}
 		else
@@ -1006,7 +988,7 @@ namespace mcpppp
 				}
 				else
 				{
-					out(4) << "Invalid path: " << *it << std::endl;
+					output<level_t::warning>("Invalid path: {}", (*it).dump(-1));
 				}
 			}
 		}
@@ -1033,7 +1015,7 @@ namespace mcpppp
 						}
 						else
 						{
-							out(4) << "Invalid path: " << *it << std::endl;
+							output<level_t::warning>("Invalid path: {}", (*it).dump(-1));
 						}
 					}
 				}
@@ -1067,8 +1049,8 @@ namespace mcpppp
 #endif
 
 		parser.add_argument("-v", "--verbose")
-			.help("Outputs more information (can be used upto 2 times)")
-			.action([](const auto&) { if (outputlevel > 1) { outputlevel--; } })
+			.help("Outputs more information (can be used upto 3 times)")
+			.action([](const auto&) { if (outputlevel > level_t::debug) { outputlevel = static_cast<level_t>(static_cast<int>(outputlevel) - 1); } }) // hacky stuff to decrement enum
 			.nargs(0)
 			.default_value(false)
 			.implicit_value(true)
@@ -1103,7 +1085,7 @@ namespace mcpppp
 		}
 		catch (const std::runtime_error& e)
 		{
-			out(5) << e.what() << std::endl;
+			output<level_t::error>("Argument parse error: {}", e.what());
 			std::exit(-1);
 		}
 
@@ -1119,7 +1101,7 @@ namespace mcpppp
 			}
 			else
 			{
-				out(4) << "Unrecognized value (expected true, false): " << str << std::endl << "Interpreting as false" << std::endl;
+				output<level_t::warning>("Unrecognized value (expected true, false): {}\nInterpreting as false", str);
 				return false;
 			}
 		};
@@ -1143,7 +1125,7 @@ namespace mcpppp
 					{
 						if (!std::filesystem::exists(s))
 						{
-							out(5) << "Invalid pack: " << s << std::endl;
+							output<level_t::error>("Invalid pack: {}", s);
 							return true;
 						}
 						return false;
@@ -1155,7 +1137,7 @@ namespace mcpppp
 		}
 		catch (const std::logic_error& e)
 		{
-			out(5) << e.what() << std::endl;
+			output<level_t::error>("Error while parsing arguments: {}", e.what());
 			std::exit(0);
 		}
 	}

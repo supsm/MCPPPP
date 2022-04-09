@@ -18,7 +18,8 @@
 #include "utility.h"
 #include "reselect.h"
 
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
@@ -229,11 +230,11 @@ namespace vmt
 				{
 					if (option.starts_with('t')) // starts with textures
 					{
-						out(2) << "(warn) VMT: Duplicate predicate textures." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+						output<level_t::info>("(warn) VMT: Duplicate predicate textures.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					}
 					else
 					{
-						out(2) << "(warn) VMT: Duplicate predicate skins." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+						output<level_t::info>("(warn) VMT: Duplicate predicate skins.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					}
 					textures.at(static_cast<size_t>(curnum - 1)).clear();
 				}
@@ -260,7 +261,7 @@ namespace vmt
 				// clear if already has elements (should not happen!)
 				if (!weights.at(static_cast<size_t>(curnum - 1)).empty())
 				{
-					out(2) << "(warn) VMT: Duplicate predicate weights." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					output<level_t::info>("(warn) VMT: Duplicate predicate weights.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					weights.at(static_cast<size_t>(curnum - 1)).clear();
 				}
 				std::istringstream ss(value);
@@ -276,7 +277,7 @@ namespace vmt
 						}
 						catch (const std::invalid_argument& e)
 						{
-							out(5) << "VMT Error: " << e.what() << "\n\tIn file \"" << c8tomb(entry.path().generic_u8string()) << "\"\n\t" << "stoi argument is \"" << value << "\"" << std::endl;
+							output<level_t::error>("VMT Error: {}\n\tIn file \"{}\"\n\tstoi argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), value);
 							return;
 						}
 					}
@@ -287,7 +288,7 @@ namespace vmt
 				// clear if already has elements (should not happen!)
 				if (!biomes.at(static_cast<size_t>(curnum - 1)).empty())
 				{
-					out(2) << "(warn) VMT: Duplicate predicate biomes." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					output<level_t::info>("(warn) VMT: Duplicate predicate biomes.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					biomes.at(static_cast<size_t>(curnum - 1)).clear();
 				}
 				std::istringstream ss(value);
@@ -307,7 +308,7 @@ namespace vmt
 								});
 							if (it == biomelist.end() || (mcpppp::conv::ununderscore(*it) != mcpppp::lowercase(mcpppp::conv::ununderscore(temp))))
 							{
-								out(2) << "(warn) Invalid biome name: " << temp << std::endl;
+								output<level_t::info>("(warn) VMT: Invalid biome name: {}", temp);
 							}
 							else
 							{
@@ -326,7 +327,7 @@ namespace vmt
 				// clear if already has elements (should not happen!)
 				if (!heights.at(static_cast<size_t>(curnum - 1)).empty())
 				{
-					out(2) << "(warn) VMT: Duplicate predicate heights." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					output<level_t::info>("(warn) VMT: Duplicate predicate heights.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					heights.at(static_cast<size_t>(curnum - 1)).clear();
 				}
 				std::istringstream ss(value);
@@ -405,7 +406,7 @@ namespace vmt
 				// clear if already has elements (should not happen!)
 				if (!healths.at(static_cast<size_t>(curnum - 1)).empty())
 				{
-					out(2) << "(warn) VMT: Duplicate predicate healths." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					output<level_t::info>("(warn) VMT: Duplicate predicate healths.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					healths.at(static_cast<size_t>(curnum - 1)).clear();
 				}
 				std::istringstream ss(value);
@@ -447,7 +448,7 @@ namespace vmt
 				// clear if already has elements (should not happen!)
 				if (!times.at(static_cast<size_t>(curnum - 1)).empty())
 				{
-					out(2) << "(warn) VMT: Duplicate predicate dayTime." << curnum << " in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+					output<level_t::info>("(warn) VMT: Duplicate predicate dayTime.{} in {}", curnum, c8tomb(entry.path().generic_u8string()));
 					times.at(static_cast<size_t>(curnum - 1)).clear();
 				}
 				std::istringstream ss(value);
@@ -542,7 +543,7 @@ namespace vmt
 			}
 			if (sm_ind == -1)
 			{
-				out(2) << "(warn) VMT: Invalid/unsupported mob: " << name << std::endl;
+				output<level_t::info>("(warn) VMT: Invalid/unsupported mob: {}", name);
 				return;
 			}
 		}
@@ -556,7 +557,7 @@ namespace vmt
 			}
 			catch (const std::invalid_argument& e)
 			{
-				out(5) << "VMT Error: " << e.what() << " in " << name << std::endl << "stod argument: " << s << std::endl;
+				output<level_t::error>("VMT Error: {} in {}\nstod argument: {}", e.what(), name, s);
 				s = "-6969.42"; // error value, may be useful in identifying what error happened
 				return;
 			}
@@ -576,7 +577,7 @@ namespace vmt
 		{
 			if (textures.at(i).empty())
 			{
-				out(2) << "(warn) VMT: textures." << i + 1 << " is empty in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+				output<level_t::info>("(warn) VMT: textures.{} is empty in {}", i + 1, c8tomb(entry.path().generic_u8string()));
 				continue;
 			}
 			reselect temp_res;
@@ -720,7 +721,7 @@ namespace vmt
 
 		if (res.empty())
 		{
-			out(2) << "(warn) VMT: No predicates found in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+			output<level_t::info>("(warn) VMT: No predicates found in {}", c8tomb(entry.path().generic_u8string()));
 			return;
 		}
 
@@ -801,7 +802,7 @@ namespace vmt
 		// source: assets/minecraft/optifine/random/entity/
 		// destination: assets/mcpppp_[hash]/vmt/
 
-		out(3) << "VMT: Converting Pack " << c8tomb(filename) << std::endl;
+		output<level_t::important>("VMT: Converting Pack {}", c8tomb(filename));
 
 		std::vector<std::filesystem::directory_entry> pngfiles, propfiles;
 
@@ -825,13 +826,13 @@ namespace vmt
 		// convert all images first, so the reselect file can be overridden
 		for (const auto& entry : pngfiles)
 		{
-			out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().filename().u8string()));
 			png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
 		}
 
 		for (const auto& entry : propfiles)
 		{
-			out(1) << "VMT: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().filename().u8string()));
 			s_mobs.clear();
 			prop(path, info.vmt_newlocation, info.iszip, entry);
 

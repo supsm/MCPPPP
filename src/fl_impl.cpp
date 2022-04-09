@@ -17,7 +17,8 @@
 static std::unique_ptr<Fl_Widget> selectedwidget;
 
 using mcpppp::ui;
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::paths;
 using mcpppp::entries;
 using mcpppp::deletedpaths;
@@ -219,7 +220,7 @@ void savesettings(Fl_Button* o, void* v)
 	}
 	catch (const nlohmann::json::exception& e)
 	{
-		out(5) << e.what() << std::endl;
+		output<level_t::error>("Error while parsing config: {}", e.what());
 		throw e;
 	}
 	configfile.close();
@@ -299,14 +300,14 @@ void selectall(Fl_Check_Button* o, void* v)
 void updateoutputlevel(Fl_Value_Slider* o, void* v)
 {
 	mcpppp::waitdontoutput = true;
-	mcpppp::outputlevel = ui->outputlevelslider->value();
+	mcpppp::outputlevel = static_cast<level_t>(ui->outputlevelslider->value());
 	ui->output->clear();
 	mcpppp::output_mutex.lock();
 	for (const auto& p : mcpppp::outputted)
 	{
-		if (p.first >= mcpppp::outputlevel)
+		if (p.first >= static_cast<int>(mcpppp::outputlevel))
 		{
-			ui->output->add(("@S14@C" + std::to_string(mcpppp::outstream::colors.at(p.first - 1)) + "@." + p.second).c_str());
+			ui->output->add(("@S14@C" + std::to_string(mcpppp::outstream::colors.at(p.first)) + "@." + p.second).c_str());
 		}
 	}
 	mcpppp::output_mutex.unlock();

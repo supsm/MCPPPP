@@ -15,10 +15,24 @@ The `settings` object contains a list of settings to be changed. The names are n
   | `log`             | String           | A log file where logs will be stored. `""` disables logging                                                                | `mcpppp-log.txt` | Default       |
   | `timestamp`       | `true`, `false`  | Add timestamp to console output (Logs will always be timestamped)                                                          | `false`          | `true`        |
   | `autoDeleteTemp`  | `true`, `false`  | Automatically delete `mcpppp-temp` folder on startup                                                                       | `false`          | `true`        |
-  | `outputLevel`     | Integer, `1-5`   | How much info should be outputted <br>`1` - Spam <br>`2` - Info <br>`3` - Important <br>`4` - Warning <br>`5` - Error      | `3`              | `2`           |
-  | `logLevel`        | Integer, `1-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                                | `1`              | Default       |
+  | `outputLevel`     | Integer, `0-5`   | How much info should be outputted. See *Output levels* below                                                               | `3`              | `2`           |
+  | `logLevel`        | Integer, `0-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                                | `1`              | Default       |
   | `autoReconvert`   | `true`, `false`  | Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted   | `false`          | `true`        |
   | `fsbTransparent`  | `true`, `false`  | Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally                                   | `true`           | Default       |
+</details>
+<details>
+	<symmary>Output Levels</summary>
+
+	Output levels determine the amount of information printed to normal output or log. All info with a greater or equal level value to the level setting will be displayed.  
+	Setting a low output level will print more info, high output levels will print less info.  
+	| Numeric Value | Name        | Description                                                |
+	|:-------------:|:-----------:|:----------------------------------------------------------:|
+	| `0`           | `Debug`     | Debug information, including line number, file, etc.       |
+	| `1`           | `Detail`    | Detailed information, individual files converted           |
+	| `2`           | `Info`      | Somewhat detailed info, including "warnings" for pack devs |
+	| `3`           | `Important` | Important info, default for `outputLevel`                  |
+	| `4`           | `Warning`   | Self-explanitory                                           |
+	| `5`           | `Error`     | Self-explanitory
 </details>
 
 ### Paths

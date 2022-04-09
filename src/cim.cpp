@@ -11,7 +11,8 @@
 #include "convert.h"
 #include "utility.h"
 
-using mcpppp::out;
+using mcpppp::output;
+using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 
@@ -148,7 +149,7 @@ namespace cim
 		{
 			if (!convert_model(path, mcnamespace, folderpath, u8"item/" + folderpath, entry))
 			{
-				out(5) << "CIM: Invalid model: " << c8tomb(entry.path().u8string()) << std::endl;
+				output<level_t::error>("CIM: Invalid model: {}", c8tomb(entry.path().u8string()));
 			}
 		}
 	}
@@ -477,7 +478,7 @@ namespace cim
 		if (!read_prop(path, zip, entry, type, items, texture, model, damages, stacksizes, enchantments, enchantmentlevels, hand, nbts, name))
 		{
 			// return if prop file has issues
-			out(5) << "CIM: One or more issues found in " << c8tomb(entry.path().u8string()) << ", skipping" << std::endl;
+			output<level_t::error>("CIM: One or more issues found in {}, skipping", c8tomb(entry.path().u8string()));
 			return;
 		}
 
@@ -494,7 +495,7 @@ namespace cim
 			// texture and model are both empty, warn and skip
 			if (texture.empty())
 			{
-				out(2) << "(warn) CIM: Texture and Model are both empty in " << c8tomb(entry.path().generic_u8string()) << std::endl;
+				output<level_t::info>("(warn) CIM: Texture and Model are both empty in {}", c8tomb(entry.path().generic_u8string()));
 				return;
 			}
 			model = texture;
@@ -685,7 +686,7 @@ namespace cim
 		// source: assets/minecraft/*/cit (recursive)
 		// destination: assets/minecraft/overrides/item
 
-		out(3) << "CIM: Converting Pack " << c8tomb(filename) << std::endl;
+		output<level_t::important>("CIM: Converting Pack {}", c8tomb(filename));
 
 		std::vector<std::filesystem::directory_entry> otherfiles, propfiles;
 
@@ -706,13 +707,13 @@ namespace cim
 		// convert non-prop files first, so they won't be missing when copying
 		for (const auto& entry : otherfiles)
 		{
-			out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().filename().u8string()));
 			other(path, info.iszip, entry);
 		}
 
 		for (const auto& entry : propfiles)
 		{
-			out(1) << "CIM: Converting " + c8tomb(entry.path().filename().u8string()) << std::endl;
+			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().filename().u8string()));
 			prop(path, info.iszip, entry);
 		}
 	}

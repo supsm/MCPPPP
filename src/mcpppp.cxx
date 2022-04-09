@@ -189,7 +189,6 @@ UI::UI() {
       outputlevelslider->tooltip("Updates the amount of text shown\n1 = Most text, 5 = Least text");
       outputlevelslider->type(1);
       outputlevelslider->box(FL_BORDER_BOX);
-      outputlevelslider->minimum(1);
       outputlevelslider->maximum(5);
       outputlevelslider->step(1);
       outputlevelslider->value(3);
@@ -367,8 +366,7 @@ B has minor issues with transparency, some parts may not show");
     help->user_data((void*)(this));
     { Fl_Help_View* o = new Fl_Help_View(0, 0, 400, 320);
       o->box(FL_FLAT_BOX);
-      o->value("<html><head><style>p {font-family: \"Helvetica\", sans-serif; font-size: 14pt;}</style></head><body><p>Hi there, welcome to MCPPPP.</p><p>To begin, click the Browse button to browse for a path. Click the Add button and locate your Minecraft resourceapcks folder.<br><strong>IMPORTANT: </strong>This should be <code>.minecraft/resourcepacks</code>, not the resourcepack itself.<br>At the bottom, select which conversions you want to do, and select which resourcepacks to convert at the right (you may need to reload first).<br>When you are done with that, you may press the Run button to start the conversion process.</p><p>For additional support, please check out <a href=\"https://github.com/supsm/MCPPPP/blob/master/GUI.md\">https://github.com/supsm/MCPPPP/blob/master/GUI.md</a></p></body></html>");
-      o->textsize(16);
+      o->value("<html><body><p><font face=\"Helvetica\">Hi there, welcome to MCPPPP.</font></p><p><font face=\"Helvetica\">To begin, click the Browse button to browse for a path. Click the Add button and locate your Minecraft resourceapcks folder.<br><strong>IMPORTANT: </strong>This should be <code>.minecraft/resourcepacks</code>, not the resourcepack itself.<br>At the bottom, select which conversions you want to do, and select which resourcepacks to convert at the right (you may need to reload first).<br>When you are done with that, you may press the Run button to start the conversion process.</font></p><p><font face=\"Helvetica\">For additional support, please check out <a href=\"https://github.com/supsm/MCPPPP/blob/master/GUI.md\">https://github.com/supsm/MCPPPP/blob/master/GUI.md</a></font></p></body></html>");
     } // Fl_Help_View* o
     help->end();
   } // Fl_Window* help

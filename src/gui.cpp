@@ -66,7 +66,7 @@ namespace mcpppp
 	void guirun()
 		try
 	{
-		out(3) << "Conversion Started" << std::endl;
+		output<level_t::important>("Conversion Started");
 		bool valid = false;
 		for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
 		{
@@ -88,43 +88,49 @@ namespace mcpppp
 		}
 		if (!valid)
 		{
-			out(4) << "No valid path found, running from default directory: " << c8tomb(getdefaultpath()) << std::endl;
+			output<level_t::warning>("No valid path found, running from default directory: {}", c8tomb(getdefaultpath()));
 			for (const auto& entry : std::filesystem::directory_iterator(std::filesystem::path(getdefaultpath())))
 			{
 				convert(std::filesystem::canonical(entry), dofsb, dovmt, docim);
 			}
 		}
 		running = false;
-		out(3) << "Conversion Finished" << std::endl;
+		output<level_t::important>("Conversion Finished");
 	}
 	catch (const nlohmann::json::exception& e)
 	{
-		out(5) << "FATAL JSON ERROR:" << std::endl << e.what() << std::endl;
+		output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const Zippy::ZipLogicError& e)
 	{
-		out(5) << "FATAL ZIP LOGIC ERROR" << std::endl << e.what() << std::endl;
+		output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const Zippy::ZipRuntimeError& e)
 	{
-		out(5) << "FATAL ZIP RUNTIME ERROR" << std::endl << e.what() << std::endl;
+		output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const std::filesystem::filesystem_error& e)
 	{
-		out(5) << "FATAL FILESYSTEM ERROR:" << std::endl << e.what() << std::endl;
+		output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const std::exception& e)
 	{
-		out(5) << "FATAL ERROR:" << std::endl << e.what() << std::endl;
+		output<level_t::error>("FATAL ERROR:\n{}", e.what());
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 	catch (...)
 	{
-		out(5) << "UNKNOWN FATAL ERROR" << std::endl;
+		output<level_t::error>("UNKNOWN FATAL ERROR");
+		mcpppp::printpseudotrace();
 		std::exit(-1);
 	}
 
@@ -193,8 +199,8 @@ namespace mcpppp
 		}
 		ui->timestamptrue->value(static_cast<int>(dotimestamp));
 		ui->timestampfalse->value(static_cast<int>(!dotimestamp));
-		ui->outputlevelslider->value(outputlevel);
-		ui->loglevel->value(loglevel);
+		ui->outputlevelslider->value(static_cast<int>(outputlevel));
+		ui->loglevel->value(static_cast<int>(loglevel));
 		ui->autoreconverttrue->value(static_cast<int>(autoreconvert));
 		ui->autoreconvertfalse->value(static_cast<int>(!autoreconvert));
 	}
@@ -215,7 +221,7 @@ namespace mcpppp
 		}
 		catch (const nlohmann::json::exception& e)
 		{
-			out(5) << e.what() << std::endl;
+			output<level_t::error>("Error while parsing config: {}", e.what());
 			throw e;
 		}
 		configfile.close();

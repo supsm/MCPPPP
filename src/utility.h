@@ -9,13 +9,18 @@
 #endif
 
 #include <atomic>
+#include <format>
 #include <fstream>
 #include <iomanip>
+#include <list>
 #include <mutex>
 #include <set>
+#include <source_location>
 #include <sstream>
 #include <unordered_map>
 #include <variant>
+
+#include "constants.h"
 
 #ifdef GUI
 #include <FL/Fl.H>
@@ -32,10 +37,15 @@
 #define XXH_NO_STREAM
 #include "xxhash.h"
 
+namespace mcpppp
+{
+	enum class level_t { debug, detail, info, important, warning, error, system_info };
+}
+
 #define MCPPPP_ASSERT(condition)                                                                  \
 if (!(condition))                                                                                 \
 {                                                                                                 \
-	mcpppp::out(5) << "Assertation failed: " << #condition << std::endl << __LINE__ << std::endl; \
+	mcpppp::output<mcpppp::level_t::error>("Assertation failed: {}", #condition); \
 	abort();                                                                                      \
 }
 
@@ -45,7 +55,7 @@ namespace mcpppp
 	// fltk ui object
 	inline std::unique_ptr<UI> ui;
 	// stringstream containing current outputted line
-	inline std::ostringstream sstream;
+	inline std::stringstream sstream;
 #endif
 	// number of arguments, copied from main
 	inline int argc = -1;
@@ -57,8 +67,8 @@ namespace mcpppp
 	inline bool dotimestamp = false; // add timestamp to regular output
 	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
 	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
-	inline int outputlevel = 3; // amount of info to output
-	inline int loglevel = 1; // amount of info to output to log
+	inline level_t outputlevel = level_t::important; // amount of info to output
+	inline level_t loglevel = level_t::info; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
 	static std::string logfilename = "mcpppp-log.txt"; // name of log file
 
@@ -80,7 +90,7 @@ namespace mcpppp
 		// data type of setting (bool, int, string, etc
 		type setting_type;
 		// reference of setting variable to update
-		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<int>, std::reference_wrapper<std::string>> var;
+		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<level_t>, std::reference_wrapper<std::string>> var;
 		// default value of setting
 		// json since it is compared with another json value in save_settings
 		nlohmann::json default_val;
@@ -95,8 +105,8 @@ namespace mcpppp
 		{"log", {type::string, logfilename, std::ref(logfilename)}},
 		{"timestamp", {type::boolean, std::ref(dotimestamp), dotimestamp}},
 		{"autodeletetemp", {type::boolean, std::ref(autodeletetemp), autodeletetemp}},
-		{"outputlevel", {type::integer, std::ref(outputlevel), outputlevel, 1, 5}},
-		{"loglevel", {type::integer, std::ref(loglevel), loglevel, 1, 5}},
+		{"outputlevel", {type::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
+		{"loglevel", {type::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
 		{"autoreconvert", {type::boolean, std::ref(autoreconvert), autoreconvert}},
 		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}}
 	};
@@ -109,6 +119,9 @@ namespace mcpppp
 	// mutex for accessing outputted vector
 	inline std::mutex output_mutex;
 #endif
+
+	// recently visited locations, may be useful for debugging
+	inline std::list<std::source_location> pseudotrace;
 
 	// don't output probably since output is being redrawn
 	inline std::atomic_bool waitdontoutput = false;
@@ -127,6 +140,17 @@ namespace mcpppp
 		std::exit(0);
 	}
 
+	// add item to pseudotrace, removing excess if necessary
+	// @param item  item to add
+	inline void addtraceitem(const std::source_location& item)
+	{
+		pseudotrace.push_back(item);
+		if (pseudotrace.size() > maxtracesize)
+		{
+			pseudotrace.pop_front();
+		}
+	}
+
 	// make string lowercase
 	// @param str  string to convert to lowercase (passed by value)
 	// @return lowercase version of `str`
@@ -139,9 +163,17 @@ namespace mcpppp
 		return str;
 	}
 
+	// convert bool to "true" or "false"
+	// @param b  bool to convert to text
+	// @return "true" if b is true and "false" for false
+	constexpr std::string_view boolalpha(const bool b)
+	{
+		return (b ? "true" : "false");
+	}
+
 	// get timestamp of format [hh:mm:ss]
 	// @return current timestamp
-	std::string timestamp();
+	std::string timestamp() noexcept;
 
 	// find and replace a string with another string
 	// @param source  string to modify
@@ -223,16 +255,36 @@ namespace mcpppp
 		std::ostringstream() << a;
 	};
 
+	// hacky thing so the source location can be implicitly set
+	struct format_location
+	{
+		std::string_view fmt;
+		std::source_location location;
+
+		template <std::convertible_to<std::string_view> T>
+		constexpr format_location(T fmt, std::source_location location = std::source_location::current()) noexcept : fmt(fmt), location(location) {}
+	};
+
+	template<typename T>
+	concept formattable = requires(T a)
+	{
+		std::make_format_args(a);
+	};
+
 	// object to conditionally output to log file and regular output
 	class outstream
 	{
 	private:
-		friend outstream out(const short& level) noexcept;
+		template <level_t level, formattable... Args>
+		friend void output(format_location fmt, Args&&... args) noexcept;
+
+		friend void printpseudotrace(const unsigned int numlines) noexcept;
+
 		bool cout; // whether to output to regular output
 		bool file; // whether to output to log file
 		bool err; // whether to output to stderr if `cout` is true
-		short level; // current output level, used to determine color of output in gui
-		outstream(const bool _cout, const bool _file, const bool _err, const short& _level) noexcept
+		level_t level; // current output level, used to determine color of output in gui
+		outstream(const bool _cout, const bool _file, const bool _err, const level_t& _level) noexcept
 			: cout(_cout), file(_file), err(_err), level(_level) {}
 #ifdef GUI
 		// output to gui window
@@ -243,17 +295,57 @@ namespace mcpppp
 			ui->output->bottomline(ui->output->size()); // automatically scroll to the bottom
 			delete[] static_cast<char*>(v);
 		}
+
+		// process and output to gui window
+		void updateoutput() const noexcept
+		{
+			if (sstream.str().empty())
+			{
+				sstream.str(" "); // output line even if empty
+			}
+			while (waitdontoutput)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
+			std::string line;
+			sstream.put(' ');
+			while (std::getline(sstream, line))
+			{
+				if (line.empty())
+				{
+					line = " "; // fltk won't print empty strings
+				}
+				// add color and output line
+				if (cout)
+				{
+					Fl::awake(print, dupstr(std::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
+				}
+				output_mutex.lock();
+				outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
+				output_mutex.unlock();
+			}
+			sstream.str(std::string());
+			sstream.clear();
+		}
 #endif
 	public:
+		~outstream()
+		{
+#ifdef GUI
+			updateoutput();
+#endif
+		}
+
 #ifdef GUI
 		// colors to use when outputting
 		// couldn't find a good pre-defined color for warning
 		// this is public so it can be used for redrawing when output level is changed
-		static constexpr std::array<Fl_Color, 6> colors = { FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
+		static constexpr std::array<Fl_Color, 7> colors = { FL_DARK2, FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
 #endif
+
 		// template functions must be defined in header
 		template<outputtable T>
-		outstream operator<<(const T& value) noexcept
+		const outstream& operator<<(const T& value) const noexcept
 		{
 			if (file && logfile.good())
 			{
@@ -282,39 +374,73 @@ namespace mcpppp
 			return *this;
 		}
 
-		outstream operator<<(const std::string& str) noexcept;
+		const outstream& operator<<(const std::string& str) const noexcept;
 
-		outstream operator<<(std::ostream& (*f)(std::ostream&)) noexcept;
+		const outstream& operator<<(std::ostream& (*f)(std::ostream&)) const noexcept;
 	};
 
-	// create outstream object to output with
-	// @param level  level of output to set
-	// @return outstream object, example usage out(4) << "foo" << ...
-	inline outstream out(const short& level) noexcept
+	// prints all lines from pseudotrace
+	// @param numlines  max number of lines to output, 0 = all lines
+	inline void printpseudotrace(const unsigned int numlines = 0) noexcept
 	{
+		unsigned int num = 0;
+		for (const auto& location : pseudotrace)
+		{
+			if (numlines != 0 && num > numlines)
+			{
+				break;
+			}
+			outstream out(true, true, true, level_t::error);
+			out << '\t' << std::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+			num++;
+		}
+	}
+
+	// wrapper of outstream using std::format, with location information
+	// @param fmt  format string, needs to be convertible to std::string_view, needs to be constant expression
+	// @param args  arguments used in fmt
+	template <level_t level, formattable... Args>
+	inline void output(format_location fmt, Args&&... args) noexcept
+	{
+		addtraceitem(fmt.location);
+
 		if (level >= loglevel && logfile.good())
 		{
-			logfile << timestamp();
+			logfile << timestamp() << ' ';
 		}
 #ifdef GUI
 		if (argc < 2)
 		{
-			sstream << (dotimestamp ? timestamp() : "");
-			return { level >= outputlevel, level >= loglevel, level == 5, level };
+			sstream << (dotimestamp ? timestamp() + ' ' : "");
 		}
+		else if
+#else
+		if
 #endif
-		if (level >= outputlevel)
+			(level >= outputlevel)
 		{
-			if (level == 5)
+			if (level == level_t::error)
 			{
-				std::cerr << (dotimestamp ? timestamp() : "");
+				std::cerr << (dotimestamp ? timestamp() + ' ' : "");
 			}
 			else
 			{
-				std::cout << (dotimestamp ? timestamp() : "");
+				std::cout << (dotimestamp ? timestamp() + ' ' : "");
 			}
 		}
-		return { level >= outputlevel, level >= loglevel, level == 5, level };
+		{
+			outstream out(level >= outputlevel, level >= loglevel, level == level_t::error, level);
+			out << std::format(fmt.fmt, args...);
+		}
+		{
+			outstream debug_out(level_t::debug >= outputlevel, level_t::debug >= loglevel, false, level_t::debug);
+			debug_out << std::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
+		}
+
+		if (level == level_t::error)
+		{
+			printpseudotrace(4);
+		}
 	}
 
 	// copy file/folder to another location
@@ -349,7 +475,7 @@ namespace mcpppp
 
 			if (rawhash.index() == 0) // type is monostate
 			{
-				out(5) << "Hash failed somehow???" << std::endl;
+				output<level_t::error>("Error: Hash failed somehow???");
 				return std::string();
 			}
 
