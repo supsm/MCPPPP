@@ -165,13 +165,13 @@ try
 				break;
 			}
 #else
-			out(5) << "Folder named \"mcpppp-temp\" found. Please remove this folder." << std::endl;
+			output<level_t::error>("Folder named \"mcpppp-temp\" found. Please remove this folder.");
 			mcpppp::exit();
 #endif
 		}
 	}
 #ifndef GUI
-	out(3) << "Conversion Started" << std::endl;
+	output<level_t::important>("Conversion Started");
 #endif
 	for (const std::filesystem::path& path : mcpppp::paths)
 	{
@@ -210,7 +210,7 @@ try
 	{
 		mcpppp::convert(entry.second);
 	}
-	out(3) << "Conversion Finished" << std::endl;
+	output<level_t::important>("Conversion Finished");
 	mcpppp::exit();
 #endif
 }

@@ -144,18 +144,18 @@ namespace mcpppp
 		std::exit(0);
 	}
 
+#ifdef __cpp_lib_source_location
 	// add item to pseudotrace, removing excess if necessary
 	// @param item  item to add
 	inline void addtraceitem(const std::source_location& item)
 	{
-#ifdef __cpp_lib_source_location
 		pseudotrace.push_back(item);
 		if (pseudotrace.size() > maxtracesize)
 		{
 			pseudotrace.pop_front();
 		}
-#endif
 	}
+#endif
 
 	// make string lowercase
 	// @param str  string to convert to lowercase (passed by value)
@@ -420,7 +420,9 @@ namespace mcpppp
 	template <level_t level, formattable... Args>
 	inline void output(const format_location& fmt, Args&&... args) noexcept
 	{
+#ifdef __cpp_lib_source_location
 		addtraceitem(fmt.location);
+#endif
 
 		if (level >= loglevel && logfile.good())
 		{
