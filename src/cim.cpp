@@ -200,12 +200,12 @@ namespace cim
 			else if (optifine_range.starts_with('-'))
 			{
 				// range from anything to number (<=)
-				return std::string("<=").append(optifine_range.begin() + 1, optifine_range.end());
+				return fmt::format("<={}", std::string(optifine_range.begin() + 1, optifine_range.end()));
 			}
 			else if (optifine_range.ends_with('-'))
 			{
 				// range from number to anything (>=)
-				return std::string(">=").append(optifine_range.begin(), optifine_range.end() - 1);
+				return fmt::format(">={}", std::string(optifine_range.begin(), optifine_range.end() - 1));
 			}
 			else
 			{
@@ -216,7 +216,7 @@ namespace cim
 					{
 						std::string first = optifine_range;
 						first.erase(first.begin() + static_cast<std::string::difference_type>(i), first.end());
-						return std::string(first).append("..").append(optifine_range.begin() + i + 1, optifine_range.end());
+						return fmt::format("{}..{}", first, std::string(optifine_range.begin() + i + 1, optifine_range.end()));
 					}
 				}
 			}

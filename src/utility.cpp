@@ -71,7 +71,7 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
-		return std::format("[{}:{}:{}]", hour, min, sec);
+		return fmt::format("[{}:{}:{}]", hour, min, sec);
 	}
 
 	void findreplace(std::string& source, const std::string& find, const std::string& replace)
@@ -835,7 +835,7 @@ namespace mcpppp
 
 		if (packver != -1)
 		{
-			const std::string message = std::format(
+			const std::string message = fmt::format(
 				"Potentially incorrect pack_format in {}. This may cause some resourcepacks to break.\n"
 				"Version found: {}\n"
 				"Latest version: {}",

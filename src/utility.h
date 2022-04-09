@@ -9,7 +9,7 @@
 #endif
 
 #include <atomic>
-#include <format>
+#include <fmt/core.h>
 #include <fstream>
 #include <iomanip>
 #include <list>
@@ -262,13 +262,13 @@ namespace mcpppp
 		std::source_location location;
 
 		template <std::convertible_to<std::string_view> T>
-		constexpr format_location(T fmt, std::source_location location = std::source_location::current()) noexcept : fmt(fmt), location(location) {}
+		consteval format_location(T fmt, std::source_location location = std::source_location::current()) noexcept : fmt(fmt), location(location) {}
 	};
 
 	template<typename T>
 	concept formattable = requires(T a)
 	{
-		std::make_format_args(a);
+		fmt::make_format_args(a);
 	};
 
 	// object to conditionally output to log file and regular output
@@ -276,7 +276,7 @@ namespace mcpppp
 	{
 	private:
 		template <level_t level, formattable... Args>
-		friend void output(format_location fmt, Args&&... args) noexcept;
+		friend void output(const format_location& fmt, Args&&... args) noexcept;
 
 		friend void printpseudotrace(const unsigned int numlines) noexcept;
 
@@ -318,7 +318,7 @@ namespace mcpppp
 				// add color and output line
 				if (cout)
 				{
-					Fl::awake(print, dupstr(std::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
+					Fl::awake(print, dupstr(fmt::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
 				}
 				output_mutex.lock();
 				outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
@@ -391,16 +391,16 @@ namespace mcpppp
 				break;
 			}
 			outstream out(true, true, true, level_t::error);
-			out << '\t' << std::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+			out << '\t' << fmt::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
 			num++;
 		}
 	}
 
-	// wrapper of outstream using std::format, with location information
+	// wrapper of outstream using fmt::format, with location information
 	// @param fmt  format string, needs to be convertible to std::string_view, needs to be constant expression
 	// @param args  arguments used in fmt
 	template <level_t level, formattable... Args>
-	inline void output(format_location fmt, Args&&... args) noexcept
+	inline void output(const format_location& fmt, Args&&... args) noexcept
 	{
 		addtraceitem(fmt.location);
 
@@ -430,11 +430,11 @@ namespace mcpppp
 		}
 		{
 			outstream out(level >= outputlevel, level >= loglevel, level == level_t::error, level);
-			out << std::format(fmt.fmt, args...);
+			out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
 		}
 		{
 			outstream debug_out(level_t::debug >= outputlevel, level_t::debug >= loglevel, false, level_t::debug);
-			debug_out << std::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
+			debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
 		}
 
 		if (level == level_t::error)
