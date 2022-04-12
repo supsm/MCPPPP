@@ -49,7 +49,7 @@ jobs:
       run: mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.so artifacts/
     - name: copy files (mac)
       if: ${{ runner.os == 'macOs' }}
-      run: mkdir artifacts && cp build/bin/* artifacts/ && cp build/libmcpppp.dylib artifacts/
+      run: mkdir artifacts && cp build/libmcpppp.dylib artifacts/
 
     - name: rename files (windows)
       if: ${{ runner.os == 'Windows' }}
@@ -67,7 +67,7 @@ jobs:
         mkdir artifacts/MCPPPP-mac-cli.app/contents
         mkdir artifacts/MCPPPP-mac-cli.app/contents/macos
         mkdir artifacts/MCPPPP-mac-cli.app/contents/resources
-        cp artifacts/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/contents/macos/MCPPPP-cli
+        cp bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/contents/macos/MCPPPP-cli
         touch artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -97,7 +97,7 @@ jobs:
         mkdir artifacts/MCPPPP-mac.app/contents
         mkdir artifacts/MCPPPP-mac.app/contents/macos
         mkdir artifacts/MCPPPP-mac.app/contents/resources
-        cp artifacts/MCPPPP-gui artifacts/MCPPPP-mac.app/contents/macos/MCPPPP
+        cp bin/MCPPPP-gui artifacts/MCPPPP-mac.app/contents/macos/MCPPPP
         touch artifacts/MCPPPP-mac.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
