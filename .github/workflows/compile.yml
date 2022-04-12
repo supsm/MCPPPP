@@ -67,7 +67,7 @@ jobs:
         mkdir artifacts/MCPPPP-mac-cli.app/contents
         mkdir artifacts/MCPPPP-mac-cli.app/contents/macos
         mkdir artifacts/MCPPPP-mac-cli.app/contents/resources
-        cp bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/contents/macos/MCPPPP-cli
+        cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/contents/macos/MCPPPP-cli
         touch artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
@@ -97,7 +97,7 @@ jobs:
         mkdir artifacts/MCPPPP-mac.app/contents
         mkdir artifacts/MCPPPP-mac.app/contents/macos
         mkdir artifacts/MCPPPP-mac.app/contents/resources
-        cp bin/MCPPPP-gui artifacts/MCPPPP-mac.app/contents/macos/MCPPPP
+        cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac.app/contents/macos/MCPPPP
         touch artifacts/MCPPPP-mac.app/contents/macos/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
