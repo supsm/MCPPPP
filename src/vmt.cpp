@@ -91,6 +91,10 @@ namespace vmt
 				std::u8string tempfolderpath = std::filesystem::canonical(entry.path().parent_path()).generic_u8string();
 				tempfolderpath.erase(tempfolderpath.begin(),
 					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size());
+				if (!tempfolderpath.empty())
+				{
+					tempfolderpath.erase(tempfolderpath.begin());
+				}
 				folderpath = tempfolderpath;
 			}
 
@@ -132,6 +136,10 @@ namespace vmt
 				std::u8string tempfolderpath = std::filesystem::canonical(entry.path().parent_path()).generic_u8string();
 				tempfolderpath.erase(tempfolderpath.begin(),
 					tempfolderpath.begin() + std::filesystem::canonical(path / location).generic_u8string().size());
+				if (!tempfolderpath.empty())
+				{
+					tempfolderpath.erase(tempfolderpath.begin());
+				}
 				folderpath = tempfolderpath;
 			}
 
@@ -826,13 +834,13 @@ namespace vmt
 		// convert all images first, so the reselect file can be overridden
 		for (const auto& entry : pngfiles)
 		{
-			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().filename().u8string()));
+			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().generic_u8string()));
 			png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
 		}
 
 		for (const auto& entry : propfiles)
 		{
-			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().filename().u8string()));
+			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().generic_u8string()));
 			s_mobs.clear();
 			prop(path, info.vmt_newlocation, info.iszip, entry);
 
