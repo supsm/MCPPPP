@@ -74,7 +74,7 @@ namespace mcpppp
 	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
 	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
 	inline level_t outputlevel = level_t::important; // amount of info to output
-	inline level_t loglevel = level_t::info; // amount of info to output to log
+	inline level_t loglevel = level_t::debug; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
 	static std::string logfilename = "mcpppp-log.txt"; // name of log file
 
@@ -357,9 +357,28 @@ namespace mcpppp
 	public:
 		~outstream()
 		{
+			if (file && logfile.good())
+			{
+				logfile << std::endl;
+			}
 #ifdef GUI
-			updateoutput();
+			if (argc < 2)
+			{
+				updateoutput();
+				return;
+			}
 #endif
+			if (cout)
+			{
+				if (err)
+				{
+					std::cerr << std::endl;
+				}
+				else
+				{
+					std::cout << std::endl;
+				}
+			}
 		}
 
 #ifdef GUI

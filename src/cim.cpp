@@ -27,10 +27,23 @@ namespace cim
 	// @return whether the conversion succeeded
 	static bool convert_model(const std::filesystem::path& path, const std::string& mcnamespace, const std::u8string& folderpath, const std::filesystem::path& outputpath, const std::filesystem::directory_entry& entry)
 	{
+		if (!entry.exists())
+		{
+			output<level_t::error>("CIM: Model not found: {}", c8tomb(entry.path().generic_u8string()));
+			return false;
+		}
 		std::ifstream fin(entry.path());
 		nlohmann::ordered_json j;
 		std::string temp;
-		fin >> j;
+		try
+		{
+			fin >> j;
+		}
+		catch (const nlohmann::json::parse_error& e)
+		{
+			output<level_t::error>("CIM: Json parse error in {}", c8tomb(entry.path().generic_u8string()));
+			return false;
+		}
 		fin.close();
 		if (j.contains("parent"))
 		{
@@ -304,7 +317,7 @@ namespace cim
 					// mcpppp:extra/
 					// if paths are specified, copy to extra folder
 					const std::u8string modelpath = std::filesystem::path(model).parent_path().generic_u8string();
-					if (!convert_model(path, mcnamespace, modelpath, u8"extra/" + modelpath, std::filesystem::directory_entry(path / u8"assets/minecraft" / (mbtoc8(model) + u8".json"))))
+					if (!convert_model(path, mcnamespace, modelpath, u8"extra/" + modelpath, std::filesystem::directory_entry(path / u8"assets/minecraft/models" / (mbtoc8(model) + u8".json"))))
 					{
 						return false;
 					}
@@ -707,13 +720,13 @@ namespace cim
 		// convert non-prop files first, so they won't be missing when copying
 		for (const auto& entry : otherfiles)
 		{
-			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().filename().u8string()));
+			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().generic_u8string()));
 			other(path, info.iszip, entry);
 		}
 
 		for (const auto& entry : propfiles)
 		{
-			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().filename().u8string()));
+			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().generic_u8string()));
 			prop(path, info.iszip, entry);
 		}
 	}

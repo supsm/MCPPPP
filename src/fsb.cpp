@@ -175,7 +175,7 @@ namespace fsb
 	// @param filename  name of image file (no extension)
 	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
-		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
+		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
 		// skip if already converted
 		// TODO: might cause some issues with reconverting
 		if (std::filesystem::exists(path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
@@ -608,7 +608,7 @@ namespace fsb
 			{
 				if (entry.path().extension() == ".properties")
 				{
-					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
+					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
 					prop(path, true, entry);
 				}
 			}
@@ -621,7 +621,7 @@ namespace fsb
 			{
 				if (entry.path().extension() == ".properties")
 				{
-					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().filename().u8string()));
+					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
 					prop(path, false, entry);
 				}
 			}
