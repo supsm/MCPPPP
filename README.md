@@ -25,7 +25,7 @@ Some websites have been stealing this project (you'll know what I mean if you se
 
 ## TLDR
 **Windows**: download `MCPPPP-windows.exe` from releases and double click on it.  
-**Mac**: download `MCPPPP-mac.tar.gz` from releases and double click on it. A file named `MCPPPP-mac` should appear in the same location. Double click on it.  
+**Mac**: download `MCPPPP-mac.dmg` from releases and extract it (I think you just double click). `MCPPPP-mac.app` should be extracted, click on it to run.  
 **Linux**: download `MCPPPP-linux-cli` (no gui) or `MCPPPP-linux` (has gui). Make it executable and run it.  
 
 ## Use
