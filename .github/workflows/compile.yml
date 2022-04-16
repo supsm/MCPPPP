@@ -170,6 +170,19 @@ jobs:
         user_name: 'supsm'
         commit_message: 'copy mac libraries'
 
+    - name: copy gradle properties (linux)
+      if: ${{ runner.os == 'Linux' }}
+      uses: supsm/copy_file_to_another_repo@master
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+      with:
+        source_file: 'gradle.properties'
+        destination_repo: 'supsm/MCPPPP'
+        destination_branch: 'mod'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy gradle.propertis'
+
   build-linux-arm:
     runs-on: ubuntu-latest
     steps:

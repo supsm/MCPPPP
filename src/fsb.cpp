@@ -324,7 +324,7 @@ namespace fsb
 			if (option == "source")
 			{
 				source = mbtoc8(value);
-				source.erase(source.end() - 4, source.end());
+				source.erase(source.size() - 4);
 			}
 			else if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
 			{
@@ -467,7 +467,7 @@ namespace fsb
 
 		if (source.starts_with(u8"./"))
 		{
-			source.erase(0, 2);
+			source.erase(source.begin(), source.begin() + 2);
 			const std::u8string origsource = source;
 			u8temp = entry.path().parent_path().generic_u8string();
 			if (u8temp.back() != '/')
