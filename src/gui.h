@@ -10,6 +10,8 @@
 #include <string>
 #include <vector>
 
+#include "convert.h"
+
 namespace mcpppp
 {
 	inline bool dofsb = true; // perform fsb conversion (from checkbox)
@@ -29,7 +31,7 @@ namespace mcpppp
 	// add resourcepack to checklist
 	// @param path  resourcepack to add
 	// @param selected  whether to display the resourcepack as selected for conversion
-	void addpack(const std::filesystem::path& path, bool selected);
+	void addpack(const std::filesystem::path& path, const bool selected);
 
 	// update paths from "Edit Paths" to path_input
 	void updatepaths();

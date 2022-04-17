@@ -27,6 +27,7 @@
 #include <variant>
 
 #include "constants.h"
+#include "convert.h"
 
 #ifdef GUI
 #include <FL/Fl.H>
@@ -89,6 +90,8 @@ namespace mcpppp
 	inline nlohmann::json hashes;
 
 	enum class type { boolean, integer, string };
+
+	enum class conversions { fsb, vmt, cim };
 
 	// info for each settting item
 	struct setting_item
@@ -577,6 +580,14 @@ namespace mcpppp
 
 		return gethex(rawhash);
 	}
+
+	// get statuses of conversions
+	// @param path  path of resource pack to check
+	// @param dofsb  whether to check fsb (optional, default true)
+	// @param dovmt  whether to check vmt (optional, default true)
+	// @param docim  whether to check cim (optional, default true)
+	// @return map of each conversion to a checkresults
+	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim);
 
 	// convert a single resource pack
 	// @param path  path of resource pack to convert

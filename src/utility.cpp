@@ -655,6 +655,19 @@ namespace mcpppp
 		}
 	}
 
+	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
+	{
+		std::unordered_map<conversions, checkresults> status;
+		const bool zip = (path.extension() == ".zip");
+		const checkinfo fsb = fsb::check(path, zip), vmt = vmt::check(path, zip), cim = cim::check(path, zip);
+
+		status[conversions::fsb] = fsb.results;
+		status[conversions::vmt] = vmt.results;
+		status[conversions::cim] = cim.results;
+
+		return status;
+	}
+
 	bool convert(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")

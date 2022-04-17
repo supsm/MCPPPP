@@ -154,16 +154,47 @@ namespace mcpppp
 #endif
 	}
 
-	void addpack(const std::filesystem::path& path, bool selected)
+	void addpack(const std::filesystem::path& path, const bool selected)
 	{
+		using mcpppp::checkresults;
+		const auto statuses = mcpppp::getconvstatus(path, mcpppp::dofsb, mcpppp::dovmt, mcpppp::docim);
+		checkresults status = checkresults::noneconvertible;
+		for (const auto& [key, value] : statuses)
+		{
+			switch (value)
+			{
+			case checkresults::valid:
+				status = value;
+				break;
+			case checkresults::reconverting:
+				if (status != checkresults::valid)
+				{
+					status = value;
+				}
+				break;
+			case checkresults::alrfound:
+				if (status == checkresults::noneconvertible)
+				{
+					status = value;
+				}
+				break;
+			case checkresults::noneconvertible:
+				break;
+			}
+		}
+
+		std::array<Fl_Color, 4> result_colors = { FL_DARK_GREEN, FL_DARK3, FL_RED, 93 };
+		std::array<std::string, 4> result_names = { "Convertible", "No files found to convert", "Converted files already found", "Possibly will reconvert" };
+
 		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
 		fl_text_extents(c8tomb(path.filename().u8string().c_str()), dx, dy, w, h);
 		w = std::lround(w / getscale());
 		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
 		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
+		o->labelcolor(result_colors[static_cast<size_t>(status)]);
 		o->copy_label(c8tomb(path.filename().u8string().c_str()));
-		o->copy_tooltip(c8tomb(path.generic_u8string().c_str()));
+		o->copy_tooltip((result_names[static_cast<size_t>(status)] + '\n' + c8tomb(path.generic_u8string())).c_str());
 		o->down_box(FL_DOWN_BOX);
 		o->value(static_cast<int>(selected));
 		o->user_data(temp.get());
