@@ -64,11 +64,11 @@ jobs:
       if: ${{ runner.os == 'macOs' }}
       run: |
         mkdir artifacts/MCPPPP-mac-cli.app
-        mkdir artifacts/MCPPPP-mac-cli.app/contents
-        mkdir artifacts/MCPPPP-mac-cli.app/contents/macos
-        mkdir artifacts/MCPPPP-mac-cli.app/contents/resources
-        cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/contents/macos/MCPPPP-cli
-        touch artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
+        mkdir artifacts/MCPPPP-mac-cli.app/Contents
+        mkdir artifacts/MCPPPP-mac-cli.app/Contents/MacOS
+        mkdir artifacts/MCPPPP-mac-cli.app/Contents/Resources
+        cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/Contents/MacOS/MCPPPP-cli
+        touch artifacts/MCPPPP-mac-cli.app/Contents/MacOS/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
         <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -87,18 +87,18 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP-cli</string>
         </dict>
-        </plist>" >> artifacts/MCPPPP-mac-cli.app/contents/macos/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac-cli.app/Contents/MacOS/Info.plist
 
         hdiutil create -volname MCPPPP-cli -srcfolder artifacts/MCPPPP-mac-cli.app -ov artifacts/MCPPPP-mac-cli.dmg
         rm -rf artifacts/MCPPPP-mac-cli.app
 
 
         mkdir artifacts/MCPPPP-mac.app
-        mkdir artifacts/MCPPPP-mac.app/contents
-        mkdir artifacts/MCPPPP-mac.app/contents/macos
-        mkdir artifacts/MCPPPP-mac.app/contents/resources
-        cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac.app/contents/macos/MCPPPP
-        touch artifacts/MCPPPP-mac.app/contents/macos/Info.plist
+        mkdir artifacts/MCPPPP-mac.app/Contents
+        mkdir artifacts/MCPPPP-mac.app/Contents/MacOS
+        mkdir artifacts/MCPPPP-mac.app/Contents/Resources
+        cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac.app/Contents/MacOS/MCPPPP
+        touch artifacts/MCPPPP-mac.app/Contents/MacOS/Info.plist
 
         echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
         <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
@@ -117,7 +117,7 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP</string>
         </dict>
-        </plist>" >> artifacts/MCPPPP-mac.app/contents/macos/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac.app/Contents/MacOS/Info.plist
         
         hdiutil create -volname MCPPPP -srcfolder artifacts/MCPPPP-mac.app -ov artifacts/MCPPPP-mac.dmg
         rm -rf artifacts/MCPPPP-mac.app
