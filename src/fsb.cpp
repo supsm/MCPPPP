@@ -128,9 +128,10 @@ namespace fsb
 	// @param image  image to convert
 	// @param w  width of image in pixels
 	// @param h  height of image in pixels
-	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h)
+	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h, const bool allowtransparency)
 	{
-		if (!mcpppp::fsbtransparent)
+		// skip transparency conversion
+		if (!mcpppp::fsbtransparent || !allowtransparency)
 		{
 			return;
 		}
@@ -138,7 +139,7 @@ namespace fsb
 		{
 			for (long long j = 0; j < h; j++)
 			{
-				// if completely opaque
+				// do transparency, if completely opaque
 				if (image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 3)) == 255)
 				{
 					double first = image.at(static_cast<size_t>(w * h - (j + 1) * w + i));
@@ -170,10 +171,11 @@ namespace fsb
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	// @param path  path of resourcepack
 	// @param overworldsky  whether image is of overworld sky (and not end)
+	// @param allowtransparency  allow overriding alpha values (e.g. does not work with burn, so it is false for burn)
 	// @param output  location to output to (relative to `path`)
 	// @param entry  directory entry of image file to convert
 	// @param filename  name of image file (no extension)
-	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
+	static void png(const std::filesystem::path& path, const bool overworldsky, const bool allowtransparency, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
 		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
 		// skip if already converted
@@ -221,9 +223,9 @@ namespace fsb
 			}
 		}
 
-		convert(image1, outw, outh);
-		convert(image2, outw, outh);
-		convert(image3, outw, outh);
+		convert(image1, outw, outh, allowtransparency);
+		convert(image2, outw, outh, allowtransparency);
+		convert(image3, outw, outh, allowtransparency);
 
 		top.reserve(image.size() / 6);
 		for (long long i = 0; i < outw; i += 4)
@@ -265,9 +267,9 @@ namespace fsb
 			}
 		}
 
-		convert(image1, outw, outh);
-		convert(image2, outw, outh);
-		convert(image3, outw, outh);
+		convert(image1, outw, outh, allowtransparency);
+		convert(image2, outw, outh, allowtransparency);
+		convert(image3, outw, outh, allowtransparency);
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
@@ -287,6 +289,7 @@ namespace fsb
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		const std::u8string name = entry.path().stem().generic_u8string();
+		bool allowtransparency = false;
 		std::u8string source, u8temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
@@ -358,6 +361,11 @@ namespace fsb
 			else if (option == "blend")
 			{
 				j["properties"]["blend"]["type"] = value;
+				// i think these should be good with overriding alpha
+				if (value == "add" || value == "subtract" || value == "replace" || value == "overlay")
+				{
+					allowtransparency = true;
+				}
 			}
 			else if (option == "rotate")
 			{
@@ -479,7 +487,7 @@ namespace fsb
 			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(u8temp + u8".png"));
 			if (image.exists())
 			{
-				png(path, overworldsky, u8"assets/fabricskyboxes/sky", image, origsource);
+				png(path, overworldsky, allowtransparency, u8"assets/fabricskyboxes/sky", image, origsource);
 			}
 			else
 			{
@@ -515,7 +523,7 @@ namespace fsb
 			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 			if (image.exists())
 			{
-				png(path, overworldsky, u8"assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
+				png(path, overworldsky, allowtransparency, u8"assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
 			}
 			else
 			{
