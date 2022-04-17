@@ -995,7 +995,7 @@ namespace mcpppp
 			for (auto it = config["paths"].begin(); it != config["paths"].end(); it++)
 			{
 				// check that path exists, otherwise canonical will fail
-				if (std::filesystem::exists(mbtoc8(*it)))
+				if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
 				{
 					paths.insert(std::filesystem::canonical(mbtoc8(*it)));
 				}
@@ -1022,7 +1022,7 @@ namespace mcpppp
 					for (auto it = config["gui"]["paths"].begin(); it != config["gui"]["paths"].end(); it++)
 					{
 						// check that path exists, otherwise canonical will fail
-						if (std::filesystem::exists(mbtoc8(*it)))
+						if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
 						{
 							paths.insert(std::filesystem::canonical(mbtoc8(*it)));
 						}
