@@ -173,6 +173,18 @@ namespace mcpppp
 		return str;
 	}
 
+	// make string lowercase
+	// @param str  string to convert to lowercase (passed by value)
+	// @return lowercase version of `str`
+	inline std::u8string lowercase(std::u8string str)
+	{
+		std::transform(str.begin(), str.end(), str.begin(), [](const char& c) -> char
+			{
+				return std::tolower(c);
+			});
+		return str;
+	}
+
 	// convert bool to "true" or "false"
 	// @param b  bool to convert to text
 	// @return "true" if b is true and "false" for false
@@ -189,16 +201,16 @@ namespace mcpppp
 	// @param source  string to modify
 	// @param find  string to find in `source`
 	// @param replace  string to replace find with
-	void findreplace(std::string& source, const std::string& find, const std::string& replace);
+	void findreplace(std::string& source, const std::string_view& find, const std::string_view& replace);
 
 	// find and replace (with u8strings)
 	// @param source  string to modify
 	// @param find  string to find in `source`
 	// @param replace  string to replace `find` with
-	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace);
+	void findreplace(std::u8string& source, const std::u8string_view& find, const std::u8string_view& replace);
 
 	// convert std::u8string to std::string
-	inline std::string c8tomb(const std::u8string& s)
+	inline std::string c8tomb(const std::u8string_view& s)
 	{
 		return std::string(s.begin(), s.end());
 	}
@@ -210,7 +222,7 @@ namespace mcpppp
 	}
 
 	// convert std::string to std::u8string
-	inline std::u8string mbtoc8(const std::string& s)
+	inline std::u8string mbtoc8(const std::string_view& s)
 	{
 		return std::u8string(s.begin(), s.end());
 	}
@@ -243,14 +255,14 @@ namespace mcpppp
 		// parse contents of .properties into map
 		// @param data  contents of properties file
 		// @return vector of key value pairs
-		std::unordered_map<std::string, std::string> parse_properties(const std::string& data);
+		std::unordered_map<std::string, std::string> parse_properties(const std::string_view& data);
 	}
 
 	// lol
 	// create a char* copy of a string
 	// @param s  string to copy
 	// @return char pointer, copy of `s`
-	inline char* dupstr(const std::string& s)
+	inline char* dupstr(const std::string_view& s)
 	{
 		// add one for null character
 		char* c = new char[s.size() + 1]{};
@@ -419,7 +431,7 @@ namespace mcpppp
 			return *this;
 		}
 
-		const outstream& operator<<(const std::string& str) const noexcept;
+		const outstream& operator<<(const std::string_view& str) const noexcept;
 
 		const outstream& operator<<(std::ostream& (*f)(std::ostream&)) const noexcept;
 	};
@@ -505,7 +517,7 @@ namespace mcpppp
 	// @param tofind  path of folder to find
 	// @param zip  whether the resource pack is a .zip file
 	// @return whether the folder was found
-	bool findfolder(const std::filesystem::path& path, const std::u8string& tofind, const bool zip);
+	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip);
 
 
 	// hash any arbitrary block of data into hex  

@@ -3,6 +3,7 @@
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
 #include <filesystem>
+#include <regex>
 #include <sstream>
 #include <stack>
 #include <string>
@@ -18,6 +19,22 @@ using mcpppp::mbtoc8;
 
 namespace cim
 {
+	const static std::regex bad_regex("[^a-z0-9/._-]", std::regex_constants::optimize | std::regex_constants::ECMAScript);
+
+	static void fixpathchars(std::string& s)
+	{
+		mcpppp::findreplace(s, " ", "_");
+		s = mcpppp::lowercase(s);
+		s = std::regex_replace(s, bad_regex, "-");
+	}
+
+	static void fixpathchars(std::u8string& s)
+	{
+		mcpppp::findreplace(s, u8" ", u8"_");
+		s = mcpppp::lowercase(s);
+		s = mbtoc8(std::regex_replace(reinterpret_cast<const char*>(s.c_str()), bad_regex, "-"));
+	}
+
 	// change model paths to work with cim
 	// @param path  path of resourcepack
 	// @param mcnamespace  mcpppp namespace to use
@@ -83,7 +100,7 @@ namespace cim
 						{
 							// optifine allows spaces somehow
 							origtemp = temp;
-							mcpppp::findreplace(temp, " ", "_");
+							fixpathchars(temp);
 							// has no namespace, use default minecraft namespace
 							if (!mcpppp::copy(path / u8"assets/minecraft/textures" / (mbtoc8(origtemp) + u8".png"),
 								path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra/minecraft" / (mbtoc8(temp) + u8".png")))
@@ -107,7 +124,7 @@ namespace cim
 								ns.push_back(temp.at(i));
 							}
 							origtemp = temp;
-							mcpppp::findreplace(temp, " ", "_");
+							fixpathchars(temp);
 							if (!mcpppp::copy(path / u8"assets" / mbtoc8(ns) / u8"textures" / (mbtoc8(origtemp) + u8".png"),
 								path / u8"assets" / mbtoc8(mcnamespace) / "textures/extra" / mbtoc8(ns) / (mbtoc8(temp) + u8".png")))
 							{
@@ -129,7 +146,7 @@ namespace cim
 		}
 		std::filesystem::create_directories(path / u8"assets" / mbtoc8(mcnamespace) / "models" / outputpath);
 		std::u8string filename = entry.path().filename().u8string();
-		mcpppp::findreplace(filename, u8" ", u8"_");
+		fixpathchars(filename);
 		std::ofstream fout(path / u8"assets" / mbtoc8(mcnamespace) / "models" / outputpath / filename);
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
@@ -150,12 +167,12 @@ namespace cim
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-		mcpppp::findreplace(folderpath, u8" ", u8"_");
+		fixpathchars(folderpath);
 		if (entry.path().extension() == ".png")
 		{
 			std::filesystem::create_directories(path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath);
 			std::u8string filename = entry.path().filename().u8string();
-			mcpppp::findreplace(filename, u8" ", u8"_");
+			fixpathchars(filename);
 			mcpppp::copy(entry.path(), path / u8"assets" / mbtoc8(mcnamespace) / "textures/item" / folderpath / filename);
 		}
 		else
@@ -200,7 +217,7 @@ namespace cim
 		std::u8string folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(u8"/cit/") + 5));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
-		mcpppp::findreplace(folderpath, u8" ", u8"_");
+		fixpathchars(folderpath);
 
 		// convert range stuff from optifine format (with -) to chime format (with [,] >= <= etc)
 		const auto handlerange = [](const std::string& optifine_range) -> std::string
@@ -268,7 +285,7 @@ namespace cim
 			else if (option == "texture")
 			{
 				texture = value;
-				mcpppp::findreplace(texture, " ", "_");
+				fixpathchars(texture);
 				// std::string::contains in C++23
 				if (texture.find(".png") != std::string::npos)
 				{
@@ -303,7 +320,7 @@ namespace cim
 			else if (option == "model")
 			{
 				model = value;
-				mcpppp::findreplace(model, " ", "_");
+				fixpathchars(model);
 				// std::string::contains in C++23
 				if (model.find(".json") != std::string::npos)
 				{

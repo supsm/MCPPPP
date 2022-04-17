@@ -74,7 +74,7 @@ namespace mcpppp
 		return fmt::format("[{}:{}:{}]", hour, min, sec);
 	}
 
-	void findreplace(std::string& source, const std::string& find, const std::string& replace)
+	void findreplace(std::string& source, const std::string_view& find, const std::string_view& replace)
 	{
 		long long pos = -static_cast<long long>(replace.size());
 		// std::string::contains in c++23
@@ -85,7 +85,7 @@ namespace mcpppp
 		}
 	}
 
-	void findreplace(std::u8string& source, const std::u8string& find, const std::u8string& replace)
+	void findreplace(std::u8string& source, const std::u8string_view& find, const std::u8string_view& replace)
 	{
 		long long pos = -static_cast<long long>(replace.size());
 		// std::u8string::contains in C++23
@@ -152,10 +152,10 @@ namespace mcpppp
 			return mcpppp::hash<32>(u8s.data(), u8s.size());
 		}
 
-		std::unordered_map<std::string, std::string> parse_properties(const std::string& data)
+		std::unordered_map<std::string, std::string> parse_properties(const std::string_view& data)
 		{
 			std::string line;
-			std::istringstream ss(data);
+			std::istringstream ss{std::string(data)};
 			std::unordered_map<std::string, std::string> m;
 
 			bool isvalue = false;
@@ -365,7 +365,7 @@ namespace mcpppp
 		}
 	}
 
-	const outstream& outstream::operator<<(const std::string& str) const noexcept
+	const outstream& outstream::operator<<(const std::string_view& str) const noexcept
 	{
 		if (file && logfile.good())
 		{
@@ -507,7 +507,7 @@ namespace mcpppp
 	// @param ziparchive  path to zipped resourcepack
 	// @param itemtofind  item to find in zip archive (will match if starts with)
 	// @return whether item is find
-	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string& itemtofind)
+	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string_view& itemtofind)
 	{
 		bool found = false;
 		mz_zip_archive archive = mz_zip_archive();
@@ -526,7 +526,7 @@ namespace mcpppp
 		return found;
 	}
 
-	bool findfolder(const std::filesystem::path& path, const std::u8string& tofind, const bool zip)
+	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip)
 	{
 		if (zip)
 		{
