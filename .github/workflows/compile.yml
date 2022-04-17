@@ -87,7 +87,7 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP-cli</string>
         </dict>
-        </plist>" >> artifacts/MCPPPP-mac-cli.app/Contents/MacOS/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac-cli.app/Contents/Info.plist
 
         hdiutil create -volname MCPPPP-cli -srcfolder artifacts/MCPPPP-mac-cli.app -ov artifacts/MCPPPP-mac-cli.dmg
         rm -rf artifacts/MCPPPP-mac-cli.app
@@ -117,7 +117,7 @@ jobs:
           <key>CFBundleName</key>
           <string>MCPPPP</string>
         </dict>
-        </plist>" >> artifacts/MCPPPP-mac.app/Contents/MacOS/Info.plist
+        </plist>" >> artifacts/MCPPPP-mac.app/Contents/Info.plist
         
         hdiutil create -volname MCPPPP -srcfolder artifacts/MCPPPP-mac.app -ov artifacts/MCPPPP-mac.dmg
         rm -rf artifacts/MCPPPP-mac.app
