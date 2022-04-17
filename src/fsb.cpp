@@ -362,7 +362,7 @@ namespace fsb
 			{
 				j["properties"]["blend"]["type"] = value;
 				// i think these should be good with overriding alpha
-				if (value == "add" || value == "subtract" || value == "replace" || value == "overlay")
+				if (value == "add" || value == "replace" || value == "overlay")
 				{
 					allowtransparency = true;
 				}
@@ -559,7 +559,7 @@ namespace fsb
 		fout.close();
 	}
 
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
 	{
 		using mcpppp::checkresults;
 

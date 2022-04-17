@@ -526,7 +526,7 @@ namespace mcpppp
 		return found;
 	}
 
-	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip)
+	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip) noexcept
 	{
 		if (zip)
 		{
@@ -655,7 +655,7 @@ namespace mcpppp
 		}
 	}
 
-	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
+	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim) noexcept
 	{
 		std::unordered_map<conversions, checkresults> status;
 		const bool zip = (path.extension() == ".zip");

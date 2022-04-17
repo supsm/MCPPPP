@@ -520,7 +520,7 @@ namespace mcpppp
 	// @param tofind  path of folder to find
 	// @param zip  whether the resource pack is a .zip file
 	// @return whether the folder was found
-	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip);
+	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip) noexcept;
 
 
 	// hash any arbitrary block of data into hex  
@@ -587,7 +587,7 @@ namespace mcpppp
 	// @param dovmt  whether to check vmt (optional, default true)
 	// @param docim  whether to check cim (optional, default true)
 	// @return map of each conversion to a checkresults
-	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim);
+	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim) noexcept;
 
 	// convert a single resource pack
 	// @param path  path of resource pack to convert

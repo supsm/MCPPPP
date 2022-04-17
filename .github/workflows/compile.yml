@@ -60,67 +60,78 @@ jobs:
       if: ${{ runner.os == 'Linux' }}
       run: mv artifacts/MCPPPP-gui artifacts/MCPPPP-linux && mv artifacts/MCPPPP-cli artifacts/MCPPPP-linux-cli
       
-    - name: create .app files (mac only)
+    #- name: create .app files (mac only)
+    - name: zip files (mac only)
       if: ${{ runner.os == 'macOs' }}
       run: |
-        mkdir artifacts/MCPPPP-mac-cli.app
-        mkdir artifacts/MCPPPP-mac-cli.app/Contents
-        mkdir artifacts/MCPPPP-mac-cli.app/Contents/MacOS
-        mkdir artifacts/MCPPPP-mac-cli.app/Contents/Resources
-        cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/Contents/MacOS/MCPPPP-cli
-        touch artifacts/MCPPPP-mac-cli.app/Contents/MacOS/Info.plist
+        #mkdir artifacts/MCPPPP-mac-cli.app
+        #mkdir artifacts/MCPPPP-mac-cli.app/Contents
+        #mkdir artifacts/MCPPPP-mac-cli.app/Contents/MacOS
+        #mkdir artifacts/MCPPPP-mac-cli.app/Contents/Resources
+        #cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli.app/Contents/MacOS/MCPPPP-cli
+        #touch artifacts/MCPPPP-mac-cli.app/Contents/MacOS/Info.plist
+        #
+        #echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+        #<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+        #<plist version=\"1.0\">
+        #<dict>
+        #  <key>CFBundleDisplayName</key>
+        #  <string>MCPPPP-cli</string>
+        #  <key>CFBundleExecutable</key>
+        #  <string>MCPPPP-cli</string>
+        #  <key>CFBundleIconFile</key>
+        #  <string>resources/mcpppp.png</string>
+        #  <key>CFBundleIdentifier</key>
+        #  <string>com.github.supsm.mcpppp</string>
+        #  <key>CFBundleInfoDictionaryVersion</key>
+        #  <string>6.0</string>
+        #  <key>CFBundleName</key>
+        #  <string>MCPPPP-cli</string>
+        #</dict>
+        #</plist>" >> artifacts/MCPPPP-mac-cli.app/Contents/Info.plist
+        #
+        #hdiutil create -volname MCPPPP-cli -srcfolder artifacts/MCPPPP-mac-cli.app -ov artifacts/MCPPPP-mac-cli.dmg
+        #rm -rf artifacts/MCPPPP-mac-cli.app
+        #
+        #
+        #mkdir artifacts/MCPPPP-mac.app
+        #mkdir artifacts/MCPPPP-mac.app/Contents
+        #mkdir artifacts/MCPPPP-mac.app/Contents/MacOS
+        #mkdir artifacts/MCPPPP-mac.app/Contents/Resources
+        #cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac.app/Contents/MacOS/MCPPPP
+        #touch artifacts/MCPPPP-mac.app/Contents/MacOS/Info.plist
+        #
+        #echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+        #<!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
+        #<plist version=\"1.0\">
+        #<dict>
+        #  <key>CFBundleDisplayName</key>
+        #  <string>MCPPPP</string>
+        #  <key>CFBundleExecutable</key>
+        #  <string>MCPPPP</string>
+        #  <key>CFBundleIconFile</key>
+        #  <string>resources/mcpppp.png</string>
+        #  <key>CFBundleIdentifier</key>
+        #  <string>com.github.supsm.mcpppp</string>
+        #  <key>CFBundleInfoDictionaryVersion</key>
+        #  <string>6.0</string>
+        #  <key>CFBundleName</key>
+        #  <string>MCPPPP</string>
+        #</dict>
+        #</plist>" >> artifacts/MCPPPP-mac.app/Contents/Info.plist
+        #
+        #hdiutil create -volname MCPPPP -srcfolder artifacts/MCPPPP-mac.app -ov artifacts/MCPPPP-mac.dmg
+        #rm -rf artifacts/MCPPPP-mac.app
 
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-        <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-        <plist version=\"1.0\">
-        <dict>
-          <key>CFBundleDisplayName</key>
-          <string>MCPPPP-cli</string>
-          <key>CFBundleExecutable</key>
-          <string>MCPPPP-cli</string>
-          <key>CFBundleIconFile</key>
-          <string>resources/mcpppp.png</string>
-          <key>CFBundleIdentifier</key>
-          <string>com.github.supsm.mcpppp</string>
-          <key>CFBundleInfoDictionaryVersion</key>
-          <string>6.0</string>
-          <key>CFBundleName</key>
-          <string>MCPPPP-cli</string>
-        </dict>
-        </plist>" >> artifacts/MCPPPP-mac-cli.app/Contents/Info.plist
+        cp build/MCPPPP-gui artifacts/MCPPPP-mac && cp build/MCPPPP-cli artifacts/MCPPPP-mac-cli
 
-        hdiutil create -volname MCPPPP-cli -srcfolder artifacts/MCPPPP-mac-cli.app -ov artifacts/MCPPPP-mac-cli.dmg
-        rm -rf artifacts/MCPPPP-mac-cli.app
+        cd artifacts
 
+        chmod +x MCPPPP-mac && chmod +x MCPPPP-mac-cli
+        zip MCPPPP-mac.zip MCPPPP-mac
+        zip MCPPPP-mac-cli.zip MCPPPP-mac-cli
 
-        mkdir artifacts/MCPPPP-mac.app
-        mkdir artifacts/MCPPPP-mac.app/Contents
-        mkdir artifacts/MCPPPP-mac.app/Contents/MacOS
-        mkdir artifacts/MCPPPP-mac.app/Contents/Resources
-        cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac.app/Contents/MacOS/MCPPPP
-        touch artifacts/MCPPPP-mac.app/Contents/MacOS/Info.plist
-
-        echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>
-        <!DOCTYPE plist PUBLIC \"-//Apple//DTD PLIST 1.0//EN\" \"http://www.apple.com/DTDs/PropertyList-1.0.dtd\">
-        <plist version=\"1.0\">
-        <dict>
-          <key>CFBundleDisplayName</key>
-          <string>MCPPPP</string>
-          <key>CFBundleExecutable</key>
-          <string>MCPPPP</string>
-          <key>CFBundleIconFile</key>
-          <string>resources/mcpppp.png</string>
-          <key>CFBundleIdentifier</key>
-          <string>com.github.supsm.mcpppp</string>
-          <key>CFBundleInfoDictionaryVersion</key>
-          <string>6.0</string>
-          <key>CFBundleName</key>
-          <string>MCPPPP</string>
-        </dict>
-        </plist>" >> artifacts/MCPPPP-mac.app/Contents/Info.plist
-        
-        hdiutil create -volname MCPPPP -srcfolder artifacts/MCPPPP-mac.app -ov artifacts/MCPPPP-mac.dmg
-        rm -rf artifacts/MCPPPP-mac.app
+        cd ..
 
     - name: capture build artifacts
       uses: actions/upload-artifact@v2

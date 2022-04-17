@@ -748,7 +748,7 @@ namespace vmt
 		}
 	}
 
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip)
+	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
 	{
 		using mcpppp::checkresults;
 
