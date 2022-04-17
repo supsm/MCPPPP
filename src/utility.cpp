@@ -997,7 +997,7 @@ namespace mcpppp
 				// check that path exists, otherwise canonical will fail
 				if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
 				{
-					paths.insert(std::filesystem::canonical(mbtoc8(*it)));
+					paths.insert(std::filesystem::canonical(mbtoc8((*it).get<std::string_view>())));
 				}
 				else
 				{
@@ -1024,7 +1024,7 @@ namespace mcpppp
 						// check that path exists, otherwise canonical will fail
 						if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
 						{
-							paths.insert(std::filesystem::canonical(mbtoc8(*it)));
+							paths.insert(std::filesystem::canonical(mbtoc8((*it).get<std::string_view>())));
 						}
 						else
 						{
