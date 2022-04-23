@@ -108,13 +108,7 @@ namespace fsb
 				GL_FUNC_ADD
 			}
 		},
-		{"burn", // TODO: currently multiply, inaccurate
-			{
-				GL_DST_COLOR,
-				GL_ONE_MINUS_SRC_ALPHA,
-				GL_FUNC_SUBTRACT
-			}
-		},
+		// we'll leave burn to fsb
 		{"screen",
 			{
 				GL_ONE,

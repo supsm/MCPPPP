@@ -127,7 +127,7 @@ jobs:
 
         cd artifacts
 
-        chmod +x MCPPPP-mac && chmod +x MCPPPP-mac-cli
+        #chmod +x MCPPPP-mac && chmod +x MCPPPP-mac-cli
         zip MCPPPP-mac.zip MCPPPP-mac
         zip MCPPPP-mac-cli.zip MCPPPP-mac-cli
 
