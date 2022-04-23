@@ -131,7 +131,7 @@ namespace fsb
 	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h, const bool allowtransparency)
 	{
 		// skip transparency conversion
-		if (!mcpppp::fsbtransparent || !allowtransparency)
+		if (!allowtransparency)
 		{
 			return;
 		}
@@ -289,7 +289,7 @@ namespace fsb
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		const std::u8string name = entry.path().stem().generic_u8string();
-		bool allowtransparency = false;
+		const bool allowtransparency = mcpppp::fsbtransparent;
 		std::u8string source, u8temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
@@ -304,10 +304,9 @@ namespace fsb
 			{
 				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}}
 			} },
-			{"blend", true},
+			{"blend", {{"type", blend.at("add").to_json()}}},
 			{"properties",
 			{
-				{"blend", {{"type", "add"}}},
 				{"rotation",
 				{
 					{"axis", {0.0, -180.0, 0.0}},
@@ -360,11 +359,14 @@ namespace fsb
 			}
 			else if (option == "blend")
 			{
-				j["properties"]["blend"]["type"] = value;
-				// i think these should be good with overriding alpha
-				if (value == "add" || value == "replace" || value == "overlay")
+				if (!blend.contains(value))
 				{
-					allowtransparency = true;
+					output<level_t::info>("(warn) FSB: Invalid or unsupported blend mode: {}\nLet's hope fabricskyboxes supports it :D", value);
+					j["blend"]["type"] = value;
+				}
+				else
+				{
+					j["blend"] = blend.at(value).to_json();
 				}
 			}
 			else if (option == "rotate")
