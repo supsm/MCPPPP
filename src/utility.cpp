@@ -1087,6 +1087,9 @@ namespace mcpppp
 		parser.add_argument("--fsbTransparent")
 			.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
 			.default_value(std::string(fsbtransparent ? "true" : "false"));
+		parser.add_argument("--useFsbBlend")
+			.help("Always use FSB blend instead of MCPPPP builtin blend modes")
+			.default_value(std::string(usefsbblend ? "true" : "false"));
 
 		parser.add_argument("resourcepacks")
 			.help("The resourcepacks to convert")
@@ -1129,6 +1132,7 @@ namespace mcpppp
 		autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
 		autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
 		fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
+		usefsbblend = truefalse(parser.get<std::string>("--useFsbBlend"));
 
 		try
 		{

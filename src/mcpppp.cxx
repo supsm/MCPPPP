@@ -72,6 +72,20 @@ void UI::cb_fsbtransparentfalse(Fl_Button* o, void* v) {
   ((UI*)(o->parent()->parent()->user_data()))->cb_fsbtransparentfalse_i(o,v);
 }
 
+void UI::cb_usefsbblendtrue_i(Fl_Button* o, void* v) {
+  settingchanged(o, v);
+}
+void UI::cb_usefsbblendtrue(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_usefsbblendtrue_i(o,v);
+}
+
+void UI::cb_usefsbblendfalse_i(Fl_Button* o, void* v) {
+  settingchanged(o, v);
+}
+void UI::cb_usefsbblendfalse(Fl_Button* o, void* v) {
+  ((UI*)(o->parent()->parent()->user_data()))->cb_usefsbblendfalse_i(o,v);
+}
+
 void UI::cb_Close_i(Fl_Button*, void*) {
   path_warning->hide();
 }
@@ -225,7 +239,7 @@ UI::UI() {
     } // Fl_Scroll* paths
     edit_paths->end();
   } // Fl_Double_Window* edit_paths
-  { settings = new Fl_Double_Window(300, 250, "Settings");
+  { settings = new Fl_Double_Window(300, 265, "Settings");
     settings->user_data((void*)(this));
     { Fl_Box* o = new Fl_Box(10, 10, 120, 20, "autoDeleteTemp");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
@@ -270,6 +284,10 @@ UI::UI() {
     { Fl_Box* o = new Fl_Box(10, 160, 120, 20, "fsbTransparent");
       o->tooltip("Make Fabricskyboxes skyboxes partially transparent to match with optifine. FS\
 B has minor issues with transparency, some parts may not show");
+      o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
+    } // Fl_Box* o
+    { Fl_Box* o = new Fl_Box(10, 190, 120, 20, "useFsbBlend");
+      o->tooltip("Always use FSB blend instead of MCPPPP builtin blend modes");
       o->align(Fl_Align(FL_ALIGN_LEFT|FL_ALIGN_INSIDE));
     } // Fl_Box* o
     { log = new Fl_Input(140, 40, 150, 20);
@@ -347,7 +365,7 @@ B has minor issues with transparency, some parts may not show");
       } // Fl_Button* fsbtransparentfalse
       o->end();
     } // Fl_Group* o
-    { Fl_Button* o = new Fl_Button(10, 200, 280, 25, "Save");
+    { Fl_Button* o = new Fl_Button(10, 220, 280, 25, "Save");
       o->tooltip("Save settings");
       o->box(FL_BORDER_BOX);
       o->down_box(FL_BORDER_BOX);
@@ -355,11 +373,31 @@ B has minor issues with transparency, some parts may not show");
       o->selection_color((Fl_Color)43);
       o->callback((Fl_Callback*)savesettings);
     } // Fl_Button* o
-    { savewarning = new Fl_Box(10, 225, 280, 20, "Warning: unsaved changes");
+    { savewarning = new Fl_Box(10, 245, 280, 20, "Warning: unsaved changes");
       savewarning->labelfont(1);
       savewarning->labelcolor((Fl_Color)1);
       savewarning->hide();
     } // Fl_Box* savewarning
+    { Fl_Group* o = new Fl_Group(140, 190, 150, 20);
+      { usefsbblendtrue = new Fl_Button(140, 190, 75, 20, "True");
+        usefsbblendtrue->type(102);
+        usefsbblendtrue->box(FL_FLAT_BOX);
+        usefsbblendtrue->down_box(FL_BORDER_BOX);
+        usefsbblendtrue->value(1);
+        usefsbblendtrue->color(FL_DARK2);
+        usefsbblendtrue->selection_color((Fl_Color)43);
+        usefsbblendtrue->callback((Fl_Callback*)cb_usefsbblendtrue);
+      } // Fl_Button* usefsbblendtrue
+      { usefsbblendfalse = new Fl_Button(215, 190, 75, 20, "False");
+        usefsbblendfalse->type(102);
+        usefsbblendfalse->box(FL_FLAT_BOX);
+        usefsbblendfalse->down_box(FL_BORDER_BOX);
+        usefsbblendfalse->color(FL_DARK2);
+        usefsbblendfalse->selection_color((Fl_Color)43);
+        usefsbblendfalse->callback((Fl_Callback*)cb_usefsbblendfalse);
+      } // Fl_Button* usefsbblendfalse
+      o->end();
+    } // Fl_Group* o
     settings->end();
   } // Fl_Double_Window* settings
   { help = new Fl_Window(400, 320, "Help");

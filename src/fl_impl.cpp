@@ -206,6 +206,7 @@ void savesettings(Fl_Button* o, void* v)
 	config["gui"]["settings"]["logLevel"] = ui->loglevel->value();
 	config["gui"]["settings"]["autoReconvert"] = static_cast<bool>(ui->autoreconverttrue->value());
 	config["gui"]["settings"]["fsbTransparent"] = static_cast<bool>(ui->fsbtransparenttrue->value());
+	config["gui"]["settings"]["useFsbBlend"] = static_cast<bool>(ui->usefsbblendtrue->value());
 
 	// remove excess settings
 	std::vector<std::string> toremove;

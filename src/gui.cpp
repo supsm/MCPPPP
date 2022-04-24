@@ -234,6 +234,10 @@ namespace mcpppp
 		ui->loglevel->value(static_cast<int>(loglevel));
 		ui->autoreconverttrue->value(static_cast<int>(autoreconvert));
 		ui->autoreconvertfalse->value(static_cast<int>(!autoreconvert));
+		ui->fsbtransparenttrue->value(static_cast<int>(fsbtransparent));
+		ui->fsbtransparentfalse->value(static_cast<int>(!fsbtransparent));
+		ui->usefsbblendtrue->value(static_cast<int>(usefsbblend));
+		ui->usefsbblendfalse->value(static_cast<int>(!usefsbblend));
 	}
 
 	void updatepathconfig()

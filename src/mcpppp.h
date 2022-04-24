@@ -94,6 +94,16 @@ private:
   static void cb_fsbtransparentfalse(Fl_Button*, void*);
 public:
   Fl_Box *savewarning;
+  Fl_Button *usefsbblendtrue;
+private:
+  inline void cb_usefsbblendtrue_i(Fl_Button*, void*);
+  static void cb_usefsbblendtrue(Fl_Button*, void*);
+public:
+  Fl_Button *usefsbblendfalse;
+private:
+  inline void cb_usefsbblendfalse_i(Fl_Button*, void*);
+  static void cb_usefsbblendfalse(Fl_Button*, void*);
+public:
   Fl_Window *help;
   Fl_Window *path_warning;
 private:

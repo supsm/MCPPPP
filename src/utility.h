@@ -74,6 +74,7 @@ namespace mcpppp
 	inline bool dotimestamp = false; // add timestamp to regular output
 	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
 	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
+	inline bool usefsbblend = false; // use always fsb blend modes instead of mcpppp blend
 	inline level_t outputlevel = level_t::important; // amount of info to output
 	inline level_t loglevel = level_t::debug; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
@@ -117,7 +118,8 @@ namespace mcpppp
 		{"outputlevel", {type::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
 		{"loglevel", {type::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
 		{"autoreconvert", {type::boolean, std::ref(autoreconvert), autoreconvert}},
-		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}}
+		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}},
+		{"usefsbblend", {type::boolean, std::ref(usefsbblend), usefsbblend}}
 	};
 
 #ifdef GUI

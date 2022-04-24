@@ -304,7 +304,7 @@ namespace fsb
 			{
 				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}}
 			} },
-			{"blend", {{"type", blend.at("add").to_json()}}},
+			{"blend", {{"type", (mcpppp::usefsbblend ? "add" : blend.at("add").to_json())}}},
 			{"properties",
 			{
 				{"rotation",
@@ -359,9 +359,12 @@ namespace fsb
 			}
 			else if (option == "blend")
 			{
-				if (!blend.contains(value))
+				if (mcpppp::usefsbblend || !blend.contains(value))
 				{
-					output<level_t::info>("(warn) FSB: Invalid or unsupported blend mode: {}\nLet's hope fabricskyboxes supports it :D", value);
+					if (!mcpppp::usefsbblend)
+					{
+						output<level_t::info>("(warn) FSB: Invalid or unsupported blend mode: {}\nLet's hope fabricskyboxes supports it :D", value);
+					}
 					j["blend"]["type"] = value;
 				}
 				else
