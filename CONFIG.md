@@ -19,6 +19,7 @@ The `settings` object contains a list of settings to be changed. The names are n
   | `logLevel`        | Integer, `0-5`   | Same as `outputLevel`, but for logs <br>Has no effect if no log file is set                                                | `0`              | Default       |
   | `autoReconvert`   | `true`, `false`  | Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted   | `false`          | `true`        |
   | `fsbTransparent`  | `true`, `false`  | Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally                                   | `true`           | Default       |
+  | `useFsbBlend`     | `true`, `false`  | Always use Fabricskyboxes blend instead of MCPPPP internal blend modes                                                     | `false`          | Default       |
 </details>
 <details>
 	<symmary>Output Levels</summary>
