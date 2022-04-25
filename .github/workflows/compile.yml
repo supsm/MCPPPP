@@ -123,7 +123,7 @@ jobs:
         #hdiutil create -volname MCPPPP -srcfolder artifacts/MCPPPP-mac.app -ov artifacts/MCPPPP-mac.dmg
         #rm -rf artifacts/MCPPPP-mac.app
 
-        cp build/MCPPPP-gui artifacts/MCPPPP-mac && cp build/MCPPPP-cli artifacts/MCPPPP-mac-cli
+        cp build/bin/MCPPPP-gui artifacts/MCPPPP-mac && cp build/bin/MCPPPP-cli artifacts/MCPPPP-mac-cli
 
         cd artifacts
 
