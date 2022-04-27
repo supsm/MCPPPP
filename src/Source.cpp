@@ -44,6 +44,8 @@ try
 #if defined _WIN32 && defined GUI && defined DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED
 	SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_UNAWARE_GDISCALED); // fix blurriness
 #endif
+
+
 	std::error_code ec;
 	mcpppp::gethashes();
 	if (argc < 2) // skip file settings if there are command line settings
@@ -56,6 +58,7 @@ try
 		ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 		mcpppp::ui = std::make_unique<UI>();
+		mcpppp::init_settings();
 		Fl::get_system_colors();
 		Fl::lock();
 		fl_message_icon()->labeltype(FL_NO_LABEL);

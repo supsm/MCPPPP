@@ -67,6 +67,19 @@ namespace mcpppp
 	// number of arguments, copied from main
 	inline int argc = -1;
 
+	// paths to scan for resourcepacks
+	inline std::set<std::filesystem::path> paths = {};
+	// config settings/paths
+	inline nlohmann::ordered_json config;
+	// list of resourcepacks to convert
+	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
+
+	// hashes of converted resourcepacks
+	inline nlohmann::json hashes;
+
+	enum class conversions { fsb, vmt, cim };
+
+
 	// settings
 	inline bool autodeletetemp = false; // automatically delete mcpppp-temp if found
 	inline bool pauseonexit = true; // pause and ask for user input upon conversion finishing
@@ -80,25 +93,18 @@ namespace mcpppp
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
 	static std::string logfilename = "mcpppp-log.txt"; // name of log file
 
-	// paths to scan for resourcepacks
-	inline std::set<std::filesystem::path> paths = {};
-	// config settings/paths
-	inline nlohmann::ordered_json config;
-	// list of resourcepacks to convert
-	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
-
-	// hashes of converted resourcepacks
-	inline nlohmann::json hashes;
-
 	enum class type { boolean, integer, string };
 
-	enum class conversions { fsb, vmt, cim };
-
 	// info for each settting item
-	struct setting_item
+	class setting_item
 	{
-		// data type of setting (bool, int, string, etc
-		type setting_type;
+	public:
+		// capitalized name of setting, since key is all lowercase
+		std::string_view formatted_name;
+		std::string_view description;
+
+		// data type of setting (bool, int, string, etc)
+		type type;
 		// reference of setting variable to update
 		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<level_t>, std::reference_wrapper<std::string>> var;
 		// default value of setting
@@ -106,21 +112,45 @@ namespace mcpppp
 		nlohmann::json default_val;
 		// minimum and maximum value for integer type settings
 		int min = 0, max = 0;
+
+	private:
+		template<typename T, typename container>
+		static inline constexpr bool has_type = false;
+		template<typename T, template<typename...> typename container, typename... Args>
+		static inline constexpr bool has_type<T, container<Args...>> =
+			std::disjunction_v<std::is_same<T, Args>...>;
+
+	public:
+		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
+		T& get() const noexcept
+		{
+			return std::get<std::reference_wrapper<T>>(var).get();
+		}
 	};
 
-	// info about each setting
+	// info about each setting, key should be all lowercase
 	const std::unordered_map<std::string, setting_item> settings =
 	{
-		{"pauseonexit", {type::boolean, std::ref(pauseonexit), pauseonexit}},
-		{"log", {type::string, logfilename, std::ref(logfilename)}},
-		{"timestamp", {type::boolean, std::ref(dotimestamp), dotimestamp}},
-		{"autodeletetemp", {type::boolean, std::ref(autodeletetemp), autodeletetemp}},
-		{"outputlevel", {type::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
-		{"loglevel", {type::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
-		{"autoreconvert", {type::boolean, std::ref(autoreconvert), autoreconvert}},
-		{"fsbtransparent", {type::boolean, std::ref(fsbtransparent), fsbtransparent}},
-		{"usefsbblend", {type::boolean, std::ref(usefsbblend), usefsbblend}}
+		{"pauseonexit", {"pauseOnExit", "Wait for enter key to be pressed once execution has been finished",
+			type::boolean, std::ref(pauseonexit), pauseonexit}},
+		{"log", {"log", "A log file where logs will be stored. \"\" disables logging",
+			type::string, logfilename, std::ref(logfilename)}},
+		{"timestamp", {"timestamp", "Add timestamp to regular output (Logs will always be timestamped)",
+			type::boolean, std::ref(dotimestamp), dotimestamp}},
+		{"autodeletetemp", {"autoDeleteTemp", "Automatically delete mcpppp-temp folder on startup",
+			type::boolean, std::ref(autodeletetemp), autodeletetemp}},
+		{"outputlevel", {"outputLevel", "How much info should be outputted. 0 is most info (debug), 5 is least info (errors only)",
+			type::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
+		{"loglevel", {"logLevel", "How much info should be outputted to log; 0 is most, 5 is least.\nHas no effect if log is not set",
+			type::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
+		{"autoreconvert", {"autoReconvert", "Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted",
+			type::boolean, std::ref(autoreconvert), autoreconvert}},
+		{"fsbtransparent", {"fsbTransparent", "Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally",
+			type::boolean, std::ref(fsbtransparent), fsbtransparent,}},
+		{"usefsbblend", {"useFsbBlend", "Always use Fabricskyboxes blend instead of MCPPPP internal blend modes",
+			type::boolean, std::ref(usefsbblend), usefsbblend}}
 	};
+
 
 #ifdef GUI
 	// vector of things already outputted, to be used when outputlevel is changed

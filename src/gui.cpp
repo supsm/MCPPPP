@@ -28,6 +28,7 @@
 
 extern void resourcepack(Fl_Check_Button*, void*);
 extern void selectpath(Fl_Radio_Button*, void*) noexcept;
+extern void savesettings(Fl_Button* o, void* v);
 
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
@@ -222,22 +223,22 @@ namespace mcpppp
 
 	void updatesettings()
 	{
-		ui->autodeletetemptrue->value(static_cast<int>(autodeletetemp));
-		ui->autodeletetempfalse->value(static_cast<int>(!autodeletetemp));
-		if (dolog)
+		for (const auto& [key, value] : settings)
 		{
-			ui->log->value(logfilename.c_str());
+			switch (value.type)
+			{
+			case type::boolean:
+				std::get<0>(settings_widgets[key]).first->value(static_cast<int>(value.get<bool>()));
+				std::get<0>(settings_widgets[key]).second->value(static_cast<int>(!value.get<bool>()));
+				break;
+			case type::integer:
+				std::get<1>(settings_widgets[key])->value(static_cast<int>(value.get<level_t>()));
+				break;
+			case type::string:
+				std::get<2>(settings_widgets[key])->value(value.get<std::string>().c_str());
+				break;
+			}
 		}
-		ui->timestamptrue->value(static_cast<int>(dotimestamp));
-		ui->timestampfalse->value(static_cast<int>(!dotimestamp));
-		ui->outputlevelslider->value(static_cast<int>(outputlevel));
-		ui->loglevel->value(static_cast<int>(loglevel));
-		ui->autoreconverttrue->value(static_cast<int>(autoreconvert));
-		ui->autoreconvertfalse->value(static_cast<int>(!autoreconvert));
-		ui->fsbtransparenttrue->value(static_cast<int>(fsbtransparent));
-		ui->fsbtransparentfalse->value(static_cast<int>(!fsbtransparent));
-		ui->usefsbblendtrue->value(static_cast<int>(usefsbblend));
-		ui->usefsbblendfalse->value(static_cast<int>(!usefsbblend));
 	}
 
 	void updatepathconfig()
@@ -358,6 +359,104 @@ namespace mcpppp
 
 		paths.insert(canonical);
 		addpaths();
+	}
+
+	void init_settings()
+	{
+
+		ui->settings = new Fl_Double_Window(300, 95 + (settings.size() - 1) * 30, "Settings");
+
+		int curnum = 0;
+		for (const auto& [key, value] : settings)
+		{
+			// setting name and description as tooltip
+			{
+				Fl_Box* setting_name = new Fl_Box(10, 10 + curnum * 30, 120, 20, value.formatted_name.data());
+				setting_name->tooltip(value.description.data());
+				setting_name->align(Fl_Align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE));
+			}
+
+			// widget(s) to update setting value
+			switch (value.type)
+			{
+				// true/false buttons for boolean settings
+			case type::boolean:
+			{
+				Fl_Group* button_group = new Fl_Group(140, 10 + curnum * 30, 150, 20);
+
+				Fl_Button* truebutton = new Fl_Button(140, 10 + curnum * 30, 75, 20, "True");
+				truebutton->type(FL_RADIO_BUTTON);
+				truebutton->box(FL_FLAT_BOX);
+				truebutton->down_box(FL_BORDER_BOX);
+				truebutton->value(value.get<bool>());
+				truebutton->color(FL_DARK2);
+				truebutton->selection_color(43);
+				truebutton->callback(reinterpret_cast<Fl_Callback*>(settingchanged));
+
+				Fl_Button* falsebutton = new Fl_Button(215, 10 + curnum * 30, 75, 20, "False");
+				falsebutton->type(FL_RADIO_BUTTON);
+				falsebutton->box(FL_FLAT_BOX);
+				falsebutton->down_box(FL_BORDER_BOX);
+				falsebutton->value(!value.get<bool>());
+				falsebutton->color(FL_DARK2);
+				falsebutton->selection_color(43);
+				falsebutton->callback(reinterpret_cast<Fl_Callback*>(settingchanged));
+
+				settings_widgets[key] = std::make_pair(truebutton, falsebutton);
+				button_group->end();
+				break;
+			}
+
+			// counter for integer settings
+			case type::integer:
+			{
+				Fl_Counter* counter = new Fl_Counter(140, 10 + curnum * 30, 150, 20);
+				counter->box(FL_BORDER_BOX);
+				counter->labeltype(FL_NO_LABEL);
+				counter->minimum(value.min);
+				counter->maximum(value.max);
+				counter->step(1);
+				counter->value(static_cast<int>(value.get<level_t>()));
+				counter->callback(reinterpret_cast<Fl_Callback*>(settingchanged));
+
+				settings_widgets[key] = counter;
+				break;
+			}
+
+			// text input for string settings
+			case type::string:
+			{
+				Fl_Input* input = new Fl_Input(140, 10 + curnum * 30, 150, 20);
+				input->box(FL_BORDER_BOX);
+				input->labeltype(FL_NO_LABEL);
+				input->value(value.get<std::string>().c_str());
+				input->callback(reinterpret_cast<Fl_Callback*>(settingchanged));
+				input->when(FL_WHEN_CHANGED);
+
+				settings_widgets[key] = input;
+				break;
+			}
+			}
+
+			curnum++;
+		}
+
+		{
+			Fl_Button* savebutton = new Fl_Button(10, 20 + curnum * 30, 280, 25, "Save");
+			savebutton->tooltip("Save settings");
+			savebutton->box(FL_BORDER_BOX);
+			savebutton->down_box(FL_BORDER_BOX);
+			savebutton->color(FL_DARK2);
+			savebutton->selection_color(43);
+			savebutton->callback(reinterpret_cast<Fl_Callback*>(savesettings));
+		}
+		{
+			savewarning = new Fl_Box(10, 45 + curnum * 30, 280, 20, "Warning: unsaved changes");
+			savewarning->labelfont(1);
+			savewarning->labelcolor((Fl_Color)1);
+			savewarning->hide();
+		}
+		// TODO: add save and savewarning
 	}
 
 #ifdef _WIN32

@@ -197,16 +197,25 @@ void openhelp(Fl_Button* o, void* v)
 void savesettings(Fl_Button* o, void* v)
 {
 	using mcpppp::config;
+	using mcpppp::settings_widgets;
 
 	// TODO: automate addition of settings here?
 	// find some way to store pointer to widgets/value() functions in gui but not cli
-	config["gui"]["settings"]["autoDeleteTemp"] = static_cast<bool>(ui->autodeletetemptrue->value());
-	config["gui"]["settings"]["log"] = ui->log->value();
-	config["gui"]["settings"]["timestamp"] = static_cast<bool>(ui->timestamptrue->value());
-	config["gui"]["settings"]["logLevel"] = ui->loglevel->value();
-	config["gui"]["settings"]["autoReconvert"] = static_cast<bool>(ui->autoreconverttrue->value());
-	config["gui"]["settings"]["fsbTransparent"] = static_cast<bool>(ui->fsbtransparenttrue->value());
-	config["gui"]["settings"]["useFsbBlend"] = static_cast<bool>(ui->usefsbblendtrue->value());
+	for (const auto& [key, value] : mcpppp::settings)
+	{
+		switch (value.type)
+		{
+		case mcpppp::type::boolean:
+			config["gui"]["settings"][value.formatted_name.data()] = static_cast<bool>(std::get<0>(settings_widgets[key]).first->value());
+			break;
+		case mcpppp::type::integer:
+			config["gui"]["settings"][value.formatted_name.data()] = std::get<1>(settings_widgets[key])->value();
+			break;
+		case mcpppp::type::string:
+			config["gui"]["settings"][value.formatted_name.data()] = std::get<2>(settings_widgets[key])->value();
+			break;
+		}
+	}
 
 	// remove excess settings
 	std::vector<std::string> toremove;
@@ -266,13 +275,13 @@ void savesettings(Fl_Button* o, void* v)
 
 	mcpppp::readconfig();
 
-	ui->savewarning->hide();
+	mcpppp::savewarning->hide();
 }
 
 // callback for edited settings
 void settingchanged(Fl_Widget* o, void* v)
 {
-	ui->savewarning->show();
+	mcpppp::savewarning->show();
 }
 
 // callback for select all/none

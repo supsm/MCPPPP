@@ -8,9 +8,16 @@
 #include <filesystem>
 #include <set>
 #include <string>
+#include <unordered_map>
+#include <variant>
 #include <vector>
 
 #include "convert.h"
+
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Button.H>
+#include <FL/Fl_Counter.H>
+#include <FL/Fl_Input.H>
 
 namespace mcpppp
 {
@@ -21,6 +28,16 @@ namespace mcpppp
 	inline bool running = false; // whether conversion is currently happening
 
 	inline int numbuttons = 0; // number of resourcepack checkboxes in scroll box
+
+	// FLTK widgets for settings
+	inline std::unordered_map<std::string, std::variant
+		<
+		std::pair<Fl_Button*, Fl_Button*>, // pair of true and false buttons
+		Fl_Counter*, // counter (text input + increment/decrement)
+		Fl_Input* // text input
+		>> settings_widgets;
+
+	inline Fl_Box* savewarning;
 
 	// paths that have been deleted through "Edit Paths" window
 	inline std::set<std::filesystem::path> deletedpaths;
@@ -48,6 +65,9 @@ namespace mcpppp
 	// add a single path to "Edit Paths" AND paths
 	// @param path  path to add
 	void addpath(const std::filesystem::path& path);
+
+	// initialize settings_widgets
+	void init_settings();
 
 #ifdef _WIN32
 	// file browser for windows, easier for the user to use than the one provided by Fl_Native_File_Chooser

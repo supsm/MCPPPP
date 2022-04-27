@@ -9,9 +9,12 @@ mcpppp-hashes.json
 *.tmp*
 \!filesize.exe
 \!bumpversion.exe
+fluid.exe
 files.txt
 mcpppp-log.txt
 desktop.ini
+
+src/mcpppp.fl
 
 mcpppp-temp/
 x64-Debug/
@@ -19,6 +22,7 @@ x64/
 
 .sarif/
 .nuget/
+.vscode/
 
 cppcheck-suppressions.txt
 mcpppp.cppcheck

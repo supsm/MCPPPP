@@ -155,7 +155,7 @@ namespace mcpppp
 		std::unordered_map<std::string, std::string> parse_properties(const std::string_view& data)
 		{
 			std::string line;
-			std::istringstream ss{std::string(data)};
+			std::istringstream ss{ std::string(data) };
 			std::unordered_map<std::string, std::string> m;
 
 			bool isvalue = false;
@@ -911,7 +911,7 @@ namespace mcpppp
 			return;
 		}
 		const setting_item item = settings.at(lowercase(option));
-		const type t = item.setting_type;
+		const type t = item.type;
 		const auto var = item.var;
 		if (t == type::boolean)
 		{
@@ -1069,27 +1069,36 @@ namespace mcpppp
 			.implicit_value(true)
 			.append();
 
-		parser.add_argument("--pauseOnExit")
-			.help("Wait for enter key to be pressed once execution has been finished")
-			.default_value(std::string(pauseonexit ? "true" : "false"));
-		parser.add_argument("--log")
-			.help("Log file where logs will be stored")
-			.default_value(logfilename);
-		parser.add_argument("--timestamp")
-			.help("Add timestamp to output")
-			.default_value(std::string(dotimestamp ? "true" : "false"));
-		parser.add_argument("--autoDeleteTemp")
-			.help("Automatically delete `mcpppp-temp` folder on startup")
-			.default_value(std::string(autodeletetemp ? "true" : "false"));
-		parser.add_argument("--autoReconvert")
-			.help("Automatically reconvert resourcepacks instead of skipping. Could lose data if a pack isn't converted with MCPPPP")
-			.default_value(std::string(autoreconvert ? "true" : "false"));
-		parser.add_argument("--fsbTransparent")
-			.help("Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally")
-			.default_value(std::string(fsbtransparent ? "true" : "false"));
-		parser.add_argument("--useFsbBlend")
-			.help("Always use FSB blend instead of MCPPPP builtin blend modes")
-			.default_value(std::string(usefsbblend ? "true" : "false"));
+		for (const auto& [key, value] : settings)
+		{
+			const auto getdefaultvalue = [](const setting_item& item) -> std::string
+			{
+				switch (item.type)
+				{
+				case type::boolean:
+					return std::string(item.default_val.get<bool>() ? "true" : "false");
+				case type::integer:
+					// this shouldn't happen
+					return std::string();
+				case type::string:
+					return item.default_val.get<std::string>();
+				}
+			};
+
+			if (value.type == type::integer)
+			{
+				parser.add_argument("--" + std::string(value.formatted_name))
+					.help(std::string(value.description))
+					.default_value(value.default_val.get<int>());
+			}
+			else
+			{
+				parser.add_argument("--" + std::string(value.formatted_name))
+					.help(std::string(value.description))
+					.default_value(getdefaultvalue(value));
+			}
+		}
+
 
 		parser.add_argument("resourcepacks")
 			.help("The resourcepacks to convert")
@@ -1122,17 +1131,35 @@ namespace mcpppp
 			}
 		};
 
-		pauseonexit = truefalse(parser.get<std::string>("--pauseOnExit"));
-		if (parser.is_used("--log"))
+		for (const auto& [key, value] : settings)
 		{
-			logfilename = parser.get<std::string>("--log");
-			logfile.open(logfilename);
+			if (parser.is_used("--" + std::string(value.formatted_name)))
+			{
+				switch (value.type)
+				{
+				case type::boolean:
+					std::get<std::reference_wrapper<bool>>(value.var).get() =
+						truefalse(parser.get<std::string>("--" + std::string(value.formatted_name)));
+					break;
+
+				case type::integer:
+					std::get<std::reference_wrapper<level_t>>(value.var).get() =
+						static_cast<level_t>(parser.get<int>("--" + std::string(value.formatted_name)));
+					break;
+
+				case type::string:
+					std::get<std::reference_wrapper<std::string>>(value.var).get() =
+						parser.get<std::string>("--" + std::string(value.formatted_name));
+
+					// special case
+					if (value.formatted_name == "log")
+					{
+						logfile.open(logfilename);
+					}
+					break;
+				}
+			}
 		}
-		dotimestamp = truefalse(parser.get<std::string>("--timestamp"));
-		autodeletetemp = truefalse(parser.get<std::string>("--autoDeleteTemp"));
-		autoreconvert = truefalse(parser.get<std::string>("--autoReconvert"));
-		fsbtransparent = truefalse(parser.get<std::string>("--fsbTransparent"));
-		usefsbblend = truefalse(parser.get<std::string>("--useFsbBlend"));
 
 		try
 		{

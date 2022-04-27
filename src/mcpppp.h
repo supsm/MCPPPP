@@ -23,9 +23,6 @@ extern void selectall(Fl_Check_Button*, void*);
 extern void updateoutputlevel(Fl_Value_Slider*, void*);
 extern void addrespath(Fl_Button*, void*);
 extern void deleterespath(Fl_Button*, void*);
-#include <FL/Fl_Group.H>
-#include <FL/Fl_Counter.H>
-extern void savesettings(Fl_Button*, void*);
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Help_View.H>
 
@@ -43,67 +40,6 @@ public:
   Fl_Double_Window *edit_paths;
   Fl_Scroll *paths;
   Fl_Double_Window *settings;
-  Fl_Button *autodeletetemptrue;
-private:
-  inline void cb_autodeletetemptrue_i(Fl_Button*, void*);
-  static void cb_autodeletetemptrue(Fl_Button*, void*);
-public:
-  Fl_Button *autodeletetempfalse;
-private:
-  inline void cb_autodeletetempfalse_i(Fl_Button*, void*);
-  static void cb_autodeletetempfalse(Fl_Button*, void*);
-public:
-  Fl_Input *log;
-private:
-  inline void cb_log_i(Fl_Input*, void*);
-  static void cb_log(Fl_Input*, void*);
-public:
-  Fl_Button *timestamptrue;
-private:
-  inline void cb_timestamptrue_i(Fl_Button*, void*);
-  static void cb_timestamptrue(Fl_Button*, void*);
-public:
-  Fl_Button *timestampfalse;
-private:
-  inline void cb_timestampfalse_i(Fl_Button*, void*);
-  static void cb_timestampfalse(Fl_Button*, void*);
-public:
-  Fl_Counter *loglevel;
-private:
-  inline void cb_loglevel_i(Fl_Counter*, void*);
-  static void cb_loglevel(Fl_Counter*, void*);
-public:
-  Fl_Button *autoreconverttrue;
-private:
-  inline void cb_autoreconverttrue_i(Fl_Button*, void*);
-  static void cb_autoreconverttrue(Fl_Button*, void*);
-public:
-  Fl_Button *autoreconvertfalse;
-private:
-  inline void cb_autoreconvertfalse_i(Fl_Button*, void*);
-  static void cb_autoreconvertfalse(Fl_Button*, void*);
-public:
-  Fl_Button *fsbtransparenttrue;
-private:
-  inline void cb_fsbtransparenttrue_i(Fl_Button*, void*);
-  static void cb_fsbtransparenttrue(Fl_Button*, void*);
-public:
-  Fl_Button *fsbtransparentfalse;
-private:
-  inline void cb_fsbtransparentfalse_i(Fl_Button*, void*);
-  static void cb_fsbtransparentfalse(Fl_Button*, void*);
-public:
-  Fl_Box *savewarning;
-  Fl_Button *usefsbblendtrue;
-private:
-  inline void cb_usefsbblendtrue_i(Fl_Button*, void*);
-  static void cb_usefsbblendtrue(Fl_Button*, void*);
-public:
-  Fl_Button *usefsbblendfalse;
-private:
-  inline void cb_usefsbblendfalse_i(Fl_Button*, void*);
-  static void cb_usefsbblendfalse(Fl_Button*, void*);
-public:
   Fl_Window *help;
   Fl_Window *path_warning;
 private:
