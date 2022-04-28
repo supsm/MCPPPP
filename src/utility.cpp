@@ -35,9 +35,6 @@
 
 namespace mcpppp
 {
-	// wait for dialog to close
-	static std::atomic_bool wait_close;
-
 	// secure version of localtime
 	static auto localtime_rs(tm* tm, const time_t* time)
 	{
@@ -855,18 +852,7 @@ namespace mcpppp
 				c8tomb(path.filename().u8string()), packver, PACK_VER);
 			output<level_t::warning>("{}", message);
 #ifdef GUI
-			char* c;
-			{
-				c = dupstr(message);
-			}
-			wait_close = true;
-			const auto alert = [](void* v) { fl_alert(static_cast<char*>(v)); wait_close = false; };
-			Fl::awake(alert, c);
-			while (wait_close)
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			}
-			delete[] c;
+			alerts.push_back(message);
 #endif
 		}
 

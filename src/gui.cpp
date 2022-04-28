@@ -35,6 +35,9 @@ using mcpppp::mbtoc8;
 
 namespace mcpppp
 {
+	// wait for dialog to close
+	static std::atomic_bool wait_close;
+
 	// get default resourcepacks path to use based on system
 	static std::u8string getdefaultpath()
 	{
@@ -97,6 +100,26 @@ namespace mcpppp
 		}
 		running = false;
 		output<level_t::important>("Conversion Finished");
+
+#ifdef GUI
+		// output all warnings at end, to avoid conversion pausing
+		for (const auto& message : mcpppp::alerts)
+		{
+			char* c;
+			{
+				c = dupstr(message);
+			}
+			wait_close = true;
+			const auto alert = [](void* v) { fl_alert("%s", static_cast<char*>(v)); wait_close = false; };
+			Fl::awake(alert, c);
+			while (wait_close)
+			{
+				std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			}
+			delete[] c;
+		}
+		mcpppp::alerts.clear();
+#endif
 	}
 	catch (const nlohmann::json::exception& e)
 	{

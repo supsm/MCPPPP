@@ -157,6 +157,9 @@ namespace mcpppp
 	// pair of {level, text}
 	inline std::vector<std::pair<short, std::string>> outputted;
 
+	// pack warning messages which are all outputted after conversion finishes
+	inline std::vector<std::string> alerts;
+
 	// mutex for accessing outputted vector
 	inline std::mutex output_mutex;
 #endif
