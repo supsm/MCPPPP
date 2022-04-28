@@ -187,7 +187,7 @@ namespace vmt
 		std::vector<std::vector<std::pair<std::string, std::string>>>& times,
 		std::vector<std::array<bool, 4>>& weather)
 	{
-		long long curnum;
+		long long curnum = 0;
 		// TODO: there's probably a better way to do this (folderpath)
 		folderpath = entry.path().generic_u8string();
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
@@ -629,8 +629,7 @@ namespace vmt
 					{
 						formatdecimal(p.first);
 						formatdecimal(p.second);
-						return '(' + name + ".y >= " + p.first + " and " +
-							name + ".y <= " + p.second + ')';
+						return fmt::format("({0}.y >= {1} and {0}.y <= {2})", name, p.first, p.second);
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
 			}
@@ -643,7 +642,7 @@ namespace vmt
 				formatdecimal(cur_maxheight);
 				if (!minheight.at(i).empty())
 				{
-					s += name + ".y >= " + cur_minheight;
+					s += fmt::format("{}.y >= {}", name, cur_minheight);
 				}
 				if (!maxheight.at(i).empty())
 				{
@@ -651,7 +650,7 @@ namespace vmt
 					{
 						s += " and ";
 					}
-					s += name + ".y <= " + cur_maxheight;
+					s += fmt::format("{}.y <= {}", name, cur_maxheight);
 				}
 				temp_conditions.emplace_back(s, false);
 			}
@@ -672,13 +671,13 @@ namespace vmt
 							// TODO: replace with actual max health once it is implemented
 							std::string maxhealth = std::to_string(mob_healths.at(name));
 							formatdecimal(maxhealth);
-							return '(' + name + ".health * 100.0 / " + maxhealth + " >= " + lower + " and " +
-								name + ".health * 100.0 / " + maxhealth + " <= " + upper + ')';
+							return fmt::format("({0}.health * 100.0 / {1} >= {2} and {0}.health * 100.0 / {1} <= {3})",
+								name, maxhealth, lower, upper);
 						}
 						else // if value
 						{
-							return '(' + name + ".health >= " + lower + " and " +
-								name + ".health <= " + upper + ')';
+							return fmt::format("({0}.health >= {1} and {0}.health <= {2})",
+								name, lower, upper);
 						}
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
@@ -689,7 +688,7 @@ namespace vmt
 				std::vector<std::string> tempv;
 				std::transform(biomes.at(i).begin(), biomes.at(i).end(), std::back_inserter(tempv), [&name](const std::string& s) -> std::string
 					{
-						return name + ".current_biome == \"" + s + '\"';
+						return fmt::format("{}.current_biome == \"{}\"", name, s);
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
 			}

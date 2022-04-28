@@ -190,7 +190,7 @@ namespace fsb
 			output<level_t::detail>("FSB: {} already found, skipping reconversion", c8tomb(entry.path().filename().u8string()));
 			return;
 		}
-		unsigned int w, h;
+		unsigned int w = 0, h = 0;
 		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
 		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 		lodepng::State state;

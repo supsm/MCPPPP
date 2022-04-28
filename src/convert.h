@@ -27,7 +27,7 @@ namespace fsb
 	// @param path  resourcepack to check
 	// @param zip  whether resourcepack is zip
 	// @return check results
-	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept;
+	mcpppp::checkinfo check(const std::filesystem::path& path, bool zip) noexcept;
 
 	// convert fsb part of resourcepack
 	// @param path  resourcepack to convert

@@ -95,6 +95,12 @@ namespace mcpppp
 
 	enum class type_t { boolean, integer, string };
 
+	template<typename T, typename container>
+	static inline constexpr bool has_type = false;
+	template<typename T, template<typename...> typename container, typename... Args>
+	static inline constexpr bool has_type<T, container<Args...>> =
+		std::disjunction_v<std::is_same<T, Args>...>;
+
 	// info for each settting item
 	class setting_item
 	{
@@ -112,13 +118,6 @@ namespace mcpppp
 		nlohmann::json default_val;
 		// minimum and maximum value for integer type settings
 		int min = 0, max = 0;
-
-	private:
-		template<typename T, typename container>
-		static inline constexpr bool has_type = false;
-		template<typename T, template<typename...> typename container, typename... Args>
-		static inline constexpr bool has_type<T, container<Args...>> =
-			std::disjunction_v<std::is_same<T, Args>...>;
 
 	public:
 		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
@@ -181,7 +180,7 @@ namespace mcpppp
 			std::string str;
 			std::cout << "Press enter to continue . . .";
 			getline(std::cin, str);
-		}
+}
 #endif
 		std::exit(0);
 	}
@@ -288,7 +287,7 @@ namespace mcpppp
 		// @param path  path to resource pack
 		// @param zip  whether resource pack is zip
 		// @return hex representation of hash
-		std::string getfilenamehash(const std::filesystem::path& path, const bool zip);
+		std::string getfilenamehash(const std::filesystem::path& path, bool zip);
 
 		// parse contents of .properties into map
 		// @param data  contents of properties file
@@ -330,11 +329,11 @@ namespace mcpppp
 			typename
 #endif
 			T>
-		consteval format_location(T fmt
+			consteval format_location(T fmt
 #ifdef __cpp_lib_source_location
-			, std::source_location location = std::source_location::current()
+				, std::source_location location = std::source_location::current()
 #endif
-		) noexcept : fmt(fmt)
+			) noexcept : fmt(fmt)
 #ifdef __cpp_lib_source_location
 			, location(location)
 #endif
@@ -354,7 +353,7 @@ namespace mcpppp
 		template <level_t level, formattable... Args>
 		friend void output(const format_location& fmt, Args&&... args) noexcept;
 
-		friend void printpseudotrace(const unsigned int numlines) noexcept;
+		friend void printpseudotrace(unsigned int numlines) noexcept;
 
 		bool cout; // whether to output to regular output
 		bool file; // whether to output to log file
@@ -622,7 +621,7 @@ namespace mcpppp
 	// @param dovmt  whether to check vmt (optional, default true)
 	// @param docim  whether to check cim (optional, default true)
 	// @return map of each conversion to a checkresults
-	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim) noexcept;
+	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, bool dofsb, bool dovmt, bool docim) noexcept;
 
 	// convert a single resource pack
 	// @param path  path of resource pack to convert
@@ -630,7 +629,7 @@ namespace mcpppp
 	// @param dovmt  whether to convert vmt (optional, default true)
 	// @param docim  whether to convert cim (optional, default true)
 	// @return whether conversion succeeds
-	bool convert(const std::filesystem::path& path, const bool dofsb = true, const bool dovmt = true, const bool docim = true);
+	bool convert(const std::filesystem::path& path, bool dofsb = true, bool dovmt = true, bool docim = true);
 
 	// read hashes from mcpppp-hashes.json to `hashes`
 	void gethashes();

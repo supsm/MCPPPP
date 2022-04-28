@@ -195,15 +195,13 @@ namespace mcpppp
 						case '=': [[fallthrough]];
 						case ':': [[fallthrough]];
 						case ' ': [[fallthrough]];
-						case '\t':
-							add(c); // usually delimiting characters, when escaped just add them
-							break;
+						case '\t': [[fallthrough]]; // usually delimiting characters, when escaped just add them
+
 						case '#': [[fallthrough]];
-						case '!':
-							add(c); // usually comments, when escaped just add them
-							break;
-						case '\\':
-							add(c); // backslash character
+						case '!': [[fallthrough]]; // usually comments, when escaped just add them
+
+						case '\\': // backslash character
+							add(c);
 							break;
 						case 'n':
 							add('\n'); // newline
@@ -513,7 +511,7 @@ namespace mcpppp
 		{
 			mz_zip_archive_file_stat stat;
 			mz_zip_reader_file_stat(&archive, i, &stat);
-			if (std::u8string(mbtoc8(stat.m_filename)).starts_with(itemtofind))
+			if (std::u8string(mbtoc8(static_cast<char*>(stat.m_filename))).starts_with(itemtofind))
 			{
 				found = true;
 				break;
@@ -1005,16 +1003,16 @@ namespace mcpppp
 				}
 				if (config["gui"].contains("paths") && config["gui"]["paths"].type() == nlohmann::json::value_t::array)
 				{
-					for (auto it = config["gui"]["paths"].begin(); it != config["gui"]["paths"].end(); it++)
+					for (const auto& it : config["gui"]["paths"])
 					{
 						// check that path exists, otherwise canonical will fail
-						if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
+						if (std::filesystem::exists(mbtoc8(it.get<std::string_view>())))
 						{
-							paths.insert(std::filesystem::canonical(mbtoc8((*it).get<std::string_view>())));
+							paths.insert(std::filesystem::canonical(mbtoc8(it.get<std::string_view>())));
 						}
 						else
 						{
-							output<level_t::warning>("Invalid path: {}", (*it).dump(-1));
+							output<level_t::warning>("Invalid path: {}", it.dump(-1));
 						}
 					}
 				}
@@ -1049,7 +1047,7 @@ namespace mcpppp
 
 		parser.add_argument("-v", "--verbose")
 			.help("Outputs more information (can be used upto 3 times)")
-			.action([](const auto&) { if (outputlevel > level_t::debug) { outputlevel = static_cast<level_t>(static_cast<int>(outputlevel) - 1); } }) // hacky stuff to decrement enum
+			.action([](const auto& a) { if (outputlevel > level_t::debug) { outputlevel = static_cast<level_t>(static_cast<int>(outputlevel) - 1); } }) // hacky stuff to decrement enum
 			.nargs(0)
 			.default_value(false)
 			.implicit_value(true)

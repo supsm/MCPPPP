@@ -107,7 +107,7 @@ namespace cim
 							{
 								return false;
 							}
-							it.value() = mcnamespace + ":extra/minecraft/" + temp;
+							it.value() = fmt::format("{}:extra/minecraft/{}", mcnamespace, temp);
 						}
 						else
 						{
@@ -130,7 +130,7 @@ namespace cim
 							{
 								return false;
 							}
-							it.value() = mcnamespace + ":extra/" + ns + '/' + temp;
+							it.value() = fmt::format("{}:extra/{}/{}", mcnamespace, ns, temp);
 						}
 					}
 					if (first.empty())
