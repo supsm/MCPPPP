@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(MCPPPP
 	DESCRIPTION "A resource pack converter from Optifine/MCPatcher formats to other formats"
 	LANGUAGES CXX
-	VERSION 0.7.0
+	VERSION 0.7.1
 	HOMEPAGE_URL "http://github.com/supsm/MCPPPP"
 )
 set(CMAKE_CXX_STANDARD 20)
@@ -58,7 +58,7 @@ endif ()
 
 if (MCPPPP_GUI)
 	if (NOT MCPPPP_BUILD_FLTK)
-		find_package(FLTK 1.3.6 EXACT)
+		find_package(FLTK 1.3.6)
 	endif ()
 	if ((NOT FLTK_FOUND) OR MCPPPP_BUILD_FLTK)
 		set(FLTK_LIBRARIES "") # clear this variable set by find_package
