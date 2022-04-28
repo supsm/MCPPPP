@@ -101,8 +101,6 @@ jobs:
       env:
         CC: gcc-11
         CXX: g++-11
-    - name: Configure coverity
-      run: ./cov-analysis/bin/cov-configure
     - name: Build
       run: ./cov-analysis/bin/cov-build --dir cov-int cmake --build build --config Release
     - name: Compress

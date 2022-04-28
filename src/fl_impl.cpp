@@ -205,13 +205,13 @@ void savesettings(Fl_Button* o, void* v)
 	{
 		switch (value.type)
 		{
-		case mcpppp::type::boolean:
+		case mcpppp::type_t::boolean:
 			config["gui"]["settings"][value.formatted_name.data()] = static_cast<bool>(std::get<0>(settings_widgets[key]).first->value());
 			break;
-		case mcpppp::type::integer:
+		case mcpppp::type_t::integer:
 			config["gui"]["settings"][value.formatted_name.data()] = std::get<1>(settings_widgets[key])->value();
 			break;
-		case mcpppp::type::string:
+		case mcpppp::type_t::string:
 			config["gui"]["settings"][value.formatted_name.data()] = std::get<2>(settings_widgets[key])->value();
 			break;
 		}

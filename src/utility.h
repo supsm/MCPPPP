@@ -93,7 +93,7 @@ namespace mcpppp
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
 	static std::string logfilename = "mcpppp-log.txt"; // name of log file
 
-	enum class type { boolean, integer, string };
+	enum class type_t { boolean, integer, string };
 
 	// info for each settting item
 	class setting_item
@@ -104,7 +104,7 @@ namespace mcpppp
 		std::string_view description;
 
 		// data type of setting (bool, int, string, etc)
-		type type;
+		type_t type;
 		// reference of setting variable to update
 		std::variant<std::reference_wrapper<bool>, std::reference_wrapper<level_t>, std::reference_wrapper<std::string>> var;
 		// default value of setting
@@ -132,23 +132,23 @@ namespace mcpppp
 	const std::unordered_map<std::string, setting_item> settings =
 	{
 		{"pauseonexit", {"pauseOnExit", "Wait for enter key to be pressed once execution has been finished",
-			type::boolean, std::ref(pauseonexit), pauseonexit}},
+			type_t::boolean, std::ref(pauseonexit), pauseonexit}},
 		{"log", {"log", "A log file where logs will be stored. \"\" disables logging",
-			type::string, logfilename, std::ref(logfilename)}},
+			type_t::string, logfilename, std::ref(logfilename)}},
 		{"timestamp", {"timestamp", "Add timestamp to regular output (Logs will always be timestamped)",
-			type::boolean, std::ref(dotimestamp), dotimestamp}},
+			type_t::boolean, std::ref(dotimestamp), dotimestamp}},
 		{"autodeletetemp", {"autoDeleteTemp", "Automatically delete mcpppp-temp folder on startup",
-			type::boolean, std::ref(autodeletetemp), autodeletetemp}},
+			type_t::boolean, std::ref(autodeletetemp), autodeletetemp}},
 		{"outputlevel", {"outputLevel", "How much info should be outputted. 0 is most info (debug), 5 is least info (errors only)",
-			type::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
+			type_t::integer, std::ref(outputlevel), static_cast<int>(outputlevel), 0, 5}},
 		{"loglevel", {"logLevel", "How much info should be outputted to log; 0 is most, 5 is least.\nHas no effect if log is not set",
-			type::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
+			type_t::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
 		{"autoreconvert", {"autoReconvert", "Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted",
-			type::boolean, std::ref(autoreconvert), autoreconvert}},
+			type_t::boolean, std::ref(autoreconvert), autoreconvert}},
 		{"fsbtransparent", {"fsbTransparent", "Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally",
-			type::boolean, std::ref(fsbtransparent), fsbtransparent,}},
+			type_t::boolean, std::ref(fsbtransparent), fsbtransparent,}},
 		{"usefsbblend", {"useFsbBlend", "Always use Fabricskyboxes blend instead of MCPPPP internal blend modes",
-			type::boolean, std::ref(usefsbblend), usefsbblend}}
+			type_t::boolean, std::ref(usefsbblend), usefsbblend}}
 	};
 
 

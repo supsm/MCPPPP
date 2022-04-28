@@ -911,9 +911,9 @@ namespace mcpppp
 			return;
 		}
 		const setting_item item = settings.at(lowercase(option));
-		const type t = item.type;
+		const type_t t = item.type;
 		const auto var = item.var;
-		if (t == type::boolean)
+		if (t == type_t::boolean)
 		{
 			try
 			{
@@ -924,7 +924,7 @@ namespace mcpppp
 				output<level_t::error>("Not a valid value for {}: {}; Expected bool", option, j.dump(-1));
 			}
 		}
-		else if (t == type::integer)
+		else if (t == type_t::integer)
 		{
 			try
 			{
@@ -1075,17 +1075,17 @@ namespace mcpppp
 			{
 				switch (item.type)
 				{
-				case type::boolean:
+				case type_t::boolean:
 					return std::string(item.default_val.get<bool>() ? "true" : "false");
-				case type::integer:
+				case type_t::integer:
 					// this shouldn't happen
 					return std::string();
-				case type::string:
+				case type_t::string:
 					return item.default_val.get<std::string>();
 				}
 			};
 
-			if (value.type == type::integer)
+			if (value.type == type_t::integer)
 			{
 				parser.add_argument("--" + std::string(value.formatted_name))
 					.help(std::string(value.description))
@@ -1137,17 +1137,17 @@ namespace mcpppp
 			{
 				switch (value.type)
 				{
-				case type::boolean:
+				case type_t::boolean:
 					std::get<std::reference_wrapper<bool>>(value.var).get() =
 						truefalse(parser.get<std::string>("--" + std::string(value.formatted_name)));
 					break;
 
-				case type::integer:
+				case type_t::integer:
 					std::get<std::reference_wrapper<level_t>>(value.var).get() =
 						static_cast<level_t>(parser.get<int>("--" + std::string(value.formatted_name)));
 					break;
 
-				case type::string:
+				case type_t::string:
 					std::get<std::reference_wrapper<std::string>>(value.var).get() =
 						parser.get<std::string>("--" + std::string(value.formatted_name));
 

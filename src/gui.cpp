@@ -227,14 +227,14 @@ namespace mcpppp
 		{
 			switch (value.type)
 			{
-			case type::boolean:
+			case type_t::boolean:
 				std::get<0>(settings_widgets[key]).first->value(static_cast<int>(value.get<bool>()));
 				std::get<0>(settings_widgets[key]).second->value(static_cast<int>(!value.get<bool>()));
 				break;
-			case type::integer:
+			case type_t::integer:
 				std::get<1>(settings_widgets[key])->value(static_cast<int>(value.get<level_t>()));
 				break;
-			case type::string:
+			case type_t::string:
 				std::get<2>(settings_widgets[key])->value(value.get<std::string>().c_str());
 				break;
 			}
@@ -380,7 +380,7 @@ namespace mcpppp
 			switch (value.type)
 			{
 				// true/false buttons for boolean settings
-			case type::boolean:
+			case type_t::boolean:
 			{
 				Fl_Group* button_group = new Fl_Group(140, 10 + curnum * 30, 150, 20);
 
@@ -408,7 +408,7 @@ namespace mcpppp
 			}
 
 			// counter for integer settings
-			case type::integer:
+			case type_t::integer:
 			{
 				Fl_Counter* counter = new Fl_Counter(140, 10 + curnum * 30, 150, 20);
 				counter->box(FL_BORDER_BOX);
@@ -424,7 +424,7 @@ namespace mcpppp
 			}
 
 			// text input for string settings
-			case type::string:
+			case type_t::string:
 			{
 				Fl_Input* input = new Fl_Input(140, 10 + curnum * 30, 150, 20);
 				input->box(FL_BORDER_BOX);
