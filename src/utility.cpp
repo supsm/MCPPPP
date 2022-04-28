@@ -192,13 +192,13 @@ namespace mcpppp
 					{
 						switch (c)
 						{
-						case '=': [[fallthrough]];
-						case ':': [[fallthrough]];
-						case ' ': [[fallthrough]];
-						case '\t': [[fallthrough]]; // usually delimiting characters, when escaped just add them
+						case '=':
+						case ':':
+						case ' ':
+						case '\t': // usually delimiting characters, when escaped just add them
 
-						case '#': [[fallthrough]];
-						case '!': [[fallthrough]]; // usually comments, when escaped just add them
+						case '#':
+						case '!': // usually comments, when escaped just add them
 
 						case '\\': // backslash character
 							add(c);
@@ -976,16 +976,16 @@ namespace mcpppp
 		}
 		else
 		{
-			for (auto it = config["paths"].begin(); it != config["paths"].end(); it++)
+			for (const auto& it : config["paths"])
 			{
 				// check that path exists, otherwise canonical will fail
-				if (std::filesystem::exists(mbtoc8((*it).get<std::string_view>())))
+				if (std::filesystem::exists(mbtoc8(it.get<std::string_view>())))
 				{
-					paths.insert(std::filesystem::canonical(mbtoc8((*it).get<std::string_view>())));
+					paths.insert(std::filesystem::canonical(mbtoc8(it.get<std::string_view>())));
 				}
 				else
 				{
-					output<level_t::warning>("Invalid path: {}", (*it).dump(-1));
+					output<level_t::warning>("Invalid path: {}", it.dump(-1));
 				}
 			}
 		}

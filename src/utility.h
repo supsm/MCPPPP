@@ -119,7 +119,6 @@ namespace mcpppp
 		// minimum and maximum value for integer type settings
 		int min = 0, max = 0;
 
-	public:
 		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
 		T& get() const noexcept
 		{
@@ -554,7 +553,7 @@ namespace mcpppp
 	// @param tofind  path of folder to find
 	// @param zip  whether the resource pack is a .zip file
 	// @return whether the folder was found
-	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip) noexcept;
+	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, bool zip) noexcept;
 
 
 	// hash any arbitrary block of data into hex  
