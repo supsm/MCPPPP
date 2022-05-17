@@ -199,7 +199,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - run: sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
+    - run: sudo apt update && sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
     - name: configure cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE
       env:
