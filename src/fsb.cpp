@@ -296,6 +296,12 @@ namespace fsb
 				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}}
 			} },
 			{"blend", {{"type", (mcpppp::usefsbblend ? "add" : blend.at("add").to_json())}}},
+			{"decorations",
+			{
+				{"showStars", false}, // stars are off in optifine skyboxes
+				{"showSun", overworldsky}, // show sun/moon only in overworld
+				{"showMoon", overworldsky},
+			} },
 			{"properties",
 			{
 				{"rotation",
@@ -303,8 +309,7 @@ namespace fsb
 					{"axis", {0.0, -180.0, 0.0}},
 					{"static", {1.0, 1.0, 1.0}},
 					{"rotationSpeed", -1.0} // TODO: find a rotation speed
-				}},
-				{"showStars", false}
+				}}
 			} }
 		};
 
