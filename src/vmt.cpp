@@ -2,16 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#include <algorithm>
-#include <cctype>
-#include <filesystem>
-#include <limits>
-#include <map>
-#include <sstream>
-#include <string>
-#include <tuple>
-#include <unordered_set>
-#include <vector>
+#include "pch.h"
 
 #include "constants.h"
 #include "convert.h"

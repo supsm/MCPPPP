@@ -2,19 +2,10 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#include <algorithm>
-#include <cmath>
-#include <filesystem>
-#include <sstream>
-#include <string>
-#include <utility>
-#include <vector>
+#include "pch.h"
 
 #include "convert.h"
 #include "utility.h"
-
-#include "lodepng.h"
-#include "json.hpp"
 
 using mcpppp::output;
 using mcpppp::level_t;
@@ -25,7 +16,7 @@ namespace fsb
 {
 	// compare if two values are equal using epsilon
 	template<class T>
-	static bool compare(T first, T second) noexcept
+	static constexpr bool compare(T first, T second) noexcept
 	{
 		return std::abs(first - second) < std::numeric_limits<T>::epsilon();
 	}

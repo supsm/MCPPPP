@@ -4,29 +4,12 @@
 
  // VERSION and PACK_VER are in utility.h
 
-#include "utility.h"
+#include "pch.h"
 
-#include <algorithm>
-#include <atomic>
-#include <cstdlib>
-#include <filesystem>
-#include <fstream>
-#include <functional>
-#include <set>
-#include <sstream>
-#include <string>
-#include <thread>
-#include <tuple>
-#include <utility>
-#include <unordered_map>
-#include <variant>
-#include <vector>
+#include "utility.h"
 
 #include "constants.h"
 #include "convert.h"
-
-#include "microtar.h"
-#include "argparse/argparse.hpp"
 
 #ifdef GUI
 #include <FL/Fl_Text_Buffer.H>
@@ -36,7 +19,7 @@
 namespace mcpppp
 {
 	// secure version of localtime
-	static auto localtime_rs(tm* tm, const time_t* time)
+	static auto localtime_rs(tm* tm, const time_t* time) noexcept
 	{
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 		return localtime_r(time, tm);
@@ -53,6 +36,7 @@ namespace mcpppp
 		const time_t timet = time(nullptr);
 		tm timeinfo{};
 		localtime_rs(&timeinfo, &timet);
+
 		std::string hour = std::to_string(timeinfo.tm_hour);
 		if (hour.length() == 1)
 		{
@@ -423,49 +407,61 @@ namespace mcpppp
 
 	bool copy(const std::filesystem::path& from, const std::filesystem::path& to) noexcept
 	{
-		if (!std::filesystem::exists(from))
-		{
-			output<level_t::error>("Error: tried to copy nonexistent file\n{}", c8tomb(from.generic_u8string()));
-			return false;
-		}
-		if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
-		{
-			output<level_t::error>("Error: tried to copy a file to a directory (or vice versa)\n{}\n{}", c8tomb(from.generic_u8string()), c8tomb(to.generic_u8string()));
-			return false;
-		}
-		if (std::filesystem::exists(to))
-		{
-			try
-			{
-				std::filesystem::remove(to);
-			}
-			catch (const std::filesystem::filesystem_error& e)
-			{
-				output<level_t::error>("Error removing file:\n{}", e.what());
-				return false;
-			}
-		}
-		if (!std::filesystem::exists(to.parent_path()))
-		{
-			try
-			{
-				std::filesystem::create_directories(to.parent_path());
-			}
-			catch (const std::filesystem::filesystem_error& e)
-			{
-				output<level_t::error>("Error creating directory:\n{}", e.what());
-				return false;
-			}
-		}
 		try
 		{
-			std::filesystem::copy(from, to);
+			if (!std::filesystem::exists(from))
+			{
+				output<level_t::error>("Error: tried to copy nonexistent file\n{}", c8tomb(from.generic_u8string()));
+				return false;
+			}
+			if (std::filesystem::is_directory(to) != std::filesystem::is_directory(from))
+			{
+				output<level_t::error>("Error: tried to copy a file to a directory (or vice versa)\n{}\n{}", c8tomb(from.generic_u8string()), c8tomb(to.generic_u8string()));
+				return false;
+			}
+
+			if (std::filesystem::exists(to))
+			{
+				try
+				{
+					std::filesystem::remove(to);
+				}
+				catch (const std::filesystem::filesystem_error& e)
+				{
+					output<level_t::error>("Error removing file:\n{}", e.what());
+					return false;
+				}
+			}
+
+			if (!std::filesystem::exists(to.parent_path()))
+			{
+				try
+				{
+					std::filesystem::create_directories(to.parent_path());
+				}
+				catch (const std::filesystem::filesystem_error& e)
+				{
+					output<level_t::error>("Error creating directory:\n{}", e.what());
+					return false;
+				}
+			}
+
+			try
+			{
+				std::filesystem::copy(from, to);
+			}
+			catch (const std::filesystem::filesystem_error& e)
+			{
+				output<level_t::error>("Error copying file:\n{}", e.what());
+				return false;
+			}
 		}
 		catch (const std::filesystem::filesystem_error& e)
 		{
-			output<level_t::error>("Error copying file:\n{}", e.what());
+			output<level_t::error>("Filesystem Error: {}", e.what());
 			return false;
 		}
+
 		return true;
 	}
 
@@ -502,23 +498,31 @@ namespace mcpppp
 	// @param ziparchive  path to zipped resourcepack
 	// @param itemtofind  item to find in zip archive (will match if starts with)
 	// @return whether item is find
-	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string_view& itemtofind)
+	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string_view& itemtofind) noexcept
 	{
-		bool found = false;
-		mz_zip_archive archive = mz_zip_archive();
-		mz_zip_reader_init_file(&archive, c8tomb(ziparchive.generic_u8string().c_str()), 0);
-		for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive); i++)
+		try
 		{
-			mz_zip_archive_file_stat stat;
-			mz_zip_reader_file_stat(&archive, i, &stat);
-			if (std::u8string(mbtoc8(static_cast<char*>(stat.m_filename))).starts_with(itemtofind))
+			bool found = false;
+			mz_zip_archive archive = mz_zip_archive();
+			mz_zip_reader_init_file(&archive, c8tomb(ziparchive.generic_u8string().c_str()), 0);
+			for (mz_uint i = 0; i < mz_zip_reader_get_num_files(&archive); i++)
 			{
-				found = true;
-				break;
+				mz_zip_archive_file_stat stat;
+				mz_zip_reader_file_stat(&archive, i, &stat);
+				if (std::u8string(mbtoc8(stat.m_filename)).starts_with(itemtofind))
+				{
+					found = true;
+					break;
+				}
 			}
+			mz_zip_reader_end(&archive);
+			return found;
 		}
-		mz_zip_reader_end(&archive);
-		return found;
+		catch (const std::exception& e)
+		{
+			output<level_t::error>("Error: {}", e.what());
+			return false;
+		}
 	}
 
 	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip) noexcept
@@ -529,7 +533,15 @@ namespace mcpppp
 		}
 		else
 		{
-			return std::filesystem::exists(path / tofind);
+			try
+			{
+				return std::filesystem::exists(path / tofind);
+			}
+			catch (const std::filesystem::filesystem_error& e)
+			{
+				output<level_t::error>("Filesystem Error: {}", e.what());
+				return false;
+			}
 		}
 	}
 
@@ -652,18 +664,26 @@ namespace mcpppp
 
 	std::unordered_map<conversions, checkresults> getconvstatus(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim) noexcept
 	{
-		std::unordered_map<conversions, checkresults> status;
-		const bool zip = (path.extension() == ".zip");
-		const checkinfo fsb = fsb::check(path, zip), vmt = vmt::check(path, zip), cim = cim::check(path, zip);
+		try
+		{
+			std::unordered_map<conversions, checkresults> status;
+			const bool zip = (path.extension() == ".zip");
+			const checkinfo fsb = fsb::check(path, zip), vmt = vmt::check(path, zip), cim = cim::check(path, zip);
 
-		status[conversions::fsb] = fsb.results;
-		status[conversions::vmt] = vmt.results;
-		status[conversions::cim] = cim.results;
+			status[conversions::fsb] = fsb.results;
+			status[conversions::vmt] = vmt.results;
+			status[conversions::cim] = cim.results;
 
-		return status;
+			return status;
+		}
+		catch (const std::exception& e)
+		{
+			output<level_t::error>("Error: {}", e.what());
+			return {};
+		}
 	}
 
-	bool convert(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim)
+	bool convert(const std::filesystem::path& path, const bool dofsb, const bool dovmt, const bool docim, const bool force_reconvert)
 	{
 		if (!std::filesystem::is_directory(path) && path.extension() != ".zip")
 		{
@@ -678,7 +698,7 @@ namespace mcpppp
 		const std::u8string folder = path.stem().generic_u8string();
 		std::string hashvalue, namehash = hash<64>(c8tomb(path.generic_u8string()).data(), path.generic_u8string().size());
 		std::u8string convert;
-		const auto isvalid = [](const checkinfo& info, const bool& doconversion, const bool& strict = false) -> bool
+		const auto isvalid = [](const checkinfo info, const bool doconversion, const bool strict = false) -> bool
 		{
 			if (!doconversion)
 			{
@@ -693,7 +713,7 @@ namespace mcpppp
 				return (info.results == checkresults::valid || info.results == checkresults::reconverting);
 			}
 		};
-		const auto isreconvert = [](const checkinfo& info, const bool& doconversion) -> bool
+		const auto isreconvert = [](const checkinfo info, const bool doconversion) -> bool
 		{
 			if (!doconversion || !autoreconvert)
 			{
@@ -702,8 +722,12 @@ namespace mcpppp
 			return info.results == checkresults::reconverting;
 		};
 
-		// only compute hash if possibly reconverting
-		if (isreconvert(fsb, dofsb) || isreconvert(vmt, dovmt) || isreconvert(cim, docim))
+		// only compute hash if possibly reconverting and not always reconverting
+		if (force_reconvert)
+		{
+			reconvert = true;
+		}
+		else if (isreconvert(fsb, dofsb) || isreconvert(vmt, dovmt) || isreconvert(cim, docim))
 		{
 			// no point of calculating hash if we have nothing to compare it to
 			if (hashes.contains(namehash))
@@ -1053,6 +1077,11 @@ namespace mcpppp
 			.implicit_value(true)
 			.append();
 
+		parser.add_argument("--force_reconvert")
+			.help("Always reconvert all resourcepacks")
+			.default_value(false)
+			.implicit_value(true);
+
 		for (const auto& [key, value] : settings)
 		{
 			const auto getdefaultvalue = [](const setting_item& item) -> std::string
@@ -1158,10 +1187,12 @@ namespace mcpppp
 						}
 						return false;
 					}), resourcepacks.end());
-			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries), [](const std::string& s)
-				{
-					return std::make_pair(true, std::filesystem::directory_entry(s));
-				});
+
+			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries),
+				[force_reconvert = (parser["--force_reconvert"] == true)](const std::string& s)->resourcepack_entry
+			{
+				return { true, force_reconvert, std::filesystem::directory_entry(s) };
+			});
 		}
 		catch (const std::logic_error& e)
 		{

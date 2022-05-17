@@ -2,41 +2,33 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-#ifdef GUI
-#include "gui.h"
+#include "pch.h"
 
-#include <future>
-#include <set>
-#ifdef _WIN32
-#define NOMINMAX
-#include <Windows.h>
-#include <ShlObj.h>
-#endif
+#ifdef GUI
+
+#include "gui.h"
 
 #include <FL/Fl.H>
 #include <FL/Fl_Window.H>
 #include <FL/Fl_Box.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Text_Display.H>
 #include <FL/Fl_Scroll.H>
 #include <FL/Fl_Native_File_Chooser.H>
 #include <FL/Fl_Radio_Button.H>
 #include <FL/fl_ask.H>
 
-#include "utility.h"
-
 extern void resourcepack(Fl_Check_Button*, void*);
+extern void forcereconvert(Fl_Menu_*, void*);
 extern void selectpath(Fl_Radio_Button*, void*) noexcept;
-extern void savesettings(Fl_Button* o, void* v);
-
-using mcpppp::c8tomb;
-using mcpppp::mbtoc8;
+extern void savesettings(Fl_Button*, void*);
 
 namespace mcpppp
 {
 	// wait for dialog to close
-	static std::atomic_bool wait_close;
+	static std::atomic_bool wait_close = false;
 
 	// get default resourcepacks path to use based on system
 	static std::u8string getdefaultpath()
@@ -72,19 +64,19 @@ namespace mcpppp
 	{
 		output<level_t::important>("Conversion Started");
 		bool valid = false;
-		for (const std::pair<bool, std::filesystem::directory_entry>& p : entries)
+		for (const auto& e : entries)
 		{
-			if (!p.first)
+			if (!e.selected)
 			{
 				continue;
 			}
-			if (convert(p.second, dofsb, dovmt, docim))
+			if (convert(e.path_entry, dofsb, dovmt, docim, e.force_reconvert))
 			{
 				valid = true;
 			}
 			else
 			{
-				if (p.second.is_directory() || p.second.path().extension() == ".zip")
+				if (e.path_entry.is_directory() || e.path_entry.path().extension() == ".zip")
 				{
 					valid = true;
 				}
@@ -101,14 +93,10 @@ namespace mcpppp
 		running = false;
 		output<level_t::important>("Conversion Finished");
 
-#ifdef GUI
 		// output all warnings at end, to avoid conversion pausing
-		for (const auto& message : mcpppp::alerts)
+		for (const auto& message : alerts)
 		{
-			char* c;
-			{
-				c = dupstr(message);
-			}
+			char* c = dupstr(message);
 			wait_close = true;
 			const auto alert = [](void* v) { fl_alert("%s", static_cast<char*>(v)); wait_close = false; };
 			Fl::awake(alert, c);
@@ -118,43 +106,42 @@ namespace mcpppp
 			}
 			delete[] c;
 		}
-		mcpppp::alerts.clear();
-#endif
+		alerts.clear();
 	}
 	catch (const nlohmann::json::exception& e)
 	{
 		output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const Zippy::ZipLogicError& e)
 	{
 		output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const Zippy::ZipRuntimeError& e)
 	{
 		output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const std::filesystem::filesystem_error& e)
 	{
 		output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 	catch (const std::exception& e)
 	{
 		output<level_t::error>("FATAL ERROR:\n{}", e.what());
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 	catch (...)
 	{
 		output<level_t::error>("UNKNOWN FATAL ERROR");
-		mcpppp::printpseudotrace();
+		printpseudotrace();
 		std::exit(-1);
 	}
 
@@ -178,55 +165,92 @@ namespace mcpppp
 #endif
 	}
 
-	void addpack(const std::filesystem::path& path, const bool selected)
+	checkresults combine_checkresults(const std::unordered_map<conversions, checkresults>& all_checkresults)
 	{
-		using mcpppp::checkresults;
-		const auto statuses = mcpppp::getconvstatus(path, mcpppp::dofsb, mcpppp::dovmt, mcpppp::docim);
-		checkresults status = checkresults::noneconvertible;
-		for (const auto& [key, value] : statuses)
+		checkresults result = checkresults::noneconvertible;
+		for (const auto& [key, value] : all_checkresults)
 		{
 			switch (value)
 			{
 			case checkresults::valid:
-				status = value;
+				result = value;
 				break;
 			case checkresults::reconverting:
-				if (status != checkresults::valid)
+				if (result != checkresults::valid)
 				{
-					status = value;
+					result = value;
 				}
 				break;
 			case checkresults::alrfound:
-				if (status == checkresults::noneconvertible)
+				if (result == checkresults::noneconvertible)
 				{
-					status = value;
+					result = value;
 				}
 				break;
 			case checkresults::noneconvertible:
 				break;
 			}
 		}
+		return result;
+	}
 
-		std::array<Fl_Color, 4> result_colors = { FL_DARK_GREEN, FL_DARK3, FL_RED, 93 };
-		std::array<std::string, 4> result_names = { "Convertible", "No files found to convert", "Converted files already found", "Possibly will reconvert" };
+	std::string get_pack_tooltip_name(const checkresults result, const bool forcereconvert, const std::filesystem::path& path)
+	{
+		const std::array<std::string, 4> result_names = { "Convertible", "No files found to convert", "Converted files already found", "Possibly will reconvert" };
+		std::string result_name = result_names.at(static_cast<size_t>(result));
+		if (forcereconvert && result == checkresults::reconverting)
+		{
+			result_name = "Always reconverting";
+		}
+		return fmt::format("{}\n{}\nRight click for more options",
+			result_name,
+			c8tomb(path.filename().u8string()));
+	}
+
+	void addpack(const std::filesystem::directory_entry& path, const bool selected)
+	{
+		const auto statuses = getconvstatus(path, dofsb, dovmt, docim);
+		const checkresults status = combine_checkresults(statuses);
+
 
 		// only w is used
 		int w = 0, h = 0, dx = 0, dy = 0;
-		fl_text_extents(c8tomb(path.filename().u8string().c_str()), dx, dy, w, h);
+		fl_text_extents(c8tomb(path.path().filename().u8string().c_str()), dx, dy, w, h);
 		w = std::lround(w / getscale());
-		std::unique_ptr<Fl_Check_Button> o = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, w + 30, 15);
-		std::unique_ptr<int> temp = std::make_unique<int>(numbuttons);
-		o->labelcolor(result_colors[static_cast<size_t>(status)]);
-		o->copy_label(c8tomb(path.filename().u8string().c_str()));
-		o->copy_tooltip((result_names[static_cast<size_t>(status)] + '\n' + c8tomb(path.generic_u8string())).c_str());
-		o->down_box(FL_DOWN_BOX);
-		o->value(static_cast<int>(selected));
-		o->user_data(temp.get());
-		o->callback(reinterpret_cast<Fl_Callback*>(resourcepack));
-		o->when(FL_WHEN_CHANGED);
-		ui->scroll->add(o.get());
-		o.release();
-		temp.release();
+		std::unique_ptr<int> cur_numbuttons = std::make_unique<int>(numbuttons);
+
+		std::unique_ptr<Fl_Check_Button> checkbox = std::make_unique<Fl_Check_Button>(445, 60 + 15 * numbuttons, 15, 15);
+		std::unique_ptr<Fl_Box> label = std::make_unique<Fl_Box>(460, 60 + 15 * numbuttons, w + 10, 15);
+		std::unique_ptr<Fl_Menu_Button> menu = std::make_unique<Fl_Menu_Button>(460, 60 + 15 * numbuttons, w + 10, 15);
+		std::array<Fl_Menu_Item, 2> menu_item = { { {"Force Reconvert", 0, reinterpret_cast<Fl_Callback*>(forcereconvert), cur_numbuttons.get(), FL_MENU_TOGGLE}, {nullptr}} };
+
+		checkbox->down_box(FL_DOWN_BOX);
+		checkbox->value(static_cast<int>(selected));
+		checkbox->user_data(cur_numbuttons.get());
+		checkbox->callback(reinterpret_cast<Fl_Callback*>(resourcepack));
+		checkbox->when(FL_WHEN_CHANGED);
+
+		label->align(FL_ALIGN_INSIDE | FL_ALIGN_LEFT);
+		label->labelcolor(result_colors.at(static_cast<size_t>(status)));
+		label->copy_label(c8tomb(path.path().filename().u8string().c_str()));
+		label->copy_tooltip(get_pack_tooltip_name(status, false, path.path()).c_str());
+
+		std::unique_ptr<char> menu_item_label_text(dupstr("Force Reconvert " + c8tomb(path.path().filename().u8string())));
+
+		std::get<0>(menu_item).label(menu_item_label_text.get());
+		menu->type(Fl_Menu_Button::POPUP3);
+		menu->copy(menu_item.data());
+
+		ui->scroll->add(checkbox.get());
+		ui->scroll->add(label.get());
+		ui->scroll->add(menu.get());
+
+		entries.emplace_back(path, statuses,
+			std::move(checkbox),
+			std::move(label),
+			std::move(menu),
+			std::move(menu_item_label_text),
+			std::move(cur_numbuttons));
 		numbuttons++;
 	}
 
@@ -396,7 +420,7 @@ namespace mcpppp
 			{
 				Fl_Box* setting_name = new Fl_Box(10, 10 + curnum * 30, 120, 20, value.formatted_name.data());
 				setting_name->tooltip(value.description.data());
-				setting_name->align(Fl_Align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE));
+				setting_name->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
 			}
 
 			// widget(s) to update setting value
@@ -407,8 +431,7 @@ namespace mcpppp
 			{
 				Fl_Group* button_group = new Fl_Group(140, 10 + curnum * 30, 150, 20);
 
-				Fl_Button* truebutton = new Fl_Button(140, 10 + curnum * 30, 75, 20, "True");
-				truebutton->type(FL_RADIO_BUTTON);
+				Fl_Radio_Button* truebutton = new Fl_Radio_Button(140, 10 + curnum * 30, 75, 20, "True");
 				truebutton->box(FL_FLAT_BOX);
 				truebutton->down_box(FL_BORDER_BOX);
 				truebutton->value(value.get<bool>());
@@ -416,8 +439,7 @@ namespace mcpppp
 				truebutton->selection_color(43);
 				truebutton->callback(reinterpret_cast<Fl_Callback*>(settingchanged));
 
-				Fl_Button* falsebutton = new Fl_Button(215, 10 + curnum * 30, 75, 20, "False");
-				falsebutton->type(FL_RADIO_BUTTON);
+				Fl_Radio_Button* falsebutton = new Fl_Radio_Button(215, 10 + curnum * 30, 75, 20, "False");
 				falsebutton->box(FL_FLAT_BOX);
 				falsebutton->down_box(FL_BORDER_BOX);
 				falsebutton->value(!value.get<bool>());
@@ -479,7 +501,6 @@ namespace mcpppp
 			savewarning->labelcolor((Fl_Color)1);
 			savewarning->hide();
 		}
-		// TODO: add save and savewarning
 	}
 
 #ifdef _WIN32

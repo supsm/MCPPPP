@@ -20,6 +20,9 @@ mcpppp-temp/
 x64-Debug/
 x64/
 
+lib/Debug/
+lib/Release/
+
 .sarif/
 .nuget/
 .vscode/

@@ -7,8 +7,9 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Button.H>
 #include <FL/Fl_Check_Button.H>
-#include <FL/Fl_Radio_Button.H>
+#include <FL/Fl_Menu_Item.H>
 #include <FL/Fl_Native_File_Chooser.H>
+#include <FL/Fl_Radio_Button.H>
 #include "FL/fl_ask.H"
 
 #include "gui.h"
@@ -57,8 +58,37 @@ void conversion(Fl_Check_Button* o, void* v)
 // callback for resourcepack checkboxes
 void resourcepack(Fl_Check_Button* o, void* v)
 {
-	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).first = static_cast<bool>(o->value());
+	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).selected = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
+}
+
+// callback for Force Reconvert checkbox (accessed by right clicking resourcepack name)
+void forcereconvert(Fl_Menu_* o, void* v)
+{
+	const auto menu_item = o->mvalue();
+	auto& entry = entries.at(static_cast<size_t>(*(static_cast<int*>(v))));
+	const auto result = mcpppp::combine_checkresults(entry.conv_statuses);
+
+	if (result != mcpppp::checkresults::reconverting)
+	{
+		return;
+	}
+
+	entry.force_reconvert = static_cast<bool>(menu_item->value());
+	entry.label_widget->copy_tooltip(mcpppp::get_pack_tooltip_name(
+		result,
+		static_cast<bool>(menu_item->value()),
+		entry.path_entry.path()).c_str());
+	if (menu_item->value() == 0)
+	{
+		entry.label_widget->labelcolor(mcpppp::result_colors.at(static_cast<size_t>(result)));
+	}
+	else
+	{
+		entry.label_widget->labelcolor(std::get<static_cast<size_t>(mcpppp::checkresults::valid)>(mcpppp::result_colors));
+	}
+
+	ui->scroll->redraw();
 }
 
 // callback for browse button
@@ -70,6 +100,10 @@ void browse(Fl_Button* o, void* v)
 // callback for reload button
 void reload(Fl_Button* o, void* v)
 {
+	if (mcpppp::running)
+	{
+		return;
+	}
 	entries.clear();
 	ui->scroll->clear();
 	mcpppp::numbuttons = 0;
@@ -88,8 +122,7 @@ void reload(Fl_Button* o, void* v)
 			{
 				if (entry.is_directory() || entry.path().extension() == ".zip")
 				{
-					entries.push_back(std::make_pair(true, entry));
-					mcpppp::addpack(entry.path(), true);
+					mcpppp::addpack(entry, true);
 				}
 			}
 		}
@@ -199,7 +232,6 @@ void savesettings(Fl_Button* o, void* v)
 	using mcpppp::config;
 	using mcpppp::settings_widgets;
 
-	// TODO: automate addition of settings here?
 	// find some way to store pointer to widgets/value() functions in gui but not cli
 	for (const auto& [key, value] : mcpppp::settings)
 	{
@@ -287,20 +319,10 @@ void settingchanged(Fl_Widget* o, void* v)
 // callback for select all/none
 void selectall(Fl_Check_Button* o, void* v)
 {
-	ui->scroll->clear();
-	mcpppp::numbuttons = 0;
-	// padding
-	std::unique_ptr<Fl_Check_Button> pad = std::make_unique<Fl_Check_Button>(470, 45, 150, 15);
-	pad->down_box(FL_DOWN_BOX);
-	pad->labeltype(FL_NO_LABEL);
-	pad->hide();
-	pad->deactivate();
-	ui->scroll->add(pad.get());
-	pad.release();
 	for (auto& entry : entries)
 	{
-		mcpppp::addpack(entry.second.path(), static_cast<bool>(o->value()));
-		entry.first = static_cast<bool>(o->value());
+		entry.selected = static_cast<bool>(o->value());
+		entry.checkbox_widget->value(o->value());
 	}
 	ui->scroll->redraw();
 	Fl::wait();

@@ -2,28 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
- //#define GUI
+//#define GUI
 
 // VERSION and PACK_VER can be found in utility.h
 
-#ifdef _WIN32
-#define NOMINMAX
-#endif
-
-#include <iostream>
-#include <filesystem>
-#include <fstream>
-#include <string>
-#include <sstream>
-#include <vector>
+#include "pch.h"
 
 #include "constants.h"
 #include "utility.h"
 
 #ifdef GUI
-#ifdef _WIN32
-#include <Windows.h> // SetProcessDpiAwarenessContext
-#endif
 #include <FL/fl_ask.H>
 #include "gui.h"
 #else
@@ -188,9 +176,10 @@ try
 		{
 			if (entry.is_directory() || entry.path().extension() == ".zip")
 			{
-				mcpppp::entries.emplace_back(true, entry);
 #ifdef GUI
-				mcpppp::addpack(entry.path(), true);
+				mcpppp::addpack(entry, true);
+#else
+				mcpppp::entries.emplace_back(entry);
 #endif
 			}
 		}
@@ -205,7 +194,7 @@ try
 	{
 		for (const auto& entry : mcpppp::entries)
 		{
-			mcpppp::convert(entry.second);
+			mcpppp::convert(entry.path_entry);
 		}
 	}
 #else

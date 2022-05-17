@@ -4,45 +4,19 @@
 
 #pragma once
 
-#ifdef _WIN32
-#define NOMINMAX
-#endif
-
-#include <atomic>
-#ifdef __cpp_lib_concepts
-#include <concepts>
-#endif
-#include <fmt/core.h>
-#include <fstream>
-#include <iomanip>
-#include <list>
-#include <mutex>
-#include <set>
-#ifdef __cpp_lib_source_location
-#include <source_location>
-#endif
-#include <sstream>
-#include <thread>
-#include <unordered_map>
-#include <variant>
+#include "pch.h"
 
 #include "constants.h"
 #include "convert.h"
 
 #ifdef GUI
 #include <FL/Fl.H>
+#include <FL/Fl_Box.H>
+#include <FL/Fl_Check_Button.H>
+#include <FL/Fl_Menu_Button.H>
+#include <FL/Fl_Menu_Item.H>
 #include "mcpppp.h" // ui class
 #endif
-
-#include "json.hpp"
-#ifdef _WIN32
-#include <direct.h> //zippy wants this
-#endif
-#include "Zippy.hpp"
-
-#define XXH_INLINE_ALL
-#define XXH_NO_STREAM
-#include "xxhash.h"
 
 namespace mcpppp
 {
@@ -58,6 +32,11 @@ if (!(condition))                                                               
 
 namespace mcpppp
 {
+	enum class conversions { fsb, vmt, cim };
+
+	enum class type_t { boolean, integer, string };
+
+
 #ifdef GUI
 	// fltk ui object
 	inline std::unique_ptr<UI> ui;
@@ -71,13 +50,70 @@ namespace mcpppp
 	inline std::set<std::filesystem::path> paths = {};
 	// config settings/paths
 	inline nlohmann::ordered_json config;
+
+	class resourcepack_entry
+	{
+	public:
+		bool selected; // whether path is selected for conversion, always true for cli
+		bool force_reconvert; // force reconvert resource pack (i.e. if checkresult is reconverting, always convert)
+		std::filesystem::directory_entry path_entry; // directory entry of resourcepack
+
+#ifdef GUI
+		std::unordered_map<conversions, checkresults> conv_statuses;
+
+		std::unique_ptr<Fl_Check_Button> checkbox_widget;
+		std::unique_ptr<Fl_Box> label_widget;
+		std::unique_ptr<Fl_Menu_Button> right_click_widget;
+		std::unique_ptr<char> menu_item_label_text;
+		std::unique_ptr<int> current_numbuttons;
+#endif
+
+		resourcepack_entry(const bool selected_, const bool force_reconvert_,
+			const std::filesystem::directory_entry& path_entry_) :
+			selected(selected_), force_reconvert(force_reconvert_), path_entry(path_entry_) {}
+
+		resourcepack_entry(const std::filesystem::directory_entry& path_entry_) :
+			selected(true), force_reconvert(false), path_entry(path_entry_) {}
+
+#ifdef GUI
+		resourcepack_entry(const bool selected_, const bool force_reconvert_,
+			const std::filesystem::directory_entry& path_entry_,
+			const std::unordered_map<conversions, checkresults>& conv_statuses_,
+			std::unique_ptr<Fl_Check_Button>&& checkbox_widget_,
+			std::unique_ptr<Fl_Box>&& label_widget_,
+			std::unique_ptr<Fl_Menu_Button>&& right_click_widget_,
+			std::unique_ptr<char>&& menu_item_label_text_,
+			std::unique_ptr<int>&& current_numbuttons_) :
+			selected(selected_), force_reconvert(force_reconvert_), path_entry(path_entry_),
+			conv_statuses(conv_statuses_),
+			checkbox_widget(std::move(checkbox_widget_)),
+			label_widget(std::move(label_widget_)),
+			right_click_widget(std::move(right_click_widget_)),
+			menu_item_label_text(std::move(menu_item_label_text_)),
+			current_numbuttons(std::move(current_numbuttons_)) {}
+
+		resourcepack_entry(	const std::filesystem::directory_entry& path_entry_,
+			const std::unordered_map<conversions, checkresults>& conv_statuses_,
+			std::unique_ptr<Fl_Check_Button>&& checkbox_widget_,
+			std::unique_ptr<Fl_Box>&& label_widget_,
+			std::unique_ptr<Fl_Menu_Button>&& right_click_widget_,
+			std::unique_ptr<char>&& menu_item_label_text_,
+			std::unique_ptr<int>&& current_numbuttons_) :
+			selected(true), force_reconvert(false), path_entry(path_entry_),
+			conv_statuses(conv_statuses_),
+			checkbox_widget(std::move(checkbox_widget_)),
+			label_widget(std::move(label_widget_)),
+			right_click_widget(std::move(right_click_widget_)),
+			menu_item_label_text(std::move(menu_item_label_text_)),
+			current_numbuttons(std::move(current_numbuttons_)) {}
+#endif
+	};
+
 	// list of resourcepacks to convert
-	inline std::vector<std::pair<bool, std::filesystem::directory_entry>> entries = {};
+	inline std::vector<resourcepack_entry> entries = {};
 
 	// hashes of converted resourcepacks
 	inline nlohmann::json hashes;
-
-	enum class conversions { fsb, vmt, cim };
 
 
 	// settings
@@ -92,14 +128,6 @@ namespace mcpppp
 	inline level_t loglevel = level_t::debug; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
 	static std::string logfilename = "mcpppp-log.txt"; // name of log file
-
-	enum class type_t { boolean, integer, string };
-
-	template<typename T, typename container>
-	static inline constexpr bool has_type = false;
-	template<typename T, template<typename...> typename container, typename... Args>
-	static inline constexpr bool has_type<T, container<Args...>> =
-		std::disjunction_v<std::is_same<T, Args>...>;
 
 	// info for each settting item
 	class setting_item
@@ -119,6 +147,14 @@ namespace mcpppp
 		// minimum and maximum value for integer type settings
 		int min = 0, max = 0;
 
+	private:
+		template<typename T, typename container>
+		static inline constexpr bool has_type = false;
+		template<typename T, template<typename...> typename container, typename... Args>
+		static inline constexpr bool has_type<T, container<Args...>> =
+			std::disjunction_v<std::is_same<T, Args>...>;
+
+	public:
 		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
 		T& get() const noexcept
 		{
@@ -179,7 +215,7 @@ namespace mcpppp
 			std::string str;
 			std::cout << "Press enter to continue . . .";
 			getline(std::cin, str);
-}
+		}
 #endif
 		std::exit(0);
 	}
@@ -189,10 +225,21 @@ namespace mcpppp
 	// @param item  item to add
 	inline void addtraceitem(const std::source_location& item)
 	{
-		pseudotrace.push_back(item);
-		if (pseudotrace.size() > maxtracesize)
+		try
 		{
-			pseudotrace.pop_front();
+			pseudotrace.push_back(item);
+			if (pseudotrace.size() > maxtracesize)
+			{
+				pseudotrace.pop_front();
+			}
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "Error: " << e.what() << std::endl;
+			if (dolog && logfile.good())
+			{
+				logfile << "Error: " << e.what() << std::endl;
+			}
 		}
 	}
 #endif
@@ -373,37 +420,48 @@ namespace mcpppp
 		// process and output to gui window
 		void updateoutput() const noexcept
 		{
-			if (sstream.str().empty())
+			try
 			{
-				sstream.str(" "); // output line even if empty
-			}
-			while (waitdontoutput)
-			{
-				std::this_thread::sleep_for(std::chrono::milliseconds(1));
-			}
-			std::string line;
-			sstream.put(' ');
-			while (std::getline(sstream, line))
-			{
-				if (line.empty())
+				if (sstream.str().empty())
 				{
-					line = " "; // fltk won't print empty strings
+					sstream.str(" "); // output line even if empty
 				}
-				// add color and output line
-				if (cout)
+				while (waitdontoutput)
 				{
-					Fl::awake(print, dupstr(fmt::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
+					std::this_thread::sleep_for(std::chrono::milliseconds(1));
 				}
-				output_mutex.lock();
-				outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
-				output_mutex.unlock();
+				std::string line;
+				sstream.put(' ');
+				while (std::getline(sstream, line))
+				{
+					if (line.empty())
+					{
+						line = " "; // fltk won't print empty strings
+					}
+					// add color and output line
+					if (cout)
+					{
+						Fl::awake(print, dupstr(fmt::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
+					}
+					output_mutex.lock();
+					outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
+					output_mutex.unlock();
+				}
+				sstream.str(std::string());
+				sstream.clear();
 			}
-			sstream.str(std::string());
-			sstream.clear();
+			catch (const std::exception& e)
+			{
+				std::cerr << "Error: " << e.what() << std::endl;
+				if (file && logfile.good())
+				{
+					logfile << "Error: " << e.what() << std::endl;
+				}
+			}
 		}
 #endif
 	public:
-		~outstream()
+		~outstream() noexcept
 		{
 			if (file && logfile.good())
 			{
@@ -477,16 +535,27 @@ namespace mcpppp
 	inline void printpseudotrace(const unsigned int numlines = 0) noexcept
 	{
 #ifdef __cpp_lib_source_location
-		unsigned int num = 0;
-		for (const auto& location : pseudotrace)
+		try
 		{
-			if (numlines != 0 && num > numlines)
+			unsigned int num = 0;
+			for (const auto& location : pseudotrace)
 			{
-				break;
+				if (numlines != 0 && num > numlines)
+				{
+					break;
+				}
+				outstream out(true, true, true, level_t::error);
+				out << '\t' << fmt::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+				num++;
 			}
-			outstream out(true, true, true, level_t::error);
-			out << '\t' << fmt::format(location_format, location.file_name(), location.function_name(), location.line(), location.column());
-			num++;
+		}
+		catch (const std::exception& e)
+		{
+			std::cerr << "Error: " << e.what() << std::endl;
+			if (dolog && logfile.good())
+			{
+				logfile << "Error: " << e.what() << std::endl;
+			}
 		}
 #endif
 	}
@@ -627,8 +696,9 @@ namespace mcpppp
 	// @param dofsb  whether to convert fsb (optional, default true)
 	// @param dovmt  whether to convert vmt (optional, default true)
 	// @param docim  whether to convert cim (optional, default true)
+	// @param force_reconvert  ignore reconvert checking and always reconvert. may lose data (optional, default false)
 	// @return whether conversion succeeds
-	bool convert(const std::filesystem::path& path, bool dofsb = true, bool dovmt = true, bool docim = true);
+	bool convert(const std::filesystem::path& path, bool dofsb = true, bool dovmt = true, bool docim = true, bool force_reconvert = false);
 
 	// read hashes from mcpppp-hashes.json to `hashes`
 	void gethashes();
