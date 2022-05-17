@@ -200,7 +200,7 @@ try
 #else
 	for (const auto& entry : mcpppp::entries)
 	{
-		mcpppp::convert(entry.second);
+		mcpppp::convert(entry.path_entry);
 	}
 	output<level_t::important>("Conversion Finished");
 	mcpppp::exit();
