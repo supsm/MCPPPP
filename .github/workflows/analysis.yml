@@ -96,8 +96,8 @@ jobs:
 
     - name: Download coverity
       run: wget -q --post-data "token=${{ secrets.COVERITY_TOKEN }}&project=MCPPPP" -O cov-analysis.tar.gz https://scan.coverity.com/download/cxx/linux64 && mkdir cov-analysis && tar -xzf cov-analysis.tar.gz --strip 1 -C cov-analysis
-    - name: Configure Cmake
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE
+    - name: Configure Cmake & Coverity
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE && ./cov-analysis/bin/cov-configure --template --compiler gcc-11 --comptype gcc
       env:
         CC: gcc-11
         CXX: g++-11
