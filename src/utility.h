@@ -26,7 +26,7 @@ namespace mcpppp
 #define MCPPPP_ASSERT(condition)                                                                  \
 if (!(condition))                                                                                 \
 {                                                                                                 \
-	mcpppp::output<mcpppp::level_t::error>("Assertation failed: {}", #condition); \
+	mcpppp::output<mcpppp::level_t::error>("Assertation failed: {}", #condition);                 \
 	abort();                                                                                      \
 }
 
