@@ -92,7 +92,7 @@ namespace mcpppp
 			menu_item_label_text(std::move(menu_item_label_text_)),
 			current_numbuttons(std::move(current_numbuttons_)) {}
 
-		resourcepack_entry(	const std::filesystem::directory_entry& path_entry_,
+		resourcepack_entry(const std::filesystem::directory_entry& path_entry_,
 			const std::unordered_map<conversions, checkresults>& conv_statuses_,
 			std::unique_ptr<Fl_Check_Button>&& checkbox_widget_,
 			std::unique_ptr<Fl_Box>&& label_widget_,
@@ -149,10 +149,7 @@ namespace mcpppp
 
 	private:
 		template<typename T, typename container>
-		static inline constexpr bool has_type = false;
-		template<typename T, template<typename...> typename container, typename... Args>
-		static inline constexpr bool has_type<T, container<Args...>> =
-			std::disjunction_v<std::is_same<T, Args>...>;
+		static constexpr bool has_type = false;
 
 	public:
 		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
@@ -161,6 +158,11 @@ namespace mcpppp
 			return std::get<std::reference_wrapper<T>>(var).get();
 		}
 	};
+
+	// gcc errors if I put this inside the class
+	template<typename T, template<typename...> typename container, typename... Args>
+	constexpr bool setting_item::has_type<T, container<Args...>> =
+		std::disjunction_v<std::is_same<T, Args>...>;
 
 	// info about each setting, key should be all lowercase
 	const std::unordered_map<std::string, setting_item> settings =
