@@ -42,11 +42,3 @@ jobs:
         with:
           name: Artifacts
           path: build/libs/
-      - name: copy files
-        run: find . -maxdepth 1 -type f -name "*.jar" -delete; cp -a ./build/libs/. ./
-      - name: add and commit
-        uses: EndBug/add-and-commit@v7
-        with:
-          add: '--all'
-          message: 'add jar files'
-          push: true
