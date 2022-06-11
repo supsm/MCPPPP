@@ -123,7 +123,7 @@ namespace mcpppp
 	inline bool dotimestamp = false; // add timestamp to regular output
 	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
 	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
-	inline bool usefsbblend = false; // use always fsb blend modes instead of mcpppp blend
+	inline bool usefsbblend = true; // always use fsb blend modes instead of mcpppp blend
 	inline level_t outputlevel = level_t::important; // amount of info to output
 	inline level_t loglevel = level_t::debug; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file

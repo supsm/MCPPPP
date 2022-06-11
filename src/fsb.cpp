@@ -231,6 +231,12 @@ namespace fsb
 		}
 		buffer.clear();
 		std::filesystem::create_directories((path / output_path / filename).parent_path());
+
+		// always output as 8-bit rgba
+		state.info_png.color.colortype = LCT_RGBA;
+		state.info_png.color.bitdepth = 8;
+		state.encoder.auto_convert = false;
+
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
@@ -307,7 +313,7 @@ namespace fsb
 				{"rotation",
 				{
 					{"axis", {0.0, -180.0, 0.0}},
-					{"static", {1.0, 1.0, 1.0}},
+					{"static", {0.0, 0.0, 0.0}},
 					{"rotationSpeed", -1.0} // TODO: find a rotation speed
 				}}
 			} }

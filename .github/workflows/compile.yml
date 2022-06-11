@@ -192,7 +192,7 @@ jobs:
         destination_branch: 'mod'
         user_email: 'supsm2017@gmail.com'
         user_name: 'supsm'
-        commit_message: 'copy gradle.propertis'
+        commit_message: 'copy gradle.properties'
 
   build-linux-arm:
     runs-on: ubuntu-latest
