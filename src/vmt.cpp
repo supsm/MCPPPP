@@ -169,13 +169,13 @@ namespace vmt
 		std::vector<std::vector<std::string>>& textures,
 		std::vector<std::vector<int>>& weights,
 		std::vector<std::vector<std::string>>& biomes,
-		std::vector<std::vector<std::pair<std::string, std::string>>>& heights,
+		std::vector<std::vector<std::pair<int, int>>>& heights,
 		std::vector<std::string>& minheight,
 		std::vector<std::string>& maxheight,
 		std::vector<std::pair<std::string, match_type>>& names,
 		std::vector<int>& baby,
 		std::vector<std::vector<std::tuple<std::string, std::string, bool>>>& healths,
-		std::vector<std::vector<std::pair<std::string, std::string>>>& times,
+		std::vector<std::vector<std::pair<int, int>>>& times,
 		std::vector<std::array<bool, 4>>& weather)
 	{
 		long long curnum = 0;
@@ -184,7 +184,7 @@ namespace vmt
 		folderpath.erase(folderpath.begin(), folderpath.begin() + static_cast<std::string::difference_type>(folderpath.rfind(newlocation ? u8"/random/entity/" : u8"/mob/") + (newlocation ? 15 : 5)));
 		folderpath.erase(folderpath.end() - static_cast<std::string::difference_type>(entry.path().filename().u8string().size()), folderpath.end());
 		name = c8tomb(entry.path().stem().generic_u8string());
-		
+
 		std::ifstream fin(entry.path());
 		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
@@ -336,17 +336,7 @@ namespace vmt
 					ss >> temp;
 					if (!temp.empty())
 					{
-						std::string height1;
-						for (size_t i = 0; i < temp.size(); i++)
-						{
-							if (temp.at(i) == '-')
-							{
-								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
-								break;
-							}
-							height1 += temp.at(i);
-						}
-						heights.at(static_cast<size_t>(curnum - 1)).push_back(std::make_pair(height1, temp));
+						heights.at(static_cast<size_t>(curnum - 1)).push_back(mcpppp::conv::parse_range(temp));
 					}
 				}
 			}
@@ -457,17 +447,7 @@ namespace vmt
 					ss >> temp;
 					if (!temp.empty())
 					{
-						std::string time1;
-						for (size_t i = 0; i < temp.size(); i++)
-						{
-							if (temp.at(i) == '-')
-							{
-								temp.erase(temp.begin(), temp.begin() + static_cast<std::string::difference_type>(i));
-								break;
-							}
-							time1 += temp.at(i);
-						}
-						times.at(static_cast<size_t>(curnum - 1)).push_back(std::make_pair(time1, temp));
+						times.at(static_cast<size_t>(curnum - 1)).push_back(mcpppp::conv::parse_range(temp));
 					}
 				}
 			}
@@ -510,12 +490,12 @@ namespace vmt
 		std::vector<std::vector<std::string>> textures;
 		std::vector<std::vector<int>> weights;
 		std::vector<std::vector<std::string>> biomes;
-		std::vector<std::vector<std::pair<std::string, std::string>>> heights;
+		std::vector<std::vector<std::pair<int, int>>> heights;
 		std::vector<std::string> minheight, maxheight;
 		std::vector<std::pair<std::string, match_type>> names;
 		std::vector<int> baby;
 		std::vector<std::vector<std::tuple<std::string, std::string, bool>>> healths;
-		std::vector<std::vector<std::pair<std::string, std::string>>> times;
+		std::vector<std::vector<std::pair<int, int>>> times;
 		std::vector<std::array<bool, 4>> weather;
 		read_prop(path, newlocation, zip, entry, name, folderpath, textures, weights, biomes, heights, minheight, maxheight, names, baby, healths, times, weather);
 		if (!folderpath.empty())
@@ -616,11 +596,9 @@ namespace vmt
 			if (!heights.at(i).empty())
 			{
 				std::vector<std::string> tempv;
-				std::transform(heights.at(i).begin(), heights.at(i).end(), std::back_inserter(tempv), [&name, &formatdecimal](std::pair<std::string, std::string> p) -> std::string
+				std::transform(heights.at(i).begin(), heights.at(i).end(), std::back_inserter(tempv), [&name, &formatdecimal](std::pair<int, int> p) -> std::string
 					{
-						formatdecimal(p.first);
-						formatdecimal(p.second);
-						return fmt::format("({0}.y >= {1} and {0}.y <= {2})", name, p.first, p.second);
+						return fmt::format("({0}.y >= {1}.0 and {0}.y <= {2}.0)", name, p.first, p.second);
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
 			}

@@ -341,6 +341,11 @@ namespace mcpppp
 		// @param data  contents of properties file
 		// @return vector of key value pairs
 		std::unordered_map<std::string, std::string> parse_properties(const std::string_view& data);
+
+		// parse a range (can contain negative)
+		// @param s  string to parse
+		// @return pair of height values, or { INT_MIN, INT_MIN } on failure
+		std::pair<int, int> parse_range(const std::string_view& s);
 	}
 
 	// lol

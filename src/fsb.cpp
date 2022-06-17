@@ -438,23 +438,10 @@ namespace fsb
 				{
 					height.clear();
 					heights >> height;
-					for (size_t i = 0; i < height.size(); i++)
+					if (!height.empty())
 					{
-						if (height.at(i) == '-')
-						{
-							minheight = height;
-							minheight.erase(minheight.begin() + static_cast<std::string::difference_type>(i), minheight.end());
-							height.erase(height.begin(), height.begin() + static_cast<std::string::difference_type>(i) + 1);
-							try
-							{
-								heightlist.push_back(nlohmann::json({ {"min", stod(minheight)}, {"max", stod(height)} }));
-							}
-							catch (const std::invalid_argument& e)
-							{
-								output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod arguments are \"{}\", \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), minheight, height);
-								return;
-							}
-						}
+						const auto p = mcpppp::conv::parse_range(height);
+						heightlist.push_back(nlohmann::json{ { {"min", p.first}, {"max", p.second} } });
 					}
 				}
 				j["conditions"]["heights"] = heightlist;

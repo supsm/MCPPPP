@@ -150,14 +150,6 @@ try
 		}
 		output<level_t::system_info>("\n");
 	}
-	/*output<level_t::system_info>("autoDeleteTemp  {}", mcpppp::boolalpha(mcpppp::autodeletetemp));
-	output<level_t::system_info>("pauseOnExit     {}", mcpppp::boolalpha(mcpppp::pauseonexit));
-	output<level_t::system_info>("log             {}", mcpppp::logfilename);
-	output<level_t::system_info>("timestamp       {}", mcpppp::boolalpha(mcpppp::dotimestamp));
-	output<level_t::system_info>("outputLevel     {}", static_cast<int>(mcpppp::outputlevel));
-	output<level_t::system_info>("logLevel        {}", static_cast<int>(mcpppp::loglevel));
-	output<level_t::system_info>("autoReconvert   {}", mcpppp::boolalpha(mcpppp::autoreconvert));
-	output<level_t::system_info>("fsbTransparent  {}\n\n", mcpppp::boolalpha(mcpppp::fsbtransparent));*/
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{

@@ -342,6 +342,47 @@ namespace mcpppp
 			}
 			return m;
 		}
+
+		std::pair<int, int> parse_range(const std::string_view& s)
+		{
+			std::string str;
+			for (const auto& c : s)
+			{
+				if (c != '(' && c != ')')
+				{
+					str += c;
+				}
+			}
+
+			if (str.empty())
+			{
+				output<level_t::error>("Range to parse is empty");
+				return { INT_MIN, INT_MIN };
+			}
+
+			size_t pos;
+			if (str.starts_with('-'))
+			{
+				// find second - character
+				pos = str.find('-', 1);
+			}
+			else
+			{
+				// find first - character
+				pos = str.find('-');
+			}
+			const auto substr1 = str.substr(0, pos);
+			const auto substr2 = str.substr(pos);
+			try
+			{
+				return { std::stoi(substr1), std::stoi(substr2) };
+			}
+			catch (const std::invalid_argument& e)
+			{
+				output<level_t::error>("{}\nstoi arguments:\"{}\", \"{}\"", e.what(), substr1, substr2);
+				return { INT_MIN, INT_MIN };
+			}
+		}
 	}
 
 	const outstream& outstream::operator<<(const std::string_view& str) const noexcept
