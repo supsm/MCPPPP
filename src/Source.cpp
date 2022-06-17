@@ -123,14 +123,41 @@ try
 		"Other"
 #endif
 		);
-	output<level_t::system_info>("autoDeleteTemp  {}", mcpppp::boolalpha(mcpppp::autodeletetemp));
+	// output settings and their values
+	{
+		// find longest name
+		size_t longest_name_length = 0;
+		for (const auto& s : mcpppp::settings)
+		{
+			longest_name_length = std::max(longest_name_length, s.second.formatted_name.size());
+		}
+		for (const auto& s : mcpppp::settings)
+		{
+			std::string_view setting_value;
+			switch (s.second.type)
+			{
+			case mcpppp::type_t::boolean:
+				setting_value = mcpppp::boolalpha(std::get<0>(s.second.var).get());
+				break;
+			case mcpppp::type_t::integer:
+				setting_value = std::to_string(static_cast<int>(std::get<1>(s.second.var).get()));
+				break;
+			case mcpppp::type_t::string:
+				setting_value = std::get<2>(s.second.var).get();
+				break;
+			}
+			output<level_t::system_info>("{}{}{}", s.second.formatted_name, std::string(longest_name_length - s.second.formatted_name.size() + 2, ' '), setting_value);
+		}
+		output<level_t::system_info>("\n");
+	}
+	/*output<level_t::system_info>("autoDeleteTemp  {}", mcpppp::boolalpha(mcpppp::autodeletetemp));
 	output<level_t::system_info>("pauseOnExit     {}", mcpppp::boolalpha(mcpppp::pauseonexit));
 	output<level_t::system_info>("log             {}", mcpppp::logfilename);
 	output<level_t::system_info>("timestamp       {}", mcpppp::boolalpha(mcpppp::dotimestamp));
 	output<level_t::system_info>("outputLevel     {}", static_cast<int>(mcpppp::outputlevel));
 	output<level_t::system_info>("logLevel        {}", static_cast<int>(mcpppp::loglevel));
 	output<level_t::system_info>("autoReconvert   {}", mcpppp::boolalpha(mcpppp::autoreconvert));
-	output<level_t::system_info>("fsbTransparent  {}\n\n", mcpppp::boolalpha(mcpppp::fsbtransparent));
+	output<level_t::system_info>("fsbTransparent  {}\n\n", mcpppp::boolalpha(mcpppp::fsbtransparent));*/
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
