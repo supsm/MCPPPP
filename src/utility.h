@@ -116,19 +116,6 @@ namespace mcpppp
 	inline nlohmann::json hashes;
 
 
-	// settings
-	inline bool autodeletetemp = false; // automatically delete mcpppp-temp if found
-	inline bool pauseonexit = true; // pause and ask for user input upon conversion finishing
-	inline bool dolog = true; // log to file
-	inline bool dotimestamp = false; // add timestamp to regular output
-	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
-	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
-	inline bool usefsbblend = true; // always use fsb blend modes instead of mcpppp blend
-	inline level_t outputlevel = level_t::important; // amount of info to output
-	inline level_t loglevel = level_t::debug; // amount of info to output to log
-	inline std::ofstream logfile("mcpppp-log.txt"); // log file
-	static std::string logfilename = "mcpppp-log.txt"; // name of log file
-
 	// info for each settting item
 	class setting_item
 	{
@@ -163,6 +150,19 @@ namespace mcpppp
 	template<typename T, template<typename...> typename container, typename... Args>
 	constexpr bool setting_item::has_type<T, container<Args...>> =
 		std::disjunction_v<std::is_same<T, Args>...>;
+
+	// settings
+	inline bool autodeletetemp = false; // automatically delete mcpppp-temp if found
+	inline bool pauseonexit = true; // pause and ask for user input upon conversion finishing
+	inline bool dolog = true; // log to file
+	inline bool dotimestamp = false; // add timestamp to regular output
+	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
+	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
+	inline bool usefsbblend = true; // always use fsb blend modes instead of mcpppp blend
+	inline level_t outputlevel = level_t::important; // amount of info to output
+	inline level_t loglevel = level_t::debug; // amount of info to output to log
+	inline std::ofstream logfile("mcpppp-log.txt"); // log file
+	static std::string logfilename = "mcpppp-log.txt"; // name of log file
 
 	// info about each setting, key should be all lowercase
 	const std::unordered_map<std::string, setting_item> settings =

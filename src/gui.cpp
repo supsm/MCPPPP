@@ -286,6 +286,8 @@ namespace mcpppp
 				break;
 			}
 		}
+		// output level slider is special case
+		ui->outputlevelslider->value(static_cast<int>(settings.at("outputlevel").get<level_t>()));
 	}
 
 	void updatepathconfig()

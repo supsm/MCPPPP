@@ -137,13 +137,13 @@ try
 			switch (s.second.type)
 			{
 			case mcpppp::type_t::boolean:
-				setting_value = mcpppp::boolalpha(std::get<0>(s.second.var).get());
+				setting_value = mcpppp::boolalpha(s.second.get<bool>());
 				break;
 			case mcpppp::type_t::integer:
-				setting_value = std::to_string(static_cast<int>(std::get<1>(s.second.var).get()));
+				setting_value = std::to_string(static_cast<int>(s.second.get<level_t>()));
 				break;
 			case mcpppp::type_t::string:
-				setting_value = std::get<2>(s.second.var).get();
+				setting_value = s.second.get<std::string>();
 				break;
 			}
 			output<level_t::system_info>("{}{}{}", s.second.formatted_name, std::string(longest_name_length - s.second.formatted_name.size() + 2, ' '), setting_value);

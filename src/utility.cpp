@@ -518,7 +518,7 @@ namespace mcpppp
 			return -1;
 		}
 		nlohmann::json j;
-		std::ifstream fin(pack_mcmeta);
+		std::ifstream fin(pack_mcmeta, std::ios::binary);
 		try
 		{
 			fin >> j;
@@ -896,7 +896,37 @@ namespace mcpppp
 			return false;
 		}
 
+		// reading and writing to/from the zip has to be done before compression
 		const int packver = getpackver(convert);
+		const std::filesystem::path pack_mcmeta = std::filesystem::path{ convert } / "pack.mcmeta";
+		// always have a backup of the original file
+		std::filesystem::path pack_mcmeta_old = std::filesystem::path{ convert } / "pack.mcmeta.old";
+		if (packver != -1)
+		{
+			{
+				int count = 2;
+				while (std::filesystem::exists(pack_mcmeta_old))
+				{
+					pack_mcmeta_old = std::filesystem::path{ convert } / ("pack" + std::to_string(count) + ".mcmeta.old");
+					count++;
+				}
+			}
+
+			nlohmann::json j;
+			std::ifstream fin{ pack_mcmeta, std::ios::binary };
+			fin >> j;
+			std::vector<char> file_contents{ std::istreambuf_iterator<char>{fin}, {} };;
+			fin.close();
+
+			std::filesystem::copy(pack_mcmeta, pack_mcmeta_old);
+
+			j["pack"]["pack_format"] = PACK_VER;
+			std::ofstream fout{ pack_mcmeta, std::ios::binary };
+			fout << j.dump(1, '\t') << std::endl;
+			fout.write(file_contents.data(), file_contents.size());
+			fout.close();
+		}
+
 		if (zip)
 		{
 			rezip(folder, zipa);
@@ -909,10 +939,10 @@ namespace mcpppp
 		if (packver != -1)
 		{
 			const std::string message = fmt::format(
-				"Potentially incorrect pack_format in {}. This may cause some resourcepacks to break.\n"
+				"Potentially incorrect pack_format in {}. It has been automatically updated, the original file can be found at {}.\n"
 				"Version found: {}\n"
 				"Latest version: {}",
-				c8tomb(path.filename().u8string()), packver, PACK_VER);
+				c8tomb(path.filename().u8string()), c8tomb(pack_mcmeta_old.filename().u8string()), packver, PACK_VER);
 			output<level_t::warning>("{}", message);
 #ifdef GUI
 			alerts.push_back(message);
@@ -961,12 +991,11 @@ namespace mcpppp
 		}
 		const setting_item item = settings.at(lowercase(option));
 		const type_t t = item.type;
-		const auto var = item.var;
 		if (t == type_t::boolean)
 		{
 			try
 			{
-				std::get<std::reference_wrapper<bool>>(var).get() = j.get<bool>();
+				item.get<bool>() = j.get<bool>();
 			}
 			catch (const nlohmann::json::exception&)
 			{
@@ -982,7 +1011,7 @@ namespace mcpppp
 				{
 					output<level_t::error>("Not a valid value for {}: {}; Expected integer between {} and {}", option, temp, item.min, item.max);
 				}
-				std::get<std::reference_wrapper<level_t>>(var).get() = level_t(temp);
+				item.get<level_t>() = static_cast<level_t>(temp);
 			}
 			catch (const nlohmann::json::exception&)
 			{
@@ -993,7 +1022,7 @@ namespace mcpppp
 		{
 			try
 			{
-				std::get<std::reference_wrapper<std::string>>(var).get() = j.get<std::string>();
+				item.get<std::string>() = j.get<std::string>();
 				if (option == "log")
 				{
 					dolog = (j.get<std::string>().empty());
@@ -1192,17 +1221,17 @@ namespace mcpppp
 				switch (value.type)
 				{
 				case type_t::boolean:
-					std::get<std::reference_wrapper<bool>>(value.var).get() =
+					value.get<bool>() =
 						truefalse(parser.get<std::string>("--" + std::string(value.formatted_name)));
 					break;
 
 				case type_t::integer:
-					std::get<std::reference_wrapper<level_t>>(value.var).get() =
+					value.get<level_t>() =
 						static_cast<level_t>(parser.get<int>("--" + std::string(value.formatted_name)));
 					break;
 
 				case type_t::string:
-					std::get<std::reference_wrapper<std::string>>(value.var).get() =
+					value.get<std::string>() =
 						parser.get<std::string>("--" + std::string(value.formatted_name));
 
 					// special case
