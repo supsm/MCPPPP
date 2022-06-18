@@ -372,7 +372,7 @@ namespace mcpppp
 				pos = str.find('-');
 			}
 			const auto substr1 = str.substr(0, pos);
-			const auto substr2 = str.substr(pos);
+			const auto substr2 = str.substr(pos + 1);
 			try
 			{
 				return { std::stoi(substr1), std::stoi(substr2) };
