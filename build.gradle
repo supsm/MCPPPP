@@ -2,7 +2,6 @@ plugins {
 	id 'fabric-loom' version '0.10-SNAPSHOT'
 	id 'maven-publish'
 	id "com.modrinth.minotaur" version "1.2.1"
-	id 'com.matthewprenger.cursegradle' version '1.4.0'
 }
 
 import com.modrinth.minotaur.TaskModrinthUpload
@@ -18,6 +17,7 @@ task publishModrinth (type: TaskModrinthUpload) {
 	uploadFile = remapJar // This links to a task that builds your mod jar and sets "uploadFile" to the mod jar.
 	changelog = "Changelog can be found on [github](http://github.com/supsm/MCPPPP/releases/tag/${project.mod_version})";
 	addGameVersion("1.17");
+	addGameVersion("1.18");
 	addGameVersion(project.minecraft_version);
 	addLoader("fabric")
 }
