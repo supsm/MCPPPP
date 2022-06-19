@@ -212,6 +212,8 @@ jobs:
   copy-gradle-properties:
     runs-on: ubuntu-latest
     steps:
+    - uses: actions/checkout@v2
+
     - name: copy gradle properties
       uses: supsm/copy_file_to_another_repo@master
       env:
