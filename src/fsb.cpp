@@ -14,141 +14,6 @@ using mcpppp::mbtoc8;
 
 namespace fsb
 {
-	// compare if two values are equal using epsilon
-	template<class T>
-	static constexpr bool compare(T first, T second) noexcept
-	{
-		return std::abs(first - second) < std::numeric_limits<T>::epsilon();
-	}
-
-	// convert red-green-blue color to hue-saturation-value color
-	// @param first  red (input, 0-255) and hue (output, 0-360)
-	// @param second  green (input, 0-255) and saturation (output, 0-100)
-	// @param third  blue (input, 0-255) and value (output, 0-100)
-	static void rgb2hsv(double& first, double& second, double& third) noexcept
-	{
-		const double r = first * 20 / 51; // convert 0-255 to 0-100
-		const double g = second * 20 / 51;
-		const double b = third * 20 / 51;
-
-		const double max = std::max(std::max(r, g), b);
-		const double d = max - std::min(std::min(r, g), b);
-
-		// hue
-		if (compare(d, 0.0))
-		{
-			// if r, g, and b are equal, set the hue to 0
-			// to prevent dividing by 0
-			first = 0;
-		}
-		else if (compare(max, r))
-		{
-			first = std::fmod((60 * ((g - b) / d) + 360), 360);
-		}
-		else if (compare(max, g))
-		{
-			first = std::fmod((60 * ((b - r) / d) + 120), 360);
-		}
-		else
-		{
-			first = std::fmod((60 * ((r - g) / d) + 240), 360);
-		}
-
-		// saturation
-		if (compare(max, 0.0))
-		{
-			second = 0;
-		}
-		else
-		{
-			second = (d / max) * 100;
-		}
-
-		third = max; // value
-	}
-
-	// convert hue-saturation-value color to red-green-blue color
-	// @param first   hue (output, 0-360) and red (input, 0-255)
-	// @param second  saturation (output, 0-100) and green (input, 0-255)
-	// @param third  value (output, 0-100) and blue (input, 0-255)
-	static void hsv2rgb(double& first, double& second, double& third) noexcept
-	{
-		const double c = second * third / 10000;
-		const double x = c * (1 - std::abs(std::fmod((first / 60), 2) - 1));
-		const double m = third / 100 - c;
-
-		if (first < 60)
-		{
-			first = (c + m) * 255; // r
-			second = (x + m) * 255; // g
-			third = m * 255; // b
-		}
-		else if (first < 120)
-		{
-			first = (x + m) * 255;
-			second = (c + m) * 255;
-			third = m * 255;
-		}
-		else if (first < 180)
-		{
-			first = m * 255;
-			second = (c + m) * 255;
-			third = (x + m) * 255;
-		}
-		else if (first < 240)
-		{
-			first = m * 255;
-			second = (x + m) * 255;
-			third = (c + m) * 255;
-		}
-		else if (first < 300)
-		{
-			first = (x + m) * 255;
-			second = m * 255;
-			third = (c + m) * 255;
-		}
-		else
-		{
-			first = (c + m) * 255;
-			second = m * 255;
-			third = (x + m) * 255;
-		}
-	}
-
-	// convert black to transparent
-	// @param image  image to convert
-	// @param w  width of image in pixels
-	// @param h  height of image in pixels
-	static void convert(std::vector<uint8_t>& image, const unsigned int w, const unsigned int h, const bool allowtransparency)
-	{
-		// skip transparency conversion
-		if (!allowtransparency)
-		{
-			return;
-		}
-		for (long long i = 0; i < w; i += 4)
-		{
-			for (long long j = 0; j < h; j++)
-			{
-				// do transparency, if completely opaque
-				if (image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 3)) == 255)
-				{
-					double first = image.at(static_cast<size_t>(w * h - (j + 1) * w + i));
-					double second = image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 1));
-					double third = image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 2));
-					rgb2hsv(first, second, third);
-					const double alpha = third * 51 / 20; // convert 0-100 to 0-255
-					third = 100;
-					hsv2rgb(first, second, third);
-					image.at(static_cast<size_t>(w * h - (j + 1) * w + i)) = static_cast<uint8_t>(first);
-					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 1)) = static_cast<uint8_t>(second);
-					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 2)) = static_cast<uint8_t>(third);
-					image.at(static_cast<size_t>(w * h - (j + 1) * w + i + 3)) = static_cast<uint8_t>(alpha);
-				}
-			}
-		}
-	}
-
 	// check and handle lodepng error
 	// @param i  error code
 	static constexpr void checkError(const unsigned int i)
@@ -162,11 +27,10 @@ namespace fsb
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	// @param path  path of resourcepack
 	// @param overworldsky  whether image is of overworld sky (and not end)
-	// @param allowtransparency  allow overriding alpha values (e.g. does not work with burn, so it is false for burn)
 	// @param output  location to output to (relative to `path`)
 	// @param entry  directory entry of image file to convert
 	// @param filename  name of image file (no extension)
-	static void png(const std::filesystem::path& path, const bool overworldsky, const bool allowtransparency, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
+	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
 	{
 		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
 		// skip if already converted
@@ -214,10 +78,6 @@ namespace fsb
 			}
 		}
 
-		convert(image1, outw, outh, allowtransparency);
-		convert(image2, outw, outh, allowtransparency);
-		convert(image3, outw, outh, allowtransparency);
-
 		top.reserve(image.size() / 6);
 		for (long long i = 0; i < outw; i += 4)
 		{
@@ -264,9 +124,6 @@ namespace fsb
 			}
 		}
 
-		convert(image1, outw, outh, allowtransparency);
-		convert(image2, outw, outh, allowtransparency);
-		convert(image3, outw, outh, allowtransparency);
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
@@ -286,7 +143,6 @@ namespace fsb
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		const std::u8string name = entry.path().stem().generic_u8string();
-		const bool allowtransparency = mcpppp::fsbtransparent;
 		std::u8string source, u8temp;
 		std::vector<uint8_t> buffer;
 		lodepng::State state;
@@ -301,7 +157,7 @@ namespace fsb
 			{
 				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}}
 			} },
-			{"blend", {{"type", (mcpppp::usefsbblend ? "add" : blend.at("add").to_json())}}},
+			{"blend", {{"type", "add"}}},
 			{"decorations",
 			{
 				{"showStars", false}, // stars are off in optifine skyboxes
@@ -361,18 +217,7 @@ namespace fsb
 			}
 			else if (option == "blend")
 			{
-				if (mcpppp::usefsbblend || !blend.contains(value))
-				{
-					if (!mcpppp::usefsbblend)
-					{
-						output<level_t::info>("(warn) FSB: Invalid or unsupported blend mode: {}\nLet's hope fabricskyboxes supports it :D", value);
-					}
-					j["blend"]["type"] = value;
-				}
-				else
-				{
-					j["blend"] = blend.at(value).to_json();
-				}
+				j["blend"]["type"] = value;
 			}
 			else if (option == "rotate")
 			{
@@ -481,7 +326,7 @@ namespace fsb
 			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(u8temp + u8".png"));
 			if (image.exists())
 			{
-				png(path, overworldsky, allowtransparency, u8"assets/fabricskyboxes/sky", image, origsource);
+				png(path, overworldsky, u8"assets/fabricskyboxes/sky", image, origsource);
 			}
 			else
 			{
@@ -517,7 +362,7 @@ namespace fsb
 			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 			if (image.exists())
 			{
-				png(path, overworldsky, allowtransparency, u8"assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
+				png(path, overworldsky, u8"assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
 			}
 			else
 			{

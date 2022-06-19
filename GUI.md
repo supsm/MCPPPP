@@ -18,14 +18,7 @@ This project uses [FLTK](https://github.com/fltk/fltk) for GUI. It should be rel
 
 ## Settings Screen
 ![Guisettings](images/guisettings.png)  
-**Note: 1-7 can be found at Use -> CLI -> Settings in [README.md](README.md). These can also be found in the hover toopltip.**
-1. **autoDeleteTemp** - automatically delete `mcpppp-temp` folder on startup (default `true`)
-2. **log** - a log file where logs will be stored (default `mcpppp-log.txt`)
-3. **timestamp** - output a timestamp before each line, of the format `[hh:mm:ss]` (default `true`)
-4. **outputLevel** - how much info should be outputted. 1 (min) outputs most info, 5 (max) outputs least info (default `3`)
-5. **logLevel** - similar to outputLevel, but for log (default `2`)
-6. **autoReconvert** - automatically reconvert packs instead of skipping them. **Could possibly overwrite your resourcepacks** (default `false`)
-7. **fsbTransparent** - make fabricskyboxes converted skyboxes semi-transparent. Optifine does this internally, so turning on this setting will replicate optifine skyboxes more accurately. (default `true`)
+**This image is outdated. The up-to-date settings documentation can be found at [CONFIG.md](CONFIG.md). Descriptions can also be found in the hover toopltip.**
 8. **Save** - save settings to file
 9. **Unsaved Changes Warning** - warns about unsaves changes
 

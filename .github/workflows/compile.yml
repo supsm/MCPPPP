@@ -181,19 +181,6 @@ jobs:
         user_name: 'supsm'
         commit_message: 'copy mac libraries'
 
-    - name: copy gradle properties (linux)
-      if: ${{ runner.os == 'Linux' }}
-      uses: supsm/copy_file_to_another_repo@master
-      env:
-        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
-      with:
-        source_file: 'gradle.properties'
-        destination_repo: 'supsm/MCPPPP'
-        destination_branch: 'mod'
-        user_email: 'supsm2017@gmail.com'
-        user_name: 'supsm'
-        commit_message: 'copy gradle.properties'
-
   build-linux-arm:
     runs-on: ubuntu-latest
     steps:
@@ -220,3 +207,19 @@ jobs:
       with:
         name: Linux-arm
         path: artifacts/
+
+  # this is a separate workflow since my thing seems to have issues when used more than once
+  copy-gradle-properties:
+    runs-on: ubuntu-latest
+    steps:
+    - name: copy gradle properties
+      uses: supsm/copy_file_to_another_repo@master
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+      with:
+        source_file: 'gradle.properties'
+        destination_repo: 'supsm/MCPPPP'
+        destination_branch: 'mod'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy gradle.properties'

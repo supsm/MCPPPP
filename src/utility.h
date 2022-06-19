@@ -157,8 +157,6 @@ namespace mcpppp
 	inline bool dolog = true; // log to file
 	inline bool dotimestamp = false; // add timestamp to regular output
 	inline bool autoreconvert = false; // automatically reconvert when resourcepacks are changed
-	inline bool fsbtransparent = true; // make fsb conversion transparent, similar to optifine
-	inline bool usefsbblend = true; // always use fsb blend modes instead of mcpppp blend
 	inline level_t outputlevel = level_t::important; // amount of info to output
 	inline level_t loglevel = level_t::debug; // amount of info to output to log
 	inline std::ofstream logfile("mcpppp-log.txt"); // log file
@@ -180,11 +178,7 @@ namespace mcpppp
 		{"loglevel", {"logLevel", "How much info should be outputted to log; 0 is most, 5 is least.\nHas no effect if log is not set",
 			type_t::integer, std::ref(loglevel), static_cast<int>(loglevel), 0, 5}},
 		{"autoreconvert", {"autoReconvert", "Automatically reconvert changed resourcepacks instead of skipping. Only checks packs that have previously been converted",
-			type_t::boolean, std::ref(autoreconvert), autoreconvert}},
-		{"fsbtransparent", {"fsbTransparent", "Make Fabricskyboxes skyboxes semi-transparent to replicate what optifine does internally",
-			type_t::boolean, std::ref(fsbtransparent), fsbtransparent,}},
-		{"usefsbblend", {"useFsbBlend", "Always use Fabricskyboxes blend instead of MCPPPP internal blend modes",
-			type_t::boolean, std::ref(usefsbblend), usefsbblend}}
+			type_t::boolean, std::ref(autoreconvert), autoreconvert}}
 	};
 
 
