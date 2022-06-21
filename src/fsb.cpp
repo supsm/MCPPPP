@@ -149,13 +149,16 @@ namespace fsb
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
 		source = name;
+		bool reverse_speed = false;
+
 		nlohmann::json j =
 		{
 			{"schemaVersion", 2},
 			{"type", "square-textured"},
 			{"conditions",
 			{
-				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}}
+				{"worlds", {(overworldsky ? "minecraft:overworld" : "minecraft:the_end")}},
+				{"weather", {"clear"}}
 			} },
 			{"blend", {{"type", "add"}}},
 			{"decorations",
@@ -168,9 +171,9 @@ namespace fsb
 			{
 				{"rotation",
 				{
-					{"axis", {0.0, -180.0, 0.0}},
+					{"axis", {90.0, 0.0, 0.0}}, // fsb uses {z, y, x} (kinda, see more explaination in `else if (option == "axis")`)
 					{"static", {0.0, 0.0, 0.0}},
-					{"rotationSpeed", -1.0} // TODO: find a rotation speed
+					{"rotationSpeed", 1.0}
 				}}
 			} }
 		};
@@ -242,7 +245,28 @@ namespace fsb
 				axis >> x >> y >> z;
 				try
 				{
-					j["properties"]["rotation"]["axis"] = { stod(x) * 180, stod(y) * 180, stod(z) * 180 };
+					// fsb rotation is... kinda weird
+					// first number is z axis, 90 = +z cw, -90 = -z cw
+					// second number is y axis, 90 and -90 are both +y cw
+					// third number is x axis, 90 = +x ccw, -90 = -x ccw (or 90 = -x cw, -90 = +x cw)
+					double x_rotation = stod(x) * 90;
+					double y_rotation = stod(y) * 90;
+					double z_rotation = stod(z) * 90;
+
+					// flip everything if y axis rotation is negative
+					if (y_rotation < 0)
+					{
+						x_rotation = -x_rotation;
+						z_rotation = -z_rotation;
+						reverse_speed = true;
+					}
+					else
+					{
+						reverse_speed = false;
+					}
+
+					// reverse x axis rotation
+					j["properties"]["rotation"]["axis"] = { z_rotation, y_rotation, -x_rotation };
 				}
 				catch (const std::invalid_argument& e)
 				{
@@ -309,8 +333,16 @@ namespace fsb
 		}
 		else if (startfadeout == -1)
 		{
+			// fill in missing startfadeout
 			j["properties"]["fade"]["startFadeOut"] = (endfadeout - endfadein + startfadein + 24000) % 24000;
 		}
+
+		// reverse rotation direction if necessary
+		if (reverse_speed)
+		{
+			j["properties"]["rotation"]["rotationSpeed"] = -j["properties"]["rotation"]["rotationSpeed"].get<double>();
+		}
+
 
 		if (source.starts_with(u8"./"))
 		{
