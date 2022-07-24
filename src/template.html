@@ -2,29 +2,72 @@
 <html>
 <head>
     <script>
-        function open_file(event)
+        // output to console and output html element
+        function output(data, color_string = "Black")
         {
-            const uint8Arr = new Uint8Array(event.target.result);
-            const num_bytes = uint8Arr.length * uint8Arr.BYTES_PER_ELEMENT;
-            const data_ptr = Module._malloc(num_bytes);
-            const data_on_heap = new Uint8Array(Module.HEAPU8.buffer, data_ptr, num_bytes);
-            data_on_heap.set(uint8Arr);
-            const res = Module.ccall("load_file", "number", ["number", "number"], [data_on_heap.byteOffset, uint8Arr.length]);
+            let output = document.getElementById("output");
+            output.innerHTML = output.innerHTML + "<p style=\"color: " + color_string + "\">" + data + "</p>";
+            console.log(data);
         }
+
+        // opens a file and saves it to `pack.zip`
+        function save_file()
+        {
+            const file = document.getElementById("selector").files[0];
+            let reader = new FileReader();
+            reader.onload = () =>
+            {
+                const uint8arr = new Uint8Array(reader.result);
+                if (uint8arr.length > 0)
+                {
+                    output("Uploaded file: " + file.name + "\nsize = " + file.size);
+                    filename = file.name;
+                    document.getElementById("download").setAttribute("hidden", "");
+                    FS.writeFile("pack.zip", uint8arr);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function update_download()
+        {
+            let data = FS.readFile("pack.zip");
+            let element = document.getElementById("download");
+            element.setAttribute("download", filename);
+            element.setAttribute("href", URL.createObjectURL(new Blob([data], { "type": "application/zip" })));
+        }
+
+        var filename = "pack.zip";
     </script>
+    <style>
+        div.output_box
+        {
+            width: 400px;
+            height: 250px;
+            border: 1px solid black;
+            resize: both;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+            div.output_box > p
+            {
+                margin: 5px;
+                font-family: monospace;
+            }
+    </style>
 </head>
 <body>
 
     <div>
         <label for="selector">Browse for resourcepack: </label>
-        <input type="file" onchange="open_file(event)" accept=".zip" id="selector">
+        <input id="selector" type="file" onchange="save_file()" accept=".zip">
     </div>
     <div>
-        <input type="button" value="Start Conversion" onclick="Module.ccall('run')">
+        <input type="button" value="Start Conversion" onclick="Module.run()">
+        <a id="download" hidden><input type="button" value="Download Converted Pack"></a>
     </div>
-    <div>
-        <textarea name="output" rows="10" cols="40" readonly=""></textarea>
-    </div>
+    <div class="output_box" id="output"></div>
     {{{ SCRIPT }}}
 </body>
 </html>

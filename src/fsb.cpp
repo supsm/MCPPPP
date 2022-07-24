@@ -11,6 +11,7 @@ using mcpppp::output;
 using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
+using mcpppp::checkpoint;
 
 namespace fsb
 {
@@ -22,6 +23,7 @@ namespace fsb
 		{
 			output<level_t::error>("FSB: png error: {}", lodepng_error_text(i));
 		}
+		checkpoint();
 	}
 
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
@@ -77,6 +79,7 @@ namespace fsb
 				image3.push_back(image.at(i));
 			}
 		}
+		checkpoint();
 
 		top.reserve(image.size() / 6);
 		for (long long i = 0; i < outw; i += 4)
@@ -91,6 +94,7 @@ namespace fsb
 		}
 		buffer.clear();
 		std::filesystem::create_directories((path / output_path / filename).parent_path());
+		checkpoint();
 
 		// always output as 8-bit rgba
 		state.info_png.color.colortype = LCT_RGBA;
@@ -123,6 +127,7 @@ namespace fsb
 				image3.push_back(image.at(i));
 			}
 		}
+		checkpoint();
 
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
@@ -133,6 +138,7 @@ namespace fsb
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
+		checkpoint();
 	}
 
 	// convert optifine properties files into fsb properties json
@@ -181,6 +187,7 @@ namespace fsb
 		std::ifstream fin(entry.path());
 		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
+		checkpoint();
 
 		for (const auto& [option, value] : prop_data)
 		{
@@ -188,6 +195,7 @@ namespace fsb
 			{
 				source = mbtoc8(value);
 				source.erase(source.size() - 4);
+				checkpoint();
 			}
 			else if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
 			{
@@ -217,14 +225,17 @@ namespace fsb
 					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstoi argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), temp);
 					return;
 				}
+				checkpoint();
 			}
 			else if (option == "blend")
 			{
 				j["blend"]["type"] = value;
+				checkpoint();
 			}
 			else if (option == "rotate")
 			{
 				j["properties"]["shouldRotate"] = (value == "true");
+				checkpoint();
 			}
 			else if (option == "speed")
 			{
@@ -237,6 +248,7 @@ namespace fsb
 					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), value);
 					return;
 				}
+				checkpoint();
 			}
 			else if (option == "axis")
 			{
@@ -273,6 +285,7 @@ namespace fsb
 					output<level_t::error>("FSB Error: {}\n\tIn file \"{}\"\n\tstod argument is \"{}\"", e.what(), c8tomb(entry.path().generic_u8string()), value);
 					return;
 				}
+				checkpoint();
 			}
 			else if (option == "weather")
 			{
@@ -285,6 +298,7 @@ namespace fsb
 					weatherlist.push_back(weather);
 				}
 				j["conditions"]["weather"] = weatherlist;
+				checkpoint();
 			}
 			else if (option == "biomes")
 			{
@@ -297,6 +311,7 @@ namespace fsb
 					biomelist.push_back(biome);
 				}
 				j["conditions"]["biomes"] = biomelist;
+				checkpoint();
 			}
 			else if (option == "heights")
 			{
@@ -314,6 +329,7 @@ namespace fsb
 					}
 				}
 				j["conditions"]["heights"] = heightlist;
+				checkpoint();
 			}
 			else if (option == "transition")
 			{
@@ -321,6 +337,7 @@ namespace fsb
 			}
 		}
 		fin.close();
+		checkpoint();
 
 		if (startfadein == -1 || endfadein == -1 || endfadeout == -1)
 		{
@@ -372,6 +389,7 @@ namespace fsb
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				buffer.clear();
 				buffer.shrink_to_fit();
+				checkpoint();
 			}
 		}
 		else
@@ -409,6 +427,7 @@ namespace fsb
 				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 				buffer.clear();
 				buffer.shrink_to_fit();
+				checkpoint();
 			}
 			source = u8"fabricskyboxes:sky" + sourcefolder + sourcefile;
 		}
@@ -428,6 +447,7 @@ namespace fsb
 		std::ofstream fout(path / u8"assets/fabricskyboxes/sky/" / (name + (overworldsky ? u8"" : u8"_end") + u8".json"));
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
+		checkpoint();
 	}
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
@@ -474,6 +494,7 @@ namespace fsb
 			// no convertible locations found
 			return { checkresults::noneconvertible, false, false, zip };
 		}
+		checkpoint();
 	}
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)

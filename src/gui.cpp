@@ -108,42 +108,7 @@ namespace mcpppp
 		}
 		alerts.clear();
 	}
-	catch (const nlohmann::json::exception& e)
-	{
-		output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
-		printpseudotrace();
-		std::exit(-1);
-	}
-	catch (const Zippy::ZipLogicError& e)
-	{
-		output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
-		printpseudotrace();
-		std::exit(-1);
-	}
-	catch (const Zippy::ZipRuntimeError& e)
-	{
-		output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
-		printpseudotrace();
-		std::exit(-1);
-	}
-	catch (const std::filesystem::filesystem_error& e)
-	{
-		output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
-		printpseudotrace();
-		std::exit(-1);
-	}
-	catch (const std::exception& e)
-	{
-		output<level_t::error>("FATAL ERROR:\n{}", e.what());
-		printpseudotrace();
-		std::exit(-1);
-	}
-	catch (...)
-	{
-		output<level_t::error>("UNKNOWN FATAL ERROR");
-		printpseudotrace();
-		std::exit(-1);
-	}
+	MCPPPP_CATCH_ALL()
 
 #ifdef _WIN32
 	// get scale of window (windows)

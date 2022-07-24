@@ -16,6 +16,12 @@
 #include <FL/Fl_Menu_Button.H>
 #include <FL/Fl_Menu_Item.H>
 #include "mcpppp.h" // ui class
+#elif defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#endif
+
+#if defined(GUI) || defined(__EMSCRIPTEN__)
+#define GUI_OUTPUT
 #endif
 
 namespace mcpppp
@@ -23,11 +29,49 @@ namespace mcpppp
 	enum class level_t { debug, detail, info, important, warning, error, system_info };
 }
 
-#define MCPPPP_ASSERT(condition)                                                                  \
-if (!(condition))                                                                                 \
-{                                                                                                 \
-	mcpppp::output<mcpppp::level_t::error>("Assertation failed: {}", #condition);                 \
-	abort();                                                                                      \
+#define MCPPPP_ASSERT(condition)													\
+if (!(condition))																	\
+{																					\
+	mcpppp::output<mcpppp::level_t::error>("Assertation failed: {}", #condition);	\
+	abort();																		\
+}
+
+#define MCPPPP_CATCH_ALL()												\
+catch (const nlohmann::json::exception& e)								\
+{																		\
+	output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());			\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
+}																		\
+catch (const Zippy::ZipLogicError& e)									\
+{																		\
+	output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());		\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
+}																		\
+catch (const Zippy::ZipRuntimeError& e)									\
+{																		\
+	output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());	\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
+}																		\
+catch (const std::filesystem::filesystem_error& e)						\
+{																		\
+	output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());	\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
+}																		\
+catch (const std::exception& e)											\
+{																		\
+	output<level_t::error>("FATAL ERROR:\n{}", e.what());				\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
+}																		\
+catch (...)																\
+{																		\
+	output<level_t::error>("UNKNOWN FATAL ERROR");						\
+	mcpppp::printpseudotrace();											\
+	std::exit(-1);														\
 }
 
 namespace mcpppp
@@ -40,9 +84,12 @@ namespace mcpppp
 #ifdef GUI
 	// fltk ui object
 	inline std::unique_ptr<UI> ui;
+#endif
+#ifdef GUI_OUTPUT
 	// stringstream containing current outputted line
 	inline std::stringstream sstream;
 #endif
+
 	// number of arguments, copied from main
 	inline int argc = -1;
 
@@ -460,7 +507,25 @@ namespace mcpppp
 				}
 			}
 		}
+#elif defined(__EMSCRIPTEN__)
+		void updateoutput() const noexcept
+		{
+			std::string line;
+			while (std::getline(sstream, line))
+			{
+				if (cout)
+				{
+					EM_ASM({
+						output(UTF8ToString($0), UTF8ToString($1));
+						}, line.c_str(), colors.at(static_cast<size_t>(level)).data());
+				}
+			}
+			sstream.str({});
+			sstream.clear();
+			//emscripten_sleep(10);
+		}
 #endif
+
 	public:
 		~outstream() noexcept
 		{
@@ -468,7 +533,7 @@ namespace mcpppp
 			{
 				logfile << std::endl;
 			}
-#ifdef GUI
+#ifdef GUI_OUTPUT
 			if (argc < 2)
 			{
 				updateoutput();
@@ -493,6 +558,9 @@ namespace mcpppp
 		// couldn't find a good pre-defined color for warning
 		// this is public so it can be used for redrawing when output level is changed
 		static constexpr std::array<Fl_Color, 7> colors = { FL_DARK2, FL_DARK3, FL_FOREGROUND_COLOR, FL_DARK_GREEN, 92, FL_RED, FL_DARK_MAGENTA };
+#elif defined(__EMSCRIPTEN__)
+		// colors to use when outputting (html names)
+		static constexpr std::array<std::string_view, 7> colors = { "LightGray", "Gray", "Black", "Green", "DarkOrange", "Red", "Purple" };
 #endif
 
 		// template functions must be defined in header
@@ -503,7 +571,7 @@ namespace mcpppp
 			{
 				logfile << value;
 			}
-#ifdef GUI
+#ifdef GUI_OUTPUT
 			// if there are no command line arguments, ignore level print to gui
 			// otherwise, print to command line like cli
 			if (argc < 2)
@@ -575,7 +643,7 @@ namespace mcpppp
 		{
 			logfile << timestamp() << ' ';
 		}
-#ifdef GUI
+#ifdef GUI_OUTPUT
 		if (argc < 2)
 		{
 			sstream << (dotimestamp ? timestamp() + ' ' : "");
@@ -611,6 +679,33 @@ namespace mcpppp
 			printpseudotrace(4);
 		}
 	}
+
+	// do things when a checkpoint is hit
+	// e.g. check for pause, return control to webpage, update progress bar
+	inline void do_checkpoint_stuff()
+	{
+#ifdef __EMSCRIPTEN__
+		//emscripten_sleep(0);
+#endif
+	}
+
+#ifdef __cpp_lib_source_location
+	// creates a checkpoint
+	// see do_checkpoint_stuff
+	inline void checkpoint(std::source_location location = std::source_location::current())
+	{
+		addtraceitem(location);
+		output<level_t::debug>(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+		do_checkpoint_stuff();
+	}
+#else
+	// creates a checkpoint
+	// see do_checkpoint_stuff
+	inline void checkpoint()
+	{
+		do_checkpoint_stuff();
+	}
+#endif
 
 	// copy file/folder to another location
 	// @param from  file/folder to copy
@@ -681,6 +776,7 @@ namespace mcpppp
 			rawhash = XXH3_128bits_withSeed(data, size, seed);
 		}
 
+		checkpoint();
 		return gethex(rawhash);
 	}
 

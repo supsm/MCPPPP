@@ -21,6 +21,7 @@ namespace mcpppp
 	// secure version of localtime
 	static auto localtime_rs(tm* tm, const time_t* time) noexcept
 	{
+		checkpoint();
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 		return localtime_r(time, tm);
 #elif defined (_MSC_VER)
@@ -52,6 +53,7 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
+		checkpoint();
 		return fmt::format("[{}:{}:{}]", hour, min, sec);
 	}
 
@@ -64,6 +66,7 @@ namespace mcpppp
 			pos = static_cast<long long>(source.find(find, static_cast<size_t>(pos) + replace.size()));
 			source.replace(static_cast<size_t>(pos), find.length(), replace);
 		}
+		checkpoint();
 	}
 
 	void findreplace(std::u8string& source, const std::u8string_view& find, const std::u8string_view& replace)
@@ -75,6 +78,7 @@ namespace mcpppp
 			pos = static_cast<long long>(source.find(find, static_cast<size_t>(pos) + replace.size()));
 			source.replace(static_cast<size_t>(pos), find.length(), replace);
 		}
+		checkpoint();
 	}
 
 	namespace conv
@@ -82,6 +86,7 @@ namespace mcpppp
 		std::string ununderscore(std::string str)
 		{
 			str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+			checkpoint();
 			return str;
 		}
 
@@ -124,12 +129,14 @@ namespace mcpppp
 					of.replace(i, 1, ".*");
 				}
 			}
+			checkpoint();
 			return of;
 		}
 
 		std::string getfilenamehash(const std::filesystem::path& path, const bool zip)
 		{
 			const std::u8string u8s = path.filename().u8string() + (zip ? u8".zip" : u8"");
+			checkpoint();
 			return mcpppp::hash<32>(u8s.data(), u8s.size());
 		}
 
@@ -334,12 +341,14 @@ namespace mcpppp
 						add(c);
 						blank = false;
 					}
+					checkpoint();
 				}
 				if (!skipline && !escape && !key.empty())
 				{
 					m[key] = value;
 				}
 			}
+			checkpoint();
 			return m;
 		}
 
@@ -375,6 +384,7 @@ namespace mcpppp
 			const auto substr2 = str.substr(pos + 1);
 			try
 			{
+				checkpoint();
 				return { std::stoi(substr1), std::stoi(substr2) };
 			}
 			catch (const std::invalid_argument& e)
@@ -391,7 +401,7 @@ namespace mcpppp
 		{
 			logfile << str;
 		}
-#ifdef GUI
+#ifdef GUI_OUTPUT
 		// output to sstream regardless of outputlevel
 		if (argc < 2)
 		{
@@ -415,7 +425,7 @@ namespace mcpppp
 
 	const outstream& outstream::operator<<(std::ostream& (*f)(std::ostream&)) const noexcept
 	{
-#ifdef GUI
+#ifdef GUI_OUTPUT
 		if (argc < 2)
 		{
 			if (f == static_cast<std::basic_ostream<char>&(*)(std::basic_ostream<char>&)>(&std::endl))
@@ -448,6 +458,7 @@ namespace mcpppp
 
 	bool copy(const std::filesystem::path& from, const std::filesystem::path& to) noexcept
 	{
+		checkpoint();
 		try
 		{
 			if (!std::filesystem::exists(from))
@@ -511,6 +522,7 @@ namespace mcpppp
 	// @return pack version as integer
 	static int getpackver(const std::filesystem::path& path)
 	{
+		checkpoint();
 		const std::filesystem::path pack_mcmeta = path / "pack.mcmeta";
 		if (!std::filesystem::is_regular_file(pack_mcmeta))
 		{
@@ -541,6 +553,7 @@ namespace mcpppp
 	// @return whether item is find
 	static bool findzipitem(const std::filesystem::path& ziparchive, const std::u8string_view& itemtofind) noexcept
 	{
+		checkpoint();
 		try
 		{
 			bool found = false;
@@ -557,6 +570,7 @@ namespace mcpppp
 				}
 			}
 			mz_zip_reader_end(&archive);
+			checkpoint();
 			return found;
 		}
 		catch (const std::exception& e)
@@ -568,6 +582,7 @@ namespace mcpppp
 
 	bool findfolder(const std::filesystem::path& path, const std::u8string_view& tofind, const bool zip) noexcept
 	{
+		checkpoint();
 		if (zip)
 		{
 			return findzipitem(path, tofind);
@@ -596,6 +611,7 @@ namespace mcpppp
 		const std::u8string folder = path.stem().generic_u8string();
 		std::filesystem::create_directories(std::filesystem::path(u8"mcpppp-temp/" + folder));
 		zipa.ExtractAll("mcpppp-temp/" + c8tomb(folder) + '/');
+		checkpoint();
 	}
 
 	// zip a folder into a zip file
@@ -628,6 +644,7 @@ namespace mcpppp
 		zipa.Save();
 		zipa.Close();
 		std::filesystem::remove_all("mcpppp-temp");
+		checkpoint();
 	}
 
 	// items in folder from getitems()
@@ -652,6 +669,7 @@ namespace mcpppp
 				size += entry.file_size();
 			}
 		}
+		checkpoint();
 		return size;
 	}
 
@@ -667,6 +685,7 @@ namespace mcpppp
 			std::ifstream fin(path, std::ios::binary);
 			std::vector<char> file_contents{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 			fin.close();
+			checkpoint();
 			return hash<128>(file_contents.data(), file_contents.size());
 		}
 		else
@@ -699,6 +718,7 @@ namespace mcpppp
 			mtar_finalize(&tar);
 			std::string hashvalue = hash<128>(mem.data.data(), mem.data.size());
 			mtar_close(&tar);
+			checkpoint();
 			return hashvalue;
 		}
 	}
@@ -715,6 +735,7 @@ namespace mcpppp
 			status[conversions::vmt] = vmt.results;
 			status[conversions::cim] = cim.results;
 
+			checkpoint();
 			return status;
 		}
 		catch (const std::exception& e)
@@ -783,6 +804,7 @@ namespace mcpppp
 					// don't reconvert if pack hasn't changed
 					reconvert = false;
 				}
+				checkpoint();
 			}
 			else
 			{
@@ -800,6 +822,7 @@ namespace mcpppp
 			{
 				unzip(path, zipa);
 				convert = u8"mcpppp-temp/" + folder;
+				checkpoint();
 			}
 			else
 			{
@@ -833,6 +856,7 @@ namespace mcpppp
 				}
 				break;
 			}
+			checkpoint();
 		}
 		if (dovmt)
 		{
@@ -860,6 +884,7 @@ namespace mcpppp
 				}
 				break;
 			}
+			checkpoint();
 		}
 		if (docim)
 		{
@@ -888,6 +913,7 @@ namespace mcpppp
 				}
 				break;
 			}
+			checkpoint();
 		}
 
 		// put it here, because we want to output the error messages if it isn't valid
@@ -925,16 +951,19 @@ namespace mcpppp
 			fout << j.dump(1, '\t') << std::endl;
 			fout.write(file_contents.data(), file_contents.size());
 			fout.close();
+			checkpoint();
 		}
 
 		if (zip)
 		{
 			rezip(folder, zipa);
+			checkpoint();
 		}
 
 		hashvalue = hash(path, zip);
 		hashes[namehash] = hashvalue;
 		savehashes();
+		checkpoint();
 
 		if (packver != -1)
 		{
@@ -949,6 +978,7 @@ namespace mcpppp
 #endif
 		}
 
+		checkpoint();
 		return true;
 	}
 
@@ -970,6 +1000,7 @@ namespace mcpppp
 			hashfile.close();
 			hashes = nlohmann::json::parse(contents);
 		}
+		checkpoint();
 	}
 
 	void savehashes()
@@ -977,6 +1008,7 @@ namespace mcpppp
 		std::ofstream hashfile("mcpppp-hashes.json");
 		hashfile << hashes.dump(1, '\t') << std::endl;
 		hashfile.close();
+		checkpoint();
 	}
 
 	// parse single setting and set necessary variables
@@ -1038,6 +1070,7 @@ namespace mcpppp
 				output<level_t::error>("Not a valid value for {}: {}; Expected string", option, j.dump(-1));
 			}
 		}
+		checkpoint();
 	}
 
 	void readconfig()
@@ -1057,6 +1090,7 @@ namespace mcpppp
 			{
 				setting(j.key(), j.value());
 			}
+			checkpoint();
 		}
 		if (!config.contains("paths"))
 		{
@@ -1082,6 +1116,7 @@ namespace mcpppp
 					output<level_t::warning>("Invalid path: {}", it.dump(-1));
 				}
 			}
+			checkpoint();
 		}
 #ifdef GUI
 		if (config.contains("gui"))
@@ -1094,6 +1129,7 @@ namespace mcpppp
 					{
 						setting(j.key(), j.value());
 					}
+					checkpoint();
 				}
 				if (config["gui"].contains("paths") && config["gui"]["paths"].type() == nlohmann::json::value_t::array)
 				{
@@ -1109,6 +1145,7 @@ namespace mcpppp
 							output<level_t::warning>("Invalid path: {}", it.dump(-1));
 						}
 					}
+					checkpoint();
 				}
 				if (config["gui"].contains("excludepaths") && config["gui"]["excludepaths"].type() == nlohmann::json::value_t::array)
 				{
@@ -1116,6 +1153,7 @@ namespace mcpppp
 					{
 						paths.erase(mbtoc8(path));
 					}
+					checkpoint();
 				}
 			}
 		}
@@ -1181,6 +1219,7 @@ namespace mcpppp
 					.default_value(getdefaultvalue(value));
 			}
 		}
+		checkpoint();
 
 
 		parser.add_argument("resourcepacks")
@@ -1243,6 +1282,7 @@ namespace mcpppp
 				}
 			}
 		}
+		checkpoint();
 
 		try
 		{
@@ -1269,5 +1309,6 @@ namespace mcpppp
 			output<level_t::error>("Error while parsing arguments: {}", e.what());
 			std::exit(0);
 		}
+		checkpoint();
 	}
 }

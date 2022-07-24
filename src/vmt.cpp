@@ -13,6 +13,7 @@ using mcpppp::output;
 using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
+using mcpppp::checkpoint;
 
 namespace vmt
 {
@@ -50,11 +51,13 @@ namespace vmt
 		}
 		if (num.empty())
 		{
+			checkpoint();
 			return { name, -1 };
 		}
 		else
 		{
 			std::reverse(num.begin(), num.end());
+			checkpoint();
 			return { name, std::stoi(num) };
 		}
 	}
@@ -107,6 +110,7 @@ namespace vmt
 				png_filenames.insert((folderpath / curfilename).generic_u8string());
 			}
 			png_names.insert(curname);
+			checkpoint();
 
 			// randomly select between each texture, if there is more than just the default path
 			if (paths.size() > 1)
@@ -118,6 +122,7 @@ namespace vmt
 				fout.write(str.c_str(), str.size());
 				fout.close();
 			}
+			checkpoint();
 		}
 		else
 		{
@@ -139,6 +144,7 @@ namespace vmt
 				mcpppp::copy(entry.path(), path / u8"assets" / mcnamespace / u8"vmt" / folderpath / entry.path().filename().u8string());
 				png_filenames.insert((folderpath / entry.path().filename()).generic_u8string());
 			}
+			checkpoint();
 		}
 	}
 
@@ -188,6 +194,7 @@ namespace vmt
 		std::ifstream fin(entry.path());
 		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
 		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
+		checkpoint();
 
 		for (const auto& [option, value] : prop_data)
 		{
@@ -254,6 +261,7 @@ namespace vmt
 						}
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("weights."))
 			{
@@ -281,6 +289,7 @@ namespace vmt
 						}
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("biomes."))
 			{
@@ -320,6 +329,7 @@ namespace vmt
 						}
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("heights."))
 			{
@@ -339,14 +349,17 @@ namespace vmt
 						heights.at(static_cast<size_t>(curnum - 1)).push_back(mcpppp::conv::parse_range(temp));
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("minHeight"))
 			{
 				minheight.at(static_cast<size_t>(curnum - 1)) = value;
+				checkpoint();
 			}
 			else if (option.starts_with("maxHeight"))
 			{
 				maxheight.at(static_cast<size_t>(curnum - 1)) = value;
+				checkpoint();
 			}
 			else if (option.starts_with("name."))
 			{
@@ -370,6 +383,7 @@ namespace vmt
 					}
 				}
 				names.at(static_cast<size_t>(curnum - 1)) = std::make_pair(temp, type);
+				checkpoint();
 			}
 			else if (option.starts_with("professions."))
 			{
@@ -389,6 +403,7 @@ namespace vmt
 				{
 					baby.at(static_cast<size_t>(curnum - 1)) = 0;
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("health."))
 			{
@@ -427,6 +442,7 @@ namespace vmt
 						}
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("moonPhase."))
 			{
@@ -450,6 +466,7 @@ namespace vmt
 						times.at(static_cast<size_t>(curnum - 1)).push_back(mcpppp::conv::parse_range(temp));
 					}
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("weather."))
 			{
@@ -474,6 +491,7 @@ namespace vmt
 						weather.at(static_cast<size_t>(curnum - 1)).at(0) = true;
 					}
 				}
+				checkpoint();
 			}
 		}
 	}
@@ -525,6 +543,7 @@ namespace vmt
 				output<level_t::info>("(warn) VMT: Invalid/unsupported mob: {}", name);
 				return;
 			}
+			checkpoint();
 		}
 
 		const auto formatdecimal = [&name](std::string& s) -> void
@@ -591,6 +610,7 @@ namespace vmt
 				{
 					temp_conditions.emplace_back("not " + name + ".is_baby", false);
 				}
+				checkpoint();
 			}
 
 			if (!heights.at(i).empty())
@@ -601,6 +621,7 @@ namespace vmt
 						return fmt::format("({0}.y >= {1}.0 and {0}.y <= {2}.0)", name, p.first, p.second);
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
+				checkpoint();
 			}
 			// heights.n overrides minHeight, maxHeight
 			// valid if either minheight or maxheight is set
@@ -622,6 +643,7 @@ namespace vmt
 					s += fmt::format("{}.y <= {}", name, cur_maxheight);
 				}
 				temp_conditions.emplace_back(s, false);
+				checkpoint();
 			}
 
 			if (!healths.at(i).empty())
@@ -650,6 +672,7 @@ namespace vmt
 						}
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
+				checkpoint();
 			}
 
 			if (!biomes.at(i).empty())
@@ -660,6 +683,7 @@ namespace vmt
 						return fmt::format("{}.current_biome == \"{}\"", name, s);
 					});
 				temp_conditions.push_back(reselect::construct_or(tempv));
+				checkpoint();
 			}
 
 			if (!names.at(i).first.empty())
@@ -678,6 +702,7 @@ namespace vmt
 					break;
 				}
 				temp_conditions.emplace_back(condition, false);
+				checkpoint();
 			}
 
 
@@ -691,6 +716,7 @@ namespace vmt
 				conditions.push_back(reselect::construct_and(temp_conditions));
 			}
 			statements.push_back(temp_res);
+			checkpoint();
 		}
 
 		res.add_if(conditions, statements, defaultstatement);
@@ -714,6 +740,7 @@ namespace vmt
 			const std::string type = s.get_typename(raw_type);
 			s_mobs[name].push_back({ type, s.reselect_func, res });
 		}
+		checkpoint();
 	}
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
@@ -770,6 +797,7 @@ namespace vmt
 		{
 			return { checkresults::noneconvertible, false, false, zip };
 		}
+		checkpoint();
 	}
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
@@ -805,6 +833,7 @@ namespace vmt
 			output<level_t::detail>("VMT: Converting {}", c8tomb(entry.path().generic_u8string()));
 			png(path, info.optifine, info.vmt_newlocation, info.iszip, entry);
 		}
+		checkpoint();
 
 		for (const auto& entry : propfiles)
 		{
@@ -832,5 +861,6 @@ namespace vmt
 				fout.close();
 			}
 		}
+		checkpoint();
 	}
 }

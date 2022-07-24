@@ -16,12 +16,48 @@
 #include "gui.h"
 #else
 #include "convert.h"
+#if defined(__EMSCRIPTEN__)
+#include <emscripten.h>
+#include <emscripten/bind.h>
+#include <emscripten/val.h>
+#endif
 #endif
 
 using mcpppp::output;
 using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
+using mcpppp::checkpoint;
+
+#ifdef __EMSCRIPTEN__
+void run() try
+{
+	// hide download button
+	emscripten::val::global("document")
+		.call<emscripten::val, std::string>("getElementById", "download")
+		.call<void, std::string, std::string>("setAttribute", "hidden", "");
+	for (const auto& entry : mcpppp::entries)
+	{
+		mcpppp::convert(entry.path_entry);
+		checkpoint();
+	}
+	output<level_t::important>("Conversion Finished");
+	// show download button and alert user
+	emscripten::val::global("window").call<void>("update_download");
+	emscripten::val::global("document")
+		.call<emscripten::val, std::string>("getElementById", "download")
+		.call<void, std::string>("removeAttribute", "hidden");
+	emscripten::val::global("window")
+		.call<void, std::string>("alert", "Conversion finished, press Download button to download");
+	checkpoint();
+}
+MCPPPP_CATCH_ALL()
+
+EMSCRIPTEN_BINDINGS(mcpppp)
+{
+	emscripten::function("run", &run);
+}
+#endif
 
 int main(int argc, const char* argv[])
 try
@@ -34,6 +70,12 @@ try
 #endif
 
 
+#ifdef __EMSCRIPTEN__ // skip all commandline and config file stuff for web interface
+	// change default settings
+	mcpppp::outputlevel = level_t::detail;
+	mcpppp::dolog = false;
+	mcpppp::pauseonexit = false;
+#else
 	std::error_code ec;
 	mcpppp::gethashes();
 	if (argc < 2) // skip file settings if there are command line settings
@@ -53,6 +95,8 @@ try
 		fl_message_icon()->box(FL_NO_BOX);
 		mcpppp::ui->show();
 		Fl::wait();
+
+		checkpoint(); // finish gui init
 #endif
 		std::ifstream configfile("mcpppp-config.json");
 		if (configfile.fail())
@@ -83,10 +127,12 @@ try
 			mcpppp::readconfig();
 		}
 		configfile.close();
+		checkpoint(); // finish config stuff
 	}
 	else
 	{
 		mcpppp::parseargs(argc, argv);
+		checkpoint(); // finish parsing arguments
 	}
 
 #ifdef GUI
@@ -96,18 +142,24 @@ try
 		mcpppp::updatepaths();
 		mcpppp::dotimestamp = true;
 		mcpppp::updatesettings();
+		checkpoint(); // finish gui config init
 	}
+#endif
 #endif
 
 	output<level_t::system_info>("MCPPPP {} {}", VERSION,
 #ifdef GUI
 		"(GUI)"
+#elif defined(__EMSCRIPTEN__)
+		"(WEB)"
 #else
 		"(CLI)"
 #endif
 		);
 	output<level_t::system_info>("Os: {}\n",
-#ifdef _WIN64
+#ifdef __EMSCRIPTEN__
+		"Emscripten"
+#elif defined(_WIN64)
 		"Win64"
 #elif defined(_WIN32)
 		"Win32"
@@ -150,6 +202,7 @@ try
 		}
 		output<level_t::system_info>("\n");
 	}
+	checkpoint(); // finish outputting settings
 
 	if (std::filesystem::is_directory("mcpppp-temp"))
 	{
@@ -179,7 +232,12 @@ try
 			mcpppp::exit();
 #endif
 		}
+
+		checkpoint(); // finish folder check
 	}
+#ifdef __EMSCRIPTEN__
+	mcpppp::entries.emplace_back(std::filesystem::directory_entry({ "pack.zip" }));
+#else
 #ifndef GUI
 	output<level_t::important>("Conversion Started");
 #endif
@@ -200,9 +258,11 @@ try
 #else
 				mcpppp::entries.emplace_back(entry);
 #endif
+				checkpoint(); // finish resource pack addition
 			}
 		}
 	}
+#endif
 #ifdef GUI
 	if (argc < 2)
 	{
@@ -214,44 +274,17 @@ try
 		for (const auto& entry : mcpppp::entries)
 		{
 			mcpppp::convert(entry.path_entry);
+			checkpoint(); // finish conversion
 		}
 	}
-#else
+#elif !defined(__EMSCRIPTEN__)
 	for (const auto& entry : mcpppp::entries)
 	{
 		mcpppp::convert(entry.path_entry);
+		checkpoint(); // finish conversion
 	}
 	output<level_t::important>("Conversion Finished");
 	mcpppp::exit();
 #endif
 }
-catch (const nlohmann::json::exception& e)
-{
-	output<level_t::error>("FATAL JSON ERROR:\n{}", e.what());
-	mcpppp::printpseudotrace();
-}
-catch (const Zippy::ZipLogicError& e)
-{
-	output<level_t::error>("FATAL ZIP LOGIC ERROR:\n{}", e.what());
-	mcpppp::printpseudotrace();
-}
-catch (const Zippy::ZipRuntimeError& e)
-{
-	output<level_t::error>("FATAL ZIP RUNTIME ERROR:\n{}", e.what());
-	mcpppp::printpseudotrace();
-}
-catch (const std::filesystem::filesystem_error& e)
-{
-	output<level_t::error>("FATAL FILESYSTEM ERROR:\n{}", e.what());
-	mcpppp::printpseudotrace();
-}
-catch (const std::exception& e)
-{
-	output<level_t::error>("FATAL ERROR:\n{}", e.what());
-	mcpppp::printpseudotrace();
-}
-catch (...)
-{
-	output<level_t::error>("UNKNOWN FATAL ERROR");
-	mcpppp::printpseudotrace();
-}
+MCPPPP_CATCH_ALL()

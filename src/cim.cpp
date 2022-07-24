@@ -11,6 +11,7 @@ using mcpppp::output;
 using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
+using mcpppp::checkpoint;
 
 namespace cim
 {
@@ -21,6 +22,7 @@ namespace cim
 		mcpppp::findreplace(s, " ", "_");
 		s = mcpppp::lowercase(s);
 		s = std::regex_replace(s, bad_regex, "-");
+		checkpoint();
 	}
 
 	static void fixpathchars(std::u8string& s)
@@ -28,6 +30,7 @@ namespace cim
 		mcpppp::findreplace(s, u8" ", u8"_");
 		s = mcpppp::lowercase(s);
 		s = mbtoc8(std::regex_replace(reinterpret_cast<const char*>(s.c_str()), bad_regex, "-"));
+		checkpoint();
 	}
 
 	// change model paths to work with cim
@@ -57,6 +60,8 @@ namespace cim
 			return false;
 		}
 		fin.close();
+		checkpoint(); // finish reading file
+
 		if (j.contains("parent"))
 		{
 			temp = j["parent"].get<std::string>();
@@ -139,12 +144,15 @@ namespace cim
 				j["textures"]["layer0"] = first;
 			}
 		}
+		checkpoint(); // finish parsing
+
 		std::filesystem::create_directories(path / u8"assets" / mbtoc8(mcnamespace) / "models" / outputpath);
 		std::u8string filename = entry.path().filename().u8string();
 		fixpathchars(filename);
 		std::ofstream fout(path / u8"assets" / mbtoc8(mcnamespace) / "models" / outputpath / filename);
 		fout << j.dump(1, '\t') << std::endl;
 		fout.close();
+		checkpoint();
 		return true;
 	}
 
@@ -177,6 +185,7 @@ namespace cim
 				output<level_t::error>("CIM: Invalid model: {}", c8tomb(entry.path().u8string()));
 			}
 		}
+		checkpoint();
 	}
 
 	// read and parse optifine properties file
@@ -245,12 +254,15 @@ namespace cim
 					}
 				}
 			}
+			checkpoint();
 			return std::string();
 		};
 
 		std::ifstream fin(entry.path());
 		std::string rawdata{ std::istreambuf_iterator<char>(fin), std::istreambuf_iterator<char>() };
+		fin.close();
 		const auto prop_data = mcpppp::conv::parse_properties(rawdata);
+		checkpoint(); // finish reading and parsing file
 
 		for (const auto& [option, value] : prop_data)
 		{
@@ -276,6 +288,7 @@ namespace cim
 					}
 					items.push_back(temp);
 				}
+				checkpoint();
 			}
 			else if (option == "texture")
 			{
@@ -307,6 +320,7 @@ namespace cim
 					}
 					texture.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("texture."))
 			{
@@ -343,6 +357,7 @@ namespace cim
 					}
 					model.insert(0, mcnamespace + ":item/" + c8tomb(folderpath));
 				}
+				checkpoint();
 			}
 			else if (option == "damage")
 			{
@@ -357,6 +372,7 @@ namespace cim
 					}
 					damages.push_back(handlerange(temp));
 				}
+				checkpoint();
 			}
 			else if (option == "damageMask")
 			{
@@ -375,6 +391,7 @@ namespace cim
 					}
 					stacksizes.push_back(handlerange(temp));
 				}
+				checkpoint();
 			}
 			else if (option == "enchantments")
 			{
@@ -395,6 +412,7 @@ namespace cim
 					}
 					enchantments.push_back(temp);
 				}
+				checkpoint();
 			}
 			else if (option == "enchantmentLevels")
 			{
@@ -409,6 +427,7 @@ namespace cim
 					}
 					enchantmentlevels.push_back(handlerange(temp));
 				}
+				checkpoint();
 			}
 			else if (option == "hand")
 			{
@@ -420,6 +439,7 @@ namespace cim
 				{
 					hand = value;
 				}
+				checkpoint();
 			}
 			else if (option.starts_with("nbt."))
 			{
@@ -484,8 +504,11 @@ namespace cim
 					}
 					nbts.push_back(tempj);
 				}
+				checkpoint();
 			}
 		}
+		checkpoint();
+		return true;
 	}
 
 	// converts optifine cit properties to cim
@@ -506,6 +529,7 @@ namespace cim
 			output<level_t::error>("CIM: One or more issues found in {}, skipping", c8tomb(entry.path().u8string()));
 			return;
 		}
+		checkpoint(); // finish reading file
 
 		if (type != "item") // TODO: add armor later
 		{
@@ -542,6 +566,7 @@ namespace cim
 			}
 			std::ofstream fout(modelpath);
 			fout << nlohmann::json({ {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}} }).dump(1, '\t') << std::endl;
+			checkpoint(); // finish creating model
 		}
 		tempj = { {"model", model} };
 
@@ -642,6 +667,7 @@ namespace cim
 			}
 			predicates = tempp;
 		}
+		checkpoint(); // finish adding predicates to json
 
 		nlohmann::json j = { {"parent", "minecraft:item/generated"}, {"textures", {{"layer0", texture}}}, {"overrides", predicates} };
 		for (const std::string& c : items)
@@ -660,11 +686,14 @@ namespace cim
 			std::ofstream fout(path / u8"assets/minecraft/overrides/item" / (mbtoc8(c) + u8".json"));
 			fout << tempj.dump(1, '\t') << std::endl;
 			fout.close();
+			checkpoint(); // finish editing json file
 		}
+		checkpoint();
 	}
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
 	{
+		checkpoint();
 		using mcpppp::checkresults;
 		bool reconverting = false;
 		if (mcpppp::findfolder(path, u8"assets/minecraft/overrides/", zip))
@@ -704,6 +733,7 @@ namespace cim
 		{
 			return { checkresults::noneconvertible, false, false, zip };
 		}
+		checkpoint();
 	}
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)
@@ -728,18 +758,22 @@ namespace cim
 				propfiles.push_back(entry);
 			}
 		}
+		checkpoint(); // finish adding stuff
 
 		// convert non-prop files first, so they won't be missing when copying
 		for (const auto& entry : otherfiles)
 		{
 			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().generic_u8string()));
 			other(path, info.iszip, entry);
+			checkpoint(); // finish conversion
 		}
 
 		for (const auto& entry : propfiles)
 		{
 			output<level_t::detail>("CIM: Converting {}", c8tomb(entry.path().generic_u8string()));
 			prop(path, info.iszip, entry);
+			checkpoint(); // finish conversion
 		}
+		checkpoint();
 	}
 }

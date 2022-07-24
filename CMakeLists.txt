@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(MCPPPP
 	DESCRIPTION "A resource pack converter from Optifine/MCPatcher formats to other formats"
 	LANGUAGES CXX
-	VERSION 0.7.1
+	VERSION 0.7.3
 	HOMEPAGE_URL "http://github.com/supsm/MCPPPP"
 )
 set(CMAKE_CXX_STANDARD 20)
@@ -23,6 +23,7 @@ endif()
 option(MCPPPP_CLI "Build CLI version of MCPPPP" TRUE)
 option(MCPPPP_GUI "Build GUI version of MCPPPP" TRUE)
 option(MCPPPP_JNI "Build JNI libraries for MCPPPP mod" FALSE)
+option(MCPPPP_WEB "Build web version of MCPPPP using emscripten" FALSE)
 option(MCPPPP_BUILD_FLTK "Build fltk from source and ignore preinstalled fltk (if MCPPPP_GUI is true)" FALSE)
 option(MCPPPP_STATIC_LINK "Static link standard library (if possible)" FALSE)
 
@@ -88,5 +89,17 @@ if (MCPPPP_JNI)
 		add_mp_flag(mcpppp)
 	else ()
 		message(SEND_ERROR "Jni not found")
+	endif ()
+endif ()
+
+if (MCPPPP_WEB)
+	if (EMSCRIPTEN)
+		set(CMAKE_EXECUTABLE_SUFFIX ".html")
+		add_executable(MCPPPP-web "src/Source.cpp" "src/fsb.cpp" "src/vmt.cpp" "src/cim.cpp" "src/utility.cpp")
+		target_link_libraries(MCPPPP-web lodepng microtar fmt)
+		target_compile_options(MCPPPP-web PRIVATE "-fexceptions")
+		target_link_libraries(MCPPPP-web "--bind" "--shell-file ${CMAKE_SOURCE_DIR}/src/template.html" "-s SINGLE_FILE" "-s EXIT_RUNTIME=0" "-s ALLOW_MEMORY_GROWTH" "-fexceptions" "-s FORCE_FILESYSTEM")
+	else ()
+		message(SEND_ERROR "Web version must be compiled using emscripten (emcmake)")
 	endif ()
 endif ()
