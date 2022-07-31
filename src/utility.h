@@ -18,6 +18,7 @@
 #include "mcpppp.h" // ui class
 #elif defined(__EMSCRIPTEN__)
 #include <emscripten.h>
+#include <emscripten/wasm_worker.h>
 #endif
 
 #if defined(GUI) || defined(__EMSCRIPTEN__)
@@ -508,6 +509,16 @@ namespace mcpppp
 			}
 		}
 #elif defined(__EMSCRIPTEN__)
+		// @param str  line to output, as a char pointer
+		// @param color_name  name of color, as a char pointer
+		static void update_output_main_thread(int str, int color_name) noexcept
+		{
+			EM_ASM({
+				output(UTF8ToString($0), UTF8ToString($1));
+				}, str, color_name);
+			delete reinterpret_cast<char*>(str);
+		}
+
 		void updateoutput() const noexcept
 		{
 			std::string line;
@@ -515,31 +526,24 @@ namespace mcpppp
 			{
 				if (cout)
 				{
-					EM_ASM({
-						output(UTF8ToString($0), UTF8ToString($1));
-						}, line.c_str(), colors.at(static_cast<size_t>(level)).data());
+					MAIN_THREAD_EM_ASM({ output(UTF8ToString($0), UTF8ToString($1)); },
+						line.c_str(), colors.at(static_cast<size_t>(level)).data());
 				}
 			}
 			sstream.str({});
 			sstream.clear();
-			//emscripten_sleep(10);
 		}
 #endif
 
 	public:
 		~outstream() noexcept
 		{
-			if (file && logfile.good())
-			{
-				logfile << std::endl;
-			}
 #ifdef GUI_OUTPUT
 			if (argc < 2)
 			{
 				updateoutput();
-				return;
 			}
-#endif
+#else
 			if (cout)
 			{
 				if (err)
@@ -550,6 +554,18 @@ namespace mcpppp
 				{
 					std::cout << std::endl;
 				}
+			}
+#endif
+			if (file)
+			{
+#ifdef __EMSCRIPTEN__
+				std::cout << std::endl;
+#else
+				if (logfile.good())
+				{
+					logfile << std::endl;
+				}
+#endif
 			}
 		}
 
@@ -567,19 +583,14 @@ namespace mcpppp
 		template<outputtable T>
 		const outstream& operator<<(const T& value) const noexcept
 		{
-			if (file && logfile.good())
-			{
-				logfile << value;
-			}
 #ifdef GUI_OUTPUT
 			// if there are no command line arguments, ignore level print to gui
 			// otherwise, print to command line like cli
 			if (argc < 2)
 			{
 				sstream << value;
-				return *this;
 			}
-#endif
+#else
 			if (cout)
 			{
 				if (err)
@@ -590,6 +601,18 @@ namespace mcpppp
 				{
 					std::cout << value;
 				}
+			}
+#endif
+			if (file)
+			{
+#ifdef __EMSCRIPTEN__
+				std::cout << value;
+#else
+				if (logfile.good())
+				{
+					logfile << value;
+				}
+#endif
 			}
 			return *this;
 		}
@@ -621,10 +644,12 @@ namespace mcpppp
 		catch (const std::exception& e)
 		{
 			std::cerr << "Error: " << e.what() << std::endl;
+#ifndef __EMSCRIPTEN__
 			if (dolog && logfile.good())
 			{
 				logfile << "Error: " << e.what() << std::endl;
 			}
+#endif
 		}
 #endif
 	}
@@ -639,9 +664,16 @@ namespace mcpppp
 		addtraceitem(fmt.location);
 #endif
 
-		if (level >= loglevel && logfile.good())
+		if (level >= loglevel && dolog)
 		{
-			logfile << timestamp() << ' ';
+#ifdef __EMSCRIPTEN__
+			std::cout << timestamp() << ' ';
+#else
+			if (logfile.good())
+			{
+				logfile << timestamp() << ' ';
+			}
+#endif
 		}
 #ifdef GUI_OUTPUT
 		if (argc < 2)
@@ -664,12 +696,12 @@ namespace mcpppp
 			}
 		}
 		{
-			outstream out(level >= outputlevel, level >= loglevel, level == level_t::error, level);
+			outstream out(level >= outputlevel, dolog && level >= loglevel, level == level_t::error, level);
 			out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
 		}
 #ifdef __cpp_lib_source_location
 		{
-			outstream debug_out(level_t::debug >= outputlevel, level_t::debug >= loglevel, false, level_t::debug);
+			outstream debug_out(level_t::debug >= outputlevel, dolog && level_t::debug >= loglevel, false, level_t::debug);
 			debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
 		}
 #endif
@@ -685,7 +717,6 @@ namespace mcpppp
 	inline void do_checkpoint_stuff()
 	{
 #ifdef __EMSCRIPTEN__
-		//emscripten_sleep(0);
 #endif
 	}
 

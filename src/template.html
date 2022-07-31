@@ -1,13 +1,20 @@
 <!doctype html>
 <html>
 <head>
+    <script src="coi-serviceworker.js"></script>
     <script>
-        // output to console and output html element
+        // output to html element
         function output(data, color_string = "Black")
         {
             let output = document.getElementById("output");
             output.innerHTML = output.innerHTML + "<p style=\"color: " + color_string + "\">" + data + "</p>";
+        }
+
+        // output to console and html element
+        function output_with_console(data, color_string = "Black")
+        {
             console.log(data);
+            output(data, color_string);
         }
 
         // opens a file and saves it to `pack.zip`
@@ -20,21 +27,21 @@
                 const uint8arr = new Uint8Array(reader.result);
                 if (uint8arr.length > 0)
                 {
-                    output("Uploaded file: " + file.name + "\nsize = " + file.size);
                     filename = file.name;
                     document.getElementById("download").setAttribute("hidden", "");
-                    FS.writeFile("pack.zip", uint8arr);
+                    Module.save_file(uint8arr)
+                    output_with_console("Uploaded file: " + file.name + "\nsize = " + file.size);
                 }
             };
             reader.readAsArrayBuffer(file);
         }
 
-        function update_download()
+        function update_download(data)
         {
-            let data = FS.readFile("pack.zip");
             let element = document.getElementById("download");
             element.setAttribute("download", filename);
-            element.setAttribute("href", URL.createObjectURL(new Blob([data], { "type": "application/zip" })));
+            // data here is a normal Array from emscripten, we need Uint8Array for binary
+            element.setAttribute("href", URL.createObjectURL(new Blob([Uint8Array.from(data)], { "type": "application/zip" })));
         }
 
         var filename = "pack.zip";
@@ -58,7 +65,6 @@
     </style>
 </head>
 <body>
-
     <div>
         <label for="selector">Browse for resourcepack: </label>
         <input id="selector" type="file" onchange="save_file()" accept=".zip">
@@ -66,6 +72,10 @@
     <div>
         <input type="button" value="Start Conversion" onclick="Module.run()">
         <a id="download" hidden><input type="button" value="Download Converted Pack"></a>
+    </div>
+    <div>
+        <label for="output_level">Output level: </label>
+        <input type="range" id="output_level" min="0" max="5">
     </div>
     <div class="output_box" id="output"></div>
     {{{ SCRIPT }}}

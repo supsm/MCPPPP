@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at https://mozilla.org/MPL/2.0/. */
 
-//#define GUI
+ //#define GUI
 
-// VERSION and PACK_VER can be found in utility.h
+ // VERSION and PACK_VER can be found in utility.h
 
 #include "pch.h"
 
@@ -16,11 +16,6 @@
 #include "gui.h"
 #else
 #include "convert.h"
-#if defined(__EMSCRIPTEN__)
-#include <emscripten.h>
-#include <emscripten/bind.h>
-#include <emscripten/val.h>
-#endif
 #endif
 
 using mcpppp::output;
@@ -28,36 +23,6 @@ using mcpppp::level_t;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
 using mcpppp::checkpoint;
-
-#ifdef __EMSCRIPTEN__
-void run() try
-{
-	// hide download button
-	emscripten::val::global("document")
-		.call<emscripten::val, std::string>("getElementById", "download")
-		.call<void, std::string, std::string>("setAttribute", "hidden", "");
-	for (const auto& entry : mcpppp::entries)
-	{
-		mcpppp::convert(entry.path_entry);
-		checkpoint();
-	}
-	output<level_t::important>("Conversion Finished");
-	// show download button and alert user
-	emscripten::val::global("window").call<void>("update_download");
-	emscripten::val::global("document")
-		.call<emscripten::val, std::string>("getElementById", "download")
-		.call<void, std::string>("removeAttribute", "hidden");
-	emscripten::val::global("window")
-		.call<void, std::string>("alert", "Conversion finished, press Download button to download");
-	checkpoint();
-}
-MCPPPP_CATCH_ALL()
-
-EMSCRIPTEN_BINDINGS(mcpppp)
-{
-	emscripten::function("run", &run);
-}
-#endif
 
 int main(int argc, const char* argv[])
 try
@@ -73,7 +38,10 @@ try
 #ifdef __EMSCRIPTEN__ // skip all commandline and config file stuff for web interface
 	// change default settings
 	mcpppp::outputlevel = level_t::detail;
-	mcpppp::dolog = false;
+	// we will treat console output (stdout) as log
+	mcpppp::dolog = true;
+	mcpppp::logfile.close();
+	mcpppp::logfilename.clear();
 	mcpppp::pauseonexit = false;
 #else
 	std::error_code ec;
@@ -185,7 +153,7 @@ try
 		}
 		for (const auto& s : mcpppp::settings)
 		{
-			std::string_view setting_value;
+			std::string setting_value;
 			switch (s.second.type)
 			{
 			case mcpppp::type_t::boolean:
@@ -235,9 +203,7 @@ try
 
 		checkpoint(); // finish folder check
 	}
-#ifdef __EMSCRIPTEN__
-	mcpppp::entries.emplace_back(std::filesystem::directory_entry({ "pack.zip" }));
-#else
+#ifndef __EMSCRIPTEN__
 #ifndef GUI
 	output<level_t::important>("Conversion Started");
 #endif

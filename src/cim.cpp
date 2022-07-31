@@ -294,8 +294,7 @@ namespace cim
 			{
 				texture = value;
 				fixpathchars(texture);
-				// std::string::contains in C++23
-				if (texture.find(".png") != std::string::npos)
+				if (texture.ends_with(".png"))
 				{
 					texture.erase(texture.end() - 4, texture.end());
 				}

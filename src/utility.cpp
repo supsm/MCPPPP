@@ -27,8 +27,8 @@ namespace mcpppp
 #elif defined (_MSC_VER)
 		return localtime_s(tm, time);
 #else
-		static_assert(false, "no secure localtime function found, remove this line to proceed with insecure version");
-		*tm = std::move(*localtime(time));
+		// WARNING: insecure!!
+		* tm = std::move(*localtime(time));
 #endif
 	}
 
@@ -166,6 +166,11 @@ namespace mcpppp
 
 			while (std::getline(ss, line))
 			{
+				// deal with CR in CRLF on unix systems
+				if (line.ends_with('\r'))
+				{
+					line.pop_back();
+				}
 				if (!escape) // keep original things when escaping newline
 				{
 					isvalue = false;
@@ -397,18 +402,13 @@ namespace mcpppp
 
 	const outstream& outstream::operator<<(const std::string_view& str) const noexcept
 	{
-		if (file && logfile.good())
-		{
-			logfile << str;
-		}
 #ifdef GUI_OUTPUT
 		// output to sstream regardless of outputlevel
 		if (argc < 2)
 		{
 			sstream << str;
-			return *this;
 		}
-#endif
+#else
 		if (cout)
 		{
 			if (err)
@@ -419,6 +419,18 @@ namespace mcpppp
 			{
 				std::cout << str;
 			}
+		}
+#endif
+		if (file)
+		{
+#ifdef __EMSCRIPTEN__
+			std::cout << str;
+#else
+			if (logfile.good())
+			{
+				logfile << str;
+			}
+#endif
 		}
 		return *this;
 	}
@@ -437,7 +449,7 @@ namespace mcpppp
 				sstream << f;
 			}
 		}
-#endif
+#else
 		if (cout)
 		{
 			if (err)
@@ -449,9 +461,17 @@ namespace mcpppp
 				std::cout << f;
 			}
 		}
-		if (file && logfile.good())
+#endif
+		if (file)
 		{
-			logfile << f;
+#ifdef __EMSCRIPTEN__
+			std::cout << f;
+#else
+			if (logfile.good())
+			{
+				logfile << f;
+			}
+#endif
 		}
 		return *this;
 	}

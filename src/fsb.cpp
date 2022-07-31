@@ -194,7 +194,10 @@ namespace fsb
 			if (option == "source")
 			{
 				source = mbtoc8(value);
-				source.erase(source.size() - 4);
+				if (source.ends_with(u8".png"))
+				{
+					source.erase(source.end() - 4, source.end());
+				}
 				checkpoint();
 			}
 			else if (option == "startFadeIn" || option == "startFadeOut" || option == "endFadeIn" || option == "endFadeOut")
