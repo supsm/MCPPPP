@@ -7,7 +7,20 @@
         function output(data, color_string = "Black")
         {
             let output = document.getElementById("output");
-            output.innerHTML = output.innerHTML + "<p style=\"color: " + color_string + "\">" + data + "</p>";
+            let line = document.createElement("p");
+            line.style = "color: " + color_string;
+            line.textContent = data;
+            let doscroll = false;
+            // scroll to new bottom if at bottom
+            if (output.scrollTop >= (output.scrollHeight - output.offsetHeight))
+            {
+                doscroll = true;
+            }
+            output.append(line);
+            if (doscroll)
+            {
+                output.scrollTo(output.scrollLeft, output.scrollHeight);
+            }
         }
 
         // output to console and html element
