@@ -19,6 +19,7 @@
 #elif defined(__EMSCRIPTEN__)
 #include <emscripten.h>
 #include <emscripten/wasm_worker.h>
+#include <emscripten/val.h>
 #endif
 
 #if defined(GUI) || defined(__EMSCRIPTEN__)

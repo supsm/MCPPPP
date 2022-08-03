@@ -203,7 +203,10 @@ try
 
 		checkpoint(); // finish folder check
 	}
-#ifndef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
+	emscripten::val::global("window").call<void>("hide_loading");
+	emscripten::val::global("window").call<void>("alert", std::string("Please upload a zipped resource pack, then press Start Conversion"));
+#else
 #ifndef GUI
 	output<level_t::important>("Conversion Started");
 #endif
