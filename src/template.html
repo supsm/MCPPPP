@@ -24,10 +24,24 @@
         }
 
         // output to console and html element
-        function output_with_console(data, color_string = "Black")
+        // @param data {String}  text to output
+        // @param color_string {String}  color of text to use
+        // @param level {Number}  level to save line as in outputted vector
+        function output_with_console(data, color_string = "Black", level = 2)
         {
             console.log(data);
             output(data, color_string);
+            Module.add_to_outputted(level, data);
+        }
+
+        // output all lines at once, overwriting previously outputted lines
+        // @param {Array} element_array  array of HTML Elements
+        function output_all(element_array)
+        {
+            let output = document.getElementById("output");
+            output.innerHTML = "";
+            output.append(...element_array);
+            output.scrollTo(output.scrollLeft, output.scrollHeight);
         }
 
         // opens a file and saves it to `pack.zip`
@@ -43,7 +57,8 @@
                     filename = file.name;
                     document.getElementById("download").setAttribute("hidden", "");
                     Module.save_file(uint8arr)
-                    output_with_console("Uploaded file: " + file.name + "\nsize = " + file.size);
+                    output_with_console("Uploaded file: " + file.name + "\nsize = " + file.size,
+                        "Green", 3);
                 }
             };
             reader.readAsArrayBuffer(file);
@@ -80,7 +95,7 @@
 <body>
     <div>
         <label for="selector">Browse for resourcepack: </label>
-        <input id="selector" type="file" onchange="save_file()" accept=".zip">
+        <input id="selector" type="file" accept=".zip" onchange="save_file()">
     </div>
     <div>
         <input type="button" value="Start Conversion" onclick="Module.run()">
@@ -88,7 +103,7 @@
     </div>
     <div>
         <label for="output_level">Output level: </label>
-        <input type="range" id="output_level" min="0" max="5">
+        <input type="range" id="output_level" min="0" max="5" value="2" onchange="Module.update_output_level()">
     </div>
     <div class="output_box" id="output"></div>
     {{{ SCRIPT }}}

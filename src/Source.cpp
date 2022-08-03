@@ -37,7 +37,7 @@ try
 
 #ifdef __EMSCRIPTEN__ // skip all commandline and config file stuff for web interface
 	// change default settings
-	mcpppp::outputlevel = level_t::detail;
+	mcpppp::outputlevel = level_t::info;
 	// we will treat console output (stdout) as log
 	mcpppp::dolog = true;
 	mcpppp::logfile.close();

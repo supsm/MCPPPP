@@ -230,16 +230,17 @@ namespace mcpppp
 	};
 
 
-#ifdef GUI
+#ifdef GUI_OUTPUT
 	// vector of things already outputted, to be used when outputlevel is changed
 	// pair of {level, text}
 	inline std::vector<std::pair<short, std::string>> outputted;
 
-	// pack warning messages which are all outputted after conversion finishes
-	inline std::vector<std::string> alerts;
-
 	// mutex for accessing outputted vector
 	inline std::mutex output_mutex;
+#endif
+#ifdef GUI
+	// pack warning messages which are all outputted after conversion finishes
+	inline std::vector<std::string> alerts;
 #endif
 
 #ifdef __cpp_lib_source_location
@@ -492,9 +493,8 @@ namespace mcpppp
 					{
 						Fl::awake(print, dupstr(fmt::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
 					}
-					output_mutex.lock();
+					std::scoped_lock lock(output_mutex);
 					outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
-					output_mutex.unlock();
 				}
 				sstream.str(std::string());
 				sstream.clear();
@@ -529,6 +529,8 @@ namespace mcpppp
 					MAIN_THREAD_EM_ASM({ output(UTF8ToString($0), UTF8ToString($1)); },
 						line.c_str(), colors.at(static_cast<size_t>(level)).data());
 				}
+				std::scoped_lock lock(output_mutex);
+				outputted.emplace_back(static_cast<short>(level), line);
 			}
 			sstream.str({});
 			sstream.clear();

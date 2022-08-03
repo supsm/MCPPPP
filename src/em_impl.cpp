@@ -76,9 +76,57 @@ void save_file(const std::string& data)
 	std::copy(data.begin(), data.end(), pack.begin());
 }
 
+// add to outputted vector so text shows up next time
+// DOES NOT OUTPUT TEXT, only use this from output_with_console in javascript
+void add_to_outputted(const int level, const std::string& text)
+{
+	std::scoped_lock lock(mcpppp::output_mutex);
+	mcpppp::outputted.emplace_back(level, text);
+}
+
+// update output level
+void update_output_level()
+{
+	const int new_level = roundl(stod(
+		emscripten::val::global("document")
+		.call<emscripten::val>("getElementById", std::string("output_level"))
+		["value"].as<std::string>()));
+
+	mcpppp::outputlevel = static_cast<level_t>(new_level);
+
+	// re-output to <output> element
+
+	// {text, color}
+	std::vector<emscripten::val> new_output;
+	// basically transform_if with (level >= new_level)
+	{
+		std::vector<std::pair<short, std::string>> temp_output;
+		{
+			std::scoped_lock lock(mcpppp::output_mutex);
+			std::copy_if(mcpppp::outputted.begin(), mcpppp::outputted.end(), std::back_inserter(temp_output),
+				[&new_level](const std::pair<short, std::string>& line) -> bool
+				{
+					return (line.first >= new_level);
+				});
+		}
+		new_output.resize(temp_output.size());
+		std::transform(temp_output.begin(), temp_output.end(), new_output.begin(),
+			[](const std::pair<short, std::string>& line) -> emscripten::val
+			{
+				emscripten::val element = emscripten::val::global("document").call<emscripten::val>("createElement", std::string("p"));
+				element.set("style", "color: " + std::string(mcpppp::outstream::colors.at(static_cast<size_t>(line.first))));
+				element.set("textContent", line.second);
+				return element;
+			});
+	}
+	emscripten::val::global("window").call<void>("output_all", emscripten::val::array(new_output));
+}
+
 EMSCRIPTEN_BINDINGS(mcpppp)
 {
 	emscripten::function("run", &run);
 	emscripten::function("save_file", &save_file);
+	emscripten::function("add_to_outputted", &add_to_outputted);
+	emscripten::function("update_output_level", &update_output_level);
 }
 #endif
