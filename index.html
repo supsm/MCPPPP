@@ -1,0 +1,168 @@
+<!doctype html>
+<html>
+<head>
+    <script src="coi-serviceworker.js"></script>
+    <script>
+        // output to html element
+        function output(data, color_string = "Black")
+        {
+            let output = document.getElementById("output");
+            let line = document.createElement("p");
+            line.style = "color: " + color_string;
+            line.textContent = data;
+            let doscroll = false;
+            // scroll to new bottom if at bottom
+            if (output.scrollTop >= (output.scrollHeight - output.offsetHeight))
+            {
+                doscroll = true;
+            }
+            output.append(line);
+            if (doscroll)
+            {
+                output.scrollTo(output.scrollLeft, output.scrollHeight);
+            }
+        }
+
+        // output to console and html element
+        // @param data {String}  text to output
+        // @param color_string {String}  color of text to use
+        // @param level {Number}  level to save line as in outputted vector
+        function output_with_console(data, color_string = "Black", level = 2)
+        {
+            console.log(data);
+            output(data, color_string);
+            Module.add_to_outputted(level, data);
+        }
+
+        // output all lines at once, overwriting previously outputted lines
+        // @param {Array} element_array  array of HTML Elements
+        function output_all(element_array)
+        {
+            let output = document.getElementById("output");
+            output.innerHTML = "";
+            show_loading();
+            output.append(...element_array);
+            hide_loading();
+            output.scrollTo(output.scrollLeft, output.scrollHeight);
+        }
+
+        // show loading screen
+        function show_loading()
+        {
+            let output = document.getElementById("output");
+            let loading = document.getElementById("loading");
+            let loading_div = document.getElementById("loading_div");
+            output.style.opacity = "25%";
+            loading_div.style.display = "flex";
+            loading.style.display = "initial";
+
+            // center loading screen relative to output
+            loading_div.style.top = output.offsetTop + "px";
+            loading_div.style.left = output.offsetLeft + "px";
+            loading_div.style.width = output.offsetWidth + "px";
+            loading_div.style.height = output.offsetHeight + "px";
+        }
+
+        // hide loading screen
+        function hide_loading()
+        {
+            let output = document.getElementById("output");
+            let loading = document.getElementById("loading");
+            let loading_div = document.getElementById("loading_div");
+            output.style.opacity = "100%";
+            // use display: none so loading div does not block output div
+            loading_div.style.display = "none";
+            loading.style.display = "none";
+        }
+
+        // opens a file and saves it to `pack.zip`
+        function save_file()
+        {
+            show_loading();
+            const file = document.getElementById("selector").files[0];
+            let reader = new FileReader();
+            reader.onload = () =>
+            {
+                const uint8arr = new Uint8Array(reader.result);
+                if (uint8arr.length > 0)
+                {
+                    filename = file.name;
+                    document.getElementById("selected_file").value = file.name;
+                    document.getElementById("download").setAttribute("hidden", "");
+                    Module.save_file(uint8arr)
+                    output_with_console("Uploaded file: " + file.name + "\nsize = " + file.size,
+                        "Green", 3);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+            hide_loading();
+        }
+
+        function select_file()
+        {
+            document.getElementById("selector").click();
+        }
+
+        function update_output_level()
+        {
+            document.getElementById("output_level_num").value = document.getElementById("output_level").value;
+            Module.update_output_level();
+        }
+
+        function update_download(data)
+        {
+            show_loading();
+            let element = document.getElementById("download");
+            element.setAttribute("download", filename);
+            // data here is a normal Array from emscripten, we need Uint8Array for binary
+            element.setAttribute("href", URL.createObjectURL(new Blob([Uint8Array.from(data)], { "type": "application/zip" })));
+            hide_loading();
+        }
+
+        var filename = "pack.zip";
+        document.addEventListener("DOMContentLoaded", () =>
+        {
+            show_loading();
+        });
+    </script>
+    <style>
+        div.output_box
+        {
+            width: 400px;
+            height: 250px;
+            border: 1px solid black;
+            resize: both;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+            div.output_box > p
+            {
+                margin: 5px;
+                font-family: monospace;
+            }
+    </style>
+</head>
+<body>
+    <div>
+        <input id="selector" type="file" accept=".zip" onchange="save_file()" hidden>
+        <input id="selector_button" type="button" value="Browse for resourcepack" onclick="select_file()">
+        <output id="selected_file" for="selector_button">No file selected</output>
+    </div>
+    <div>
+        <input type="button" value="Start Conversion" onclick="Module.run()">
+        <a id="download" hidden><input type="button" value="Download Converted Pack"></a>
+    </div>
+    <div>
+        <label for="output_level">Output level: </label>
+        <input type="range" id="output_level" min="0" max="5" value="2" onchange="update_output_level()">
+        <output id="output_level_num" for="output_level">2</output>
+    </div>
+    <div class="output_box" id="output"></div>
+    <div id="loading_div" style="display: flex; position: absolute; align-items: center; justify-content: center" hidden>
+        <div id="loading" style="font-size: 200%" hidden>Loading...</div>
+    </div>
+    <script async type="text/javascript" src="MCPPPP-web.js"></script>
+</body>
+</html>
+
