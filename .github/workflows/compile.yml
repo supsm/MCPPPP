@@ -27,7 +27,7 @@ jobs:
     #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -T ClangCL
     - name: configure cmake with clang
       if: ${{ runner.os != 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
       env:
         CC: clang
         CXX: clang++
@@ -188,13 +188,13 @@ jobs:
     
     - run: sudo apt update && sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
     - name: configure cmake
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
       env:
         CC: aarch64-linux-gnu-gcc-10
         CXX: aarch64-linux-gnu-g++-10
 
     - name: build cmake
-      run: cmake --build build --config Release --parallel 64
+      run: cmake --build build --parallel 64
       
     - name: copy files
       run: mkdir artifacts && cp build/bin/* artifacts/
@@ -216,10 +216,10 @@ jobs:
       uses: mymindstorm/setup-emsdk@v11
 
     - name: configure cmake
-      run: emcmake cmake -B build -DMCPPPP_CLI=FALSE -DMCPPPP_GUI=FALSE -DMCPPPP_WEB=TRUE
+      run: emcmake cmake -B build -DMCPPPP_CLI=FALSE -DMCPPPP_GUI=FALSE -DMCPPPP_WEB=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=MinSizeRel
 
     - name: build cmake
-      run: cmake --build build --config MinSizeRel
+      run: cmake --build build
       
     - name: copy files
       run: mkdir artifacts && cp build/bin/* artifacts/
