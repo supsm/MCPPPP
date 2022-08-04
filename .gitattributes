@@ -1,3 +1,0 @@
-MCPPPP-web.worker.js filter=lfs diff=lfs merge=lfs -text
-MCPPPP-web.js filter=lfs diff=lfs merge=lfs -text
-MCPPPP-web.wasm filter=lfs diff=lfs merge=lfs -text
