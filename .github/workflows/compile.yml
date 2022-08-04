@@ -224,12 +224,22 @@ jobs:
     - name: copy files
       run: mkdir artifacts && cp build/bin/* artifacts/
 
+    - name: capture build artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: ${{ runner.os }}
+        path: artifacts/
+        
+    - name: rename
+      run: mv artifacts/MCPPPP-web.html artifacts/index.html
+
     - name: copy to github pages
       uses: supsm/copy_file_to_another_repo@master
       env:
         API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
       with:
-        source_file: 'artifacts/*'
+        source_file: 'artifacts/'
+        use_rsync: 'true'
         destination_repo: 'supsm/MCPPPP'
         destination_branch: 'pages'
         user_email: 'supsm2017@gmail.com'
