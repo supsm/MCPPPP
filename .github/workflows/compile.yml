@@ -207,6 +207,34 @@ jobs:
       with:
         name: Linux-arm
         path: artifacts/
+  
+  build-emscripten:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: setup emsdk (emscripten)
+      uses: mymindstorm/setup-emsdk@v11
+
+    - name: configure cmake
+      run: emcmake cmake -B build -DMCPPPP_CLI=FALSE -DMCPPPP_GUI=FALSE -DMCPPPP_WEB=TRUE
+
+    - name: build cmake
+      run: cmake --build build --config MinSizeRel
+      
+    - name: copy files
+      run: mkdir artifacts && cp build/bin/* artifacts/
+
+    - name: copy to github pages
+      uses: supsm/copy_file_to_another_repo@master
+      env:
+        API_TOKEN_GITHUB: ${{ secrets.GH_PAT }}
+      with:
+        source_file: 'artifacts/*'
+        destination_repo: 'supsm/MCPPPP'
+        destination_branch: 'pages'
+        user_email: 'supsm2017@gmail.com'
+        user_name: 'supsm'
+        commit_message: 'copy web files'
 
   # this is a separate workflow since my thing seems to have issues when used more than once
   copy-gradle-properties:
