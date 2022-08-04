@@ -87,7 +87,7 @@
                 if (uint8arr.length > 0)
                 {
                     filename = file.name;
-                    document.getElementById("selected_file").textContent = " " + file.name;
+                    document.getElementById("selected_file").value = file.name;
                     document.getElementById("download").setAttribute("hidden", "");
                     Module.save_file(uint8arr)
                     output_with_console("Uploaded file: " + file.name + "\nsize = " + file.size,
@@ -101,6 +101,12 @@
         function select_file()
         {
             document.getElementById("selector").click();
+        }
+
+        function update_output_level()
+        {
+            document.getElementById("output_level_num").value = document.getElementById("output_level").value;
+            Module.update_output_level();
         }
 
         function update_download(data)
@@ -141,7 +147,7 @@
     <div>
         <input id="selector" type="file" accept=".zip" onchange="save_file()" hidden>
         <input id="selector_button" type="button" value="Browse for resourcepack" onclick="select_file()">
-        <label for="selector_button" id="selected_file"> No file selected</label>
+        <output id="selected_file" for="selector_button">No file selected</output>
     </div>
     <div>
         <input type="button" value="Start Conversion" onclick="Module.run()">
@@ -149,7 +155,8 @@
     </div>
     <div>
         <label for="output_level">Output level: </label>
-        <input type="range" id="output_level" min="0" max="5" value="2" onchange="Module.update_output_level()">
+        <input type="range" id="output_level" min="0" max="5" value="2" onchange="update_output_level()">
+        <output id="output_level_num" for="output_level">2</output>
     </div>
     <div class="output_box" id="output"></div>
     <div id="loading_div" style="display: flex; position: absolute; align-items: center; justify-content: center" hidden>

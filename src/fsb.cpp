@@ -17,7 +17,7 @@ namespace fsb
 {
 	// check and handle lodepng error
 	// @param i  error code
-	static constexpr void checkError(const unsigned int i)
+	static void checkError(const unsigned int i)
 	{
 		if (i != 0)
 		{

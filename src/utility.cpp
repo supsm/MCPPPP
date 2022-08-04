@@ -21,7 +21,6 @@ namespace mcpppp
 	// secure version of localtime
 	static auto localtime_rs(tm* tm, const time_t* time) noexcept
 	{
-		checkpoint();
 #if defined(__unix__) || (defined(__APPLE__) && defined(__MACH__))
 		return localtime_r(time, tm);
 #elif defined (_MSC_VER)
@@ -53,7 +52,6 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
-		checkpoint();
 		return fmt::format("[{}:{}:{}]", hour, min, sec);
 	}
 
