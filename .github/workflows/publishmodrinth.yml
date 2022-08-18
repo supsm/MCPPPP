@@ -1,7 +1,8 @@
 name: modrinth
 on:
   release:
-    types: [published]
+    types:
+    - published
   workflow_dispatch:
 
 jobs:
@@ -12,6 +13,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           ref: 'mod'
+          lfs: true
+      - name: checkout lfs
+        run: git lfs checkout
       - name: validate gradle wrapper
         uses: gradle/wrapper-validation-action@v1
       - name: setup jdk 17
