@@ -5,22 +5,23 @@
 #include <FL/Fl.H>
 #include <FL/Fl_Double_Window.H>
 extern void windowclosed(Fl_Double_Window*, void*);
+#include <FL/Fl_Group.H>
 #include <FL/Fl_Button.H>
-extern void run(Fl_Button*, void*);
-#include <FL/Fl_Browser.H>
-#include <FL/Fl_Check_Button.H>
-extern void conversion(Fl_Check_Button*, void*);
-#include <FL/Fl_Scroll.H>
-extern void browse(Fl_Button*, void*);
-extern void reload(Fl_Button*, void*);
-#include <FL/Fl_Input.H>
-extern void editpath(Fl_Input*, void*);
 extern void opensettings(Fl_Button*, void*);
 extern void openhelp(Fl_Button*, void*);
 #include <FL/Fl_Box.H>
-extern void selectall(Fl_Check_Button*, void*);
 #include <FL/Fl_Value_Slider.H>
 extern void updateoutputlevel(Fl_Value_Slider*, void*);
+#include <FL/Fl_Browser.H>
+#include <FL/Fl_Check_Button.H>
+extern void conversion(Fl_Check_Button*, void*);
+#include <FL/Fl_Input.H>
+extern void editpath(Fl_Input*, void*);
+extern void browse(Fl_Button*, void*);
+#include <FL/Fl_Scroll.H>
+extern void reload(Fl_Button*, void*);
+extern void selectall(Fl_Check_Button*, void*);
+extern void run(Fl_Button*, void*);
 extern void addrespath(Fl_Button*, void*);
 extern void deleterespath(Fl_Button*, void*);
 #include <FL/Fl_Window.H>
@@ -30,13 +31,13 @@ class UI {
 public:
   UI();
   Fl_Double_Window *window;
-  Fl_Browser *output;
-  Fl_Scroll *scroll;
-  Fl_Input *path_input;
   Fl_Box *box1;
   Fl_Box *box2;
-  Fl_Check_Button *allpacks;
   Fl_Value_Slider *outputlevelslider;
+  Fl_Browser *output;
+  Fl_Input *path_input;
+  Fl_Scroll *scroll;
+  Fl_Check_Button *allpacks;
   Fl_Double_Window *edit_paths;
   Fl_Scroll *paths;
   Fl_Double_Window *settings;

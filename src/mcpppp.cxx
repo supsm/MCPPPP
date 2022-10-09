@@ -13,121 +13,175 @@ UI::UI() {
   { window = new Fl_Double_Window(660, 420, "MCPPPP");
     window->color((Fl_Color)48);
     window->callback((Fl_Callback*)windowclosed, (void*)(this));
-    { Fl_Button* o = new Fl_Button(445, 370, 190, 30, "Run");
-      o->tooltip("Start conversion process");
-      o->box(FL_BORDER_BOX);
-      o->down_box(FL_BORDER_BOX);
-      o->color(FL_DARK2);
-      o->selection_color((Fl_Color)43);
-      o->labelfont(1);
-      o->labelsize(16);
-      o->callback((Fl_Callback*)run);
-    } // Fl_Button* o
-    { // Output in place of stdout
-      output = new Fl_Browser(25, 40, 395, 275);
-      output->box(FL_BORDER_BOX);
-      output->textfont(4);
-    } // Fl_Browser* output
-    { Fl_Check_Button* o = new Fl_Check_Button(25, 380, 56, 16, "FSB");
-      o->tooltip("FabricSkyboxes");
-      o->down_box(FL_DOWN_BOX);
-      o->value(1);
-      o->callback((Fl_Callback*)conversion);
-      o->when(FL_WHEN_CHANGED);
-    } // Fl_Check_Button* o
-    { Fl_Check_Button* o = new Fl_Check_Button(185, 380, 56, 16, "VMT");
-      o->tooltip("Varied Mob Textures");
-      o->down_box(FL_DOWN_BOX);
-      o->value(1);
-      o->callback((Fl_Callback*)conversion);
-      o->when(FL_WHEN_CHANGED);
-    } // Fl_Check_Button* o
-    { Fl_Check_Button* o = new Fl_Check_Button(360, 380, 56, 16, "CIM");
-      o->tooltip("Chime");
-      o->down_box(FL_DOWN_BOX);
-      o->value(1);
-      o->callback((Fl_Callback*)conversion);
-      o->when(FL_WHEN_CHANGED);
-    } // Fl_Check_Button* o
-    { scroll = new Fl_Scroll(445, 55, 190, 260, "Resourcepacks to convert");
-      scroll->color((Fl_Color)48);
-      { // padding
-        Fl_Check_Button* o = new Fl_Check_Button(445, 60, 190, 15);
-        o->down_box(FL_DOWN_BOX);
+    { Fl_Group* o = new Fl_Group(25, 10, 610, 20, "Top Bar");
+      o->labeltype(FL_NO_LABEL);
+      { Fl_Button* o = new Fl_Button(25, 10, 65, 19, "Settings");
+        o->tooltip("Edit Settings");
+        o->box(FL_FLAT_BOX);
+        o->down_box(FL_FLAT_BOX);
+        o->color(FL_DARK2);
+        o->selection_color((Fl_Color)43);
+        o->callback((Fl_Callback*)opensettings);
+      } // Fl_Button* o
+      { Fl_Button* o = new Fl_Button(570, 10, 65, 19, "Help");
+        o->tooltip("Open help screen");
+        o->box(FL_FLAT_BOX);
+        o->down_box(FL_FLAT_BOX);
+        o->color(FL_DARK2);
+        o->selection_color((Fl_Color)43);
+        o->callback((Fl_Callback*)openhelp);
+      } // Fl_Button* o
+      { box1 = new Fl_Box(25, 10, 65, 19);
+        box1->box(FL_BORDER_FRAME);
+        box1->color((Fl_Color)34);
+      } // Fl_Box* box1
+      { box2 = new Fl_Box(570, 10, 65, 19);
+        box2->box(FL_BORDER_FRAME);
+        box2->color((Fl_Color)34);
+      } // Fl_Box* box2
+      { outputlevelslider = new Fl_Value_Slider(220, 10, 200, 19, "Output Level: ");
+        outputlevelslider->tooltip("Updates the amount of text shown\n1 = Most text, 5 = Least text");
+        outputlevelslider->type(1);
+        outputlevelslider->box(FL_BORDER_BOX);
+        outputlevelslider->maximum(5);
+        outputlevelslider->step(1);
+        outputlevelslider->value(3);
+        outputlevelslider->textsize(14);
+        outputlevelslider->callback((Fl_Callback*)updateoutputlevel);
+        outputlevelslider->align(Fl_Align(FL_ALIGN_LEFT));
+        Fl_Group::current()->resizable(outputlevelslider);
+      } // Fl_Value_Slider* outputlevelslider
+      o->end();
+    } // Fl_Group* o
+    { Fl_Group* o = new Fl_Group(25, 40, 395, 360, "Left");
+      o->labeltype(FL_NO_LABEL);
+      { // Output in place of stdout
+        output = new Fl_Browser(25, 40, 395, 275);
+        output->box(FL_BORDER_BOX);
+        output->textfont(4);
+        Fl_Group::current()->resizable(output);
+      } // Fl_Browser* output
+      { Fl_Group* o = new Fl_Group(25, 380, 395, 15, "Conversions");
         o->labeltype(FL_NO_LABEL);
-        o->hide();
-        o->deactivate();
-      } // Fl_Check_Button* o
-      scroll->end();
-    } // Fl_Scroll* scroll
-    { Fl_Button* o = new Fl_Button(355, 330, 64, 25, "Browse");
-      o->tooltip("Browse for resourcepacks folders");
-      o->box(FL_BORDER_BOX);
-      o->down_box(FL_BORDER_BOX);
-      o->color(FL_DARK2);
-      o->selection_color((Fl_Color)43);
-      o->callback((Fl_Callback*)browse);
-    } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(445, 330, 110, 25, "Reload");
-      o->tooltip("Reload list of resourcepacks");
-      o->box(FL_BORDER_BOX);
-      o->color(FL_DARK2);
-      o->selection_color((Fl_Color)43);
-      o->callback((Fl_Callback*)reload);
-    } // Fl_Button* o
-    { path_input = new Fl_Input(120, 330, 225, 24, "Resourcepacks: ");
-      path_input->tooltip("Input resourcepacks folder manually");
-      path_input->box(FL_BORDER_BOX);
-      path_input->labelsize(12);
-      path_input->textsize(12);
-      path_input->callback((Fl_Callback*)editpath);
-      path_input->align(Fl_Align(36));
-    } // Fl_Input* path_input
-    { Fl_Button* o = new Fl_Button(25, 10, 65, 20, "Settings");
-      o->tooltip("Edit Settings");
-      o->box(FL_FLAT_BOX);
-      o->down_box(FL_FLAT_BOX);
-      o->color(FL_DARK2);
-      o->selection_color((Fl_Color)43);
-      o->callback((Fl_Callback*)opensettings);
-    } // Fl_Button* o
-    { Fl_Button* o = new Fl_Button(570, 10, 65, 20, "Help");
-      o->tooltip("Open help screen");
-      o->box(FL_FLAT_BOX);
-      o->down_box(FL_FLAT_BOX);
-      o->color(FL_DARK2);
-      o->selection_color((Fl_Color)43);
-      o->callback((Fl_Callback*)openhelp);
-    } // Fl_Button* o
-    { box1 = new Fl_Box(25, 10, 65, 20);
-      box1->box(FL_BORDER_FRAME);
-      box1->color((Fl_Color)34);
-    } // Fl_Box* box1
-    { box2 = new Fl_Box(570, 10, 65, 20);
-      box2->box(FL_BORDER_FRAME);
-      box2->color((Fl_Color)34);
-    } // Fl_Box* box2
-    { allpacks = new Fl_Check_Button(570, 330, 59, 25, "All");
-      allpacks->tooltip("Select/Deselect all resourcepacks");
-      allpacks->down_box(FL_DOWN_BOX);
-      allpacks->value(1);
-      allpacks->callback((Fl_Callback*)selectall);
-      allpacks->when(FL_WHEN_CHANGED);
-    } // Fl_Check_Button* allpacks
-    { outputlevelslider = new Fl_Value_Slider(220, 10, 200, 20, "Output Level: ");
-      outputlevelslider->tooltip("Updates the amount of text shown\n1 = Most text, 5 = Least text");
-      outputlevelslider->type(1);
-      outputlevelslider->box(FL_BORDER_BOX);
-      outputlevelslider->maximum(5);
-      outputlevelslider->step(1);
-      outputlevelslider->value(3);
-      outputlevelslider->textsize(14);
-      outputlevelslider->callback((Fl_Callback*)updateoutputlevel);
-      outputlevelslider->align(Fl_Align(FL_ALIGN_LEFT));
-    } // Fl_Value_Slider* outputlevelslider
+        { Fl_Group* o = new Fl_Group(25, 380, 340, 15);
+          { Fl_Group* o = new Fl_Group(25, 380, 170, 15, "FSB");
+            o->labeltype(FL_NO_LABEL);
+            { Fl_Check_Button* o = new Fl_Check_Button(25, 380, 55, 15, "FSB");
+              o->tooltip("FabricSkyboxes");
+              o->down_box(FL_DOWN_BOX);
+              o->value(1);
+              o->callback((Fl_Callback*)conversion);
+              o->when(FL_WHEN_CHANGED);
+            } // Fl_Check_Button* o
+            { // padding for resizing
+              Fl_Box* o = new Fl_Box(80, 380, 115, 15);
+              o->hide();
+              o->deactivate();
+              Fl_Group::current()->resizable(o);
+            } // Fl_Box* o
+            o->end();
+          } // Fl_Group* o
+          { Fl_Group* o = new Fl_Group(195, 380, 170, 15, "VMT");
+            o->labeltype(FL_NO_LABEL);
+            { Fl_Check_Button* o = new Fl_Check_Button(195, 380, 55, 15, "VMT");
+              o->tooltip("Varied Mob Textures");
+              o->down_box(FL_DOWN_BOX);
+              o->value(1);
+              o->callback((Fl_Callback*)conversion);
+              o->when(FL_WHEN_CHANGED);
+            } // Fl_Check_Button* o
+            { // padding for resizing
+              Fl_Box* o = new Fl_Box(250, 380, 115, 15);
+              o->hide();
+              o->deactivate();
+              Fl_Group::current()->resizable(o);
+            } // Fl_Box* o
+            o->end();
+          } // Fl_Group* o
+          o->end();
+          Fl_Group::current()->resizable(o);
+        } // Fl_Group* o
+        { Fl_Group* o = new Fl_Group(365, 380, 55, 15, "CIM");
+          o->labeltype(FL_NO_LABEL);
+          { Fl_Check_Button* o = new Fl_Check_Button(365, 380, 55, 15, "CIM");
+            o->tooltip("Chime");
+            o->down_box(FL_DOWN_BOX);
+            o->value(1);
+            o->callback((Fl_Callback*)conversion);
+            o->when(FL_WHEN_CHANGED);
+          } // Fl_Check_Button* o
+          o->end();
+        } // Fl_Group* o
+        o->end();
+      } // Fl_Group* o
+      { Fl_Group* o = new Fl_Group(25, 330, 395, 25, "Resourcepacks");
+        o->labeltype(FL_NO_LABEL);
+        { path_input = new Fl_Input(120, 330, 225, 25, "Resourcepacks: ");
+          path_input->tooltip("Input resourcepacks folder manually");
+          path_input->box(FL_BORDER_BOX);
+          path_input->labelsize(12);
+          path_input->textsize(12);
+          path_input->callback((Fl_Callback*)editpath);
+          path_input->align(Fl_Align(36));
+          Fl_Group::current()->resizable(path_input);
+        } // Fl_Input* path_input
+        { Fl_Button* o = new Fl_Button(355, 330, 65, 25, "Browse");
+          o->tooltip("Browse for resourcepacks folders");
+          o->box(FL_BORDER_BOX);
+          o->down_box(FL_BORDER_BOX);
+          o->color(FL_DARK2);
+          o->selection_color((Fl_Color)43);
+          o->callback((Fl_Callback*)browse);
+        } // Fl_Button* o
+        o->end();
+      } // Fl_Group* o
+      o->end();
+      Fl_Group::current()->resizable(o);
+    } // Fl_Group* o
+    { Fl_Group* o = new Fl_Group(445, 40, 195, 364, "Right");
+      o->labeltype(FL_NO_LABEL);
+      { scroll = new Fl_Scroll(445, 55, 190, 260, "Resourcepacks to convert");
+        scroll->box(FL_BORDER_BOX);
+        scroll->color((Fl_Color)48);
+        { // padding
+          Fl_Check_Button* o = new Fl_Check_Button(445, 60, 190, 15);
+          o->down_box(FL_DOWN_BOX);
+          o->labeltype(FL_NO_LABEL);
+          o->hide();
+          o->deactivate();
+        } // Fl_Check_Button* o
+        scroll->end();
+        Fl_Group::current()->resizable(scroll);
+      } // Fl_Scroll* scroll
+      { Fl_Button* o = new Fl_Button(445, 330, 110, 25, "Reload");
+        o->tooltip("Reload list of resourcepacks");
+        o->box(FL_BORDER_BOX);
+        o->color(FL_DARK2);
+        o->selection_color((Fl_Color)43);
+        o->callback((Fl_Callback*)reload);
+      } // Fl_Button* o
+      { allpacks = new Fl_Check_Button(570, 330, 60, 25, "All");
+        allpacks->tooltip("Select/Deselect all resourcepacks");
+        allpacks->down_box(FL_DOWN_BOX);
+        allpacks->value(1);
+        allpacks->callback((Fl_Callback*)selectall);
+        allpacks->when(FL_WHEN_CHANGED);
+      } // Fl_Check_Button* allpacks
+      { Fl_Button* o = new Fl_Button(445, 370, 190, 30, "Run");
+        o->tooltip("Start conversion process");
+        o->box(FL_BORDER_BOX);
+        o->down_box(FL_BORDER_BOX);
+        o->color(FL_DARK2);
+        o->selection_color((Fl_Color)43);
+        o->labelfont(1);
+        o->labelsize(16);
+        o->callback((Fl_Callback*)run);
+      } // Fl_Button* o
+      o->end();
+    } // Fl_Group* o
     window->end();
   } // Fl_Double_Window* window
-  { edit_paths = new Fl_Double_Window(269, 300, "Edit Paths");
+  { edit_paths = new Fl_Double_Window(270, 300, "Edit Paths");
     edit_paths->color((Fl_Color)48);
     edit_paths->user_data((void*)(this));
     { Fl_Button* o = new Fl_Button(10, 270, 120, 20, "Add");
@@ -182,6 +236,7 @@ of the resourcepacks folder, instead of any individual resource pack.");
     { dontshowwarning = new Fl_Check_Button(100, 125, 90, 20, "Don\'t show");
       dontshowwarning->down_box(FL_DOWN_BOX);
     } // Fl_Check_Button* dontshowwarning
+    path_warning->set_modal();
     path_warning->end();
   } // Fl_Window* path_warning
 }
