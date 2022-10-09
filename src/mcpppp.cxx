@@ -82,7 +82,6 @@ UI::UI() {
       path_input->textsize(12);
       path_input->callback((Fl_Callback*)editpath);
       path_input->align(Fl_Align(36));
-      path_input->when(FL_WHEN_CHANGED);
     } // Fl_Input* path_input
     { Fl_Button* o = new Fl_Button(25, 10, 65, 20, "Settings");
       o->tooltip("Edit Settings");

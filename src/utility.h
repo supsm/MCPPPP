@@ -495,6 +495,7 @@ namespace mcpppp
 						Fl::awake(print, dupstr(fmt::format("@S14@C{}@.{}", colors.at(static_cast<size_t>(level)), line)));
 					}
 					std::scoped_lock lock(output_mutex);
+					// std::to_underlying in C++23
 					outputted.emplace_back(static_cast<int>(level), line); // we don't need the modifier stuffs since we can add them later on
 				}
 				sstream.str(std::string());

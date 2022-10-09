@@ -141,28 +141,48 @@ void reload(Fl_Button* o, void* v)
 // callback for path_input
 void editpath(Fl_Input* o, void* v)
 {
-	deletedpaths.insert(paths.begin(), paths.end());
-	paths.clear();
 	std::string str = o->value();
-	// std::string::contains in C++23
-	while (str.find(" // ") != std::string::npos)
+
+	// add all current paths to deleted paths, clear current paths
+	std::set<std::filesystem::path> new_paths;
+	std::set<std::filesystem::path> new_deletedpaths = deletedpaths;
+	new_deletedpaths.insert(paths.begin(), paths.end());
+
+	// for each path entry, add to paths and remove from deleted paths
+	try
 	{
-		const size_t i = str.find(" // ");
-		const std::u8string temppath = std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i));
-		const std::filesystem::path path = std::filesystem::canonical(temppath);
-		paths.insert(path);
-		deletedpaths.erase(path);
-		str.erase(str.begin(), str.begin() + static_cast<std::string::difference_type>(i + 4));
+		// std::string::contains in C++23
+		while (str.find(" // ") != std::string::npos)
+		{
+			const size_t i = str.find(" // ");
+			const std::u8string temppath = std::u8string(str.begin(), str.begin() + static_cast<std::string::difference_type>(i));
+			const std::filesystem::path path = std::filesystem::canonical(temppath);
+			new_paths.insert(path);
+			new_deletedpaths.erase(path);
+			str.erase(str.begin(), str.begin() + static_cast<std::string::difference_type>(i + 4));
+		}
+		// final path entry is not succeeded by " // "
+		if (!str.empty())
+		{
+			const std::filesystem::path path = std::filesystem::canonical(mbtoc8(str));
+			new_paths.insert(path);
+			new_deletedpaths.erase(path);
+		}
+
+		paths = new_paths;
+		deletedpaths = new_deletedpaths;
+
+		mcpppp::addpaths();
+		mcpppp::updatepathconfig();
+		checkpoint();
 	}
-	if (!str.empty())
+	// if a filesystem error occurs (most likely invalid path), changes will be discarded
+	catch (const std::filesystem::filesystem_error& e)
 	{
-		const std::filesystem::path path = std::filesystem::canonical(mbtoc8(str));
-		paths.insert(path);
-		deletedpaths.erase(path);
+		output<level_t::error>("Filesystem error: {}\nNo changes have been made to paths", e.what());
+		checkpoint();
 	}
-	mcpppp::addpaths();
-	mcpppp::updatepathconfig();
-	checkpoint();
+
 }
 
 // callback for "Add" button in "Edit Paths"
