@@ -91,7 +91,10 @@ namespace mcpppp
 			}
 		}
 		running = false;
+		pause_conversion = false;
 		output<level_t::important>("Conversion Finished");
+		ui->run_button->label("Run");
+		ui->run_button->tooltip("Start conversion process");
 
 		// output all warnings at end, to avoid conversion pausing
 		for (const auto& message : alerts)

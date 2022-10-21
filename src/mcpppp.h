@@ -38,6 +38,7 @@ public:
   Fl_Input *path_input;
   Fl_Scroll *scroll;
   Fl_Check_Button *allpacks;
+  Fl_Button *run_button;
   Fl_Double_Window *edit_paths;
   Fl_Scroll *paths;
   Fl_Double_Window *settings;

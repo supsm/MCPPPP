@@ -242,10 +242,13 @@ namespace mcpppp
 #ifdef GUI
 	// pack warning messages which are all outputted after conversion finishes
 	inline std::vector<std::string> alerts;
+
+	inline std::atomic_bool pause_conversion;
 #endif
 
 #ifdef __cpp_lib_source_location
 	// recently visited locations, may be useful for debugging
+	// replace with <stacktrace> in C++23
 	inline std::list<std::source_location> pseudotrace;
 #endif
 
@@ -720,24 +723,38 @@ namespace mcpppp
 	// e.g. check for pause, return control to webpage, update progress bar
 	inline void do_checkpoint_stuff()
 	{
-#ifdef __EMSCRIPTEN__
+#ifdef GUI
+		while (pause_conversion)
+		{
+			std::this_thread::yield();
+		}
 #endif
 	}
 
 #ifdef __cpp_lib_source_location
+	// only log checkpoint, do not perform other actions
+	// should not block
+	inline void checkpoint_only(std::source_location location = std::source_location::current())
+	{
+		addtraceitem(location);
+		output<level_t::debug>(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+	}
+
 	// creates a checkpoint
 	// see do_checkpoint_stuff
 	inline void checkpoint(std::source_location location = std::source_location::current())
 	{
-		addtraceitem(location);
-		output<level_t::debug>(location_format, location.file_name(), location.function_name(), location.line(), location.column());
+		checkpoint_only(location);
 		do_checkpoint_stuff();
 	}
 #else
+	inline void checkpoint_only() {}
+
 	// creates a checkpoint
 	// see do_checkpoint_stuff
 	inline void checkpoint()
 	{
+		checkpoint_only();
 		do_checkpoint_stuff();
 	}
 #endif

@@ -167,16 +167,16 @@ UI::UI() {
         allpacks->callback((Fl_Callback*)selectall);
         allpacks->when(FL_WHEN_CHANGED);
       } // Fl_Check_Button* allpacks
-      { Fl_Button* o = new Fl_Button(445, 370, 190, 30, "Run");
-        o->tooltip("Start conversion process");
-        o->box(FL_BORDER_BOX);
-        o->down_box(FL_BORDER_BOX);
-        o->color(FL_DARK2);
-        o->selection_color((Fl_Color)43);
-        o->labelfont(1);
-        o->labelsize(16);
-        o->callback((Fl_Callback*)run);
-      } // Fl_Button* o
+      { run_button = new Fl_Button(445, 370, 190, 30, "Run");
+        run_button->tooltip("Start conversion process");
+        run_button->box(FL_BORDER_BOX);
+        run_button->down_box(FL_BORDER_BOX);
+        run_button->color(FL_DARK2);
+        run_button->selection_color((Fl_Color)43);
+        run_button->labelfont(1);
+        run_button->labelsize(16);
+        run_button->callback((Fl_Callback*)run);
+      } // Fl_Button* run_button
       o->end();
     } // Fl_Group* o
     window->end();

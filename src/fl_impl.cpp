@@ -25,19 +25,35 @@ using mcpppp::entries;
 using mcpppp::deletedpaths;
 using mcpppp::c8tomb;
 using mcpppp::mbtoc8;
-using mcpppp::checkpoint;
+using mcpppp::checkpoint_only;
 
 // callback for run button
 void run(Fl_Button* o, void* v)
 {
 	if (mcpppp::running)
 	{
+		// conversion is already paused, unpause it
+		if (mcpppp::pause_conversion)
+		{
+			o->label("Pause");
+			o->tooltip("Pause conversion");
+		}
+		// pause conversion process
+		else
+		{
+			o->label("Resume");
+			o->tooltip("Resume conversion");
+		}
+		mcpppp::pause_conversion = !mcpppp::pause_conversion;
 		return;
 	}
 	mcpppp::running = true;
+	mcpppp::pause_conversion = false;
+	o->label("Pause");
+	o->tooltip("Pause conversion");
 	std::thread t(mcpppp::guirun);
 	t.detach();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for "CIM", "VMT", "FSB" checkboxes
@@ -55,7 +71,7 @@ void conversion(Fl_Check_Button* o, void* v)
 	{
 		mcpppp::docim = static_cast<bool>(o->value());
 	}
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for resourcepack checkboxes
@@ -63,7 +79,7 @@ void resourcepack(Fl_Check_Button* o, void* v)
 {
 	entries.at(static_cast<size_t>(*(static_cast<int*>(v)))).selected = static_cast<bool>(o->value());
 	ui->allpacks->value(0);
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for Force Reconvert checkbox (accessed by right clicking resourcepack name)
@@ -93,14 +109,14 @@ void forcereconvert(Fl_Menu_* o, void* v)
 	}
 
 	ui->scroll->redraw();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for browse button
 void browse(Fl_Button* o, void* v)
 {
 	ui->edit_paths->show();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for reload button
@@ -135,7 +151,7 @@ void reload(Fl_Button* o, void* v)
 	}
 	ui->allpacks->value(1);
 	Fl::wait();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for path_input
@@ -174,13 +190,13 @@ void editpath(Fl_Input* o, void* v)
 
 		mcpppp::addpaths();
 		mcpppp::updatepathconfig();
-		checkpoint();
+		checkpoint_only();
 	}
 	// if a filesystem error occurs (most likely invalid path), changes will be discarded
 	catch (const std::filesystem::filesystem_error& e)
 	{
 		output<level_t::error>("Filesystem error: {}\nNo changes have been made to paths", e.what());
-		checkpoint();
+		checkpoint_only();
 	}
 
 }
@@ -206,7 +222,7 @@ void addrespath(Fl_Button* o, void* v)
 		ui->edit_paths->redraw();
 		reload(nullptr, nullptr);
 	}
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for "Delete" button in "Edit Paths"
@@ -231,14 +247,14 @@ void deleterespath(Fl_Button* o, void* v)
 	mcpppp::updatepathconfig();
 	ui->edit_paths->redraw();
 	reload(nullptr, nullptr);
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for paths buttons in "Edit Paths"
 void selectpath(Fl_Radio_Button* o, void* v) noexcept
 {
 	selectedwidget.reset(o);
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for settings button
@@ -247,7 +263,7 @@ void opensettings(Fl_Button* o, void* v)
 	ui->settings->show();
 	ui->box1->redraw(); // the outlining boxes disappear for some reason
 	ui->box2->redraw();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for help button
@@ -256,7 +272,7 @@ void openhelp(Fl_Button* o, void* v)
 	ui->help->show();
 	ui->box1->redraw();
 	ui->box2->redraw();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for save button in setings
@@ -281,7 +297,7 @@ void savesettings(Fl_Button* o, void* v)
 			break;
 		}
 	}
-	checkpoint(); // finish updating `mcpppp::config`
+	checkpoint_only(); // finish updating `mcpppp::config`
 
 	// remove excess settings
 	std::vector<std::string> toremove;
@@ -321,7 +337,7 @@ void savesettings(Fl_Button* o, void* v)
 			}
 		}
 	}
-	checkpoint(); // finish removing duplicate settings
+	checkpoint_only(); // finish removing duplicate settings
 
 	// remove default settings
 	for (const auto& setting : config["gui"]["settings"].items())
@@ -335,7 +351,7 @@ void savesettings(Fl_Button* o, void* v)
 	{
 		config["gui"]["settings"].erase(s);
 	}
-	checkpoint(); // finish removing default settings
+	checkpoint_only(); // finish removing default settings
 
 	std::ofstream fout("mcpppp-config.json");
 	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
@@ -345,14 +361,14 @@ void savesettings(Fl_Button* o, void* v)
 	mcpppp::readconfig();
 
 	mcpppp::savewarning->hide();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for edited settings
 void settingchanged(Fl_Widget* o, void* v)
 {
 	mcpppp::savewarning->show();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for select all/none
@@ -365,7 +381,7 @@ void selectall(Fl_Check_Button* o, void* v)
 	}
 	ui->scroll->redraw();
 	Fl::wait();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for output level slider
@@ -391,7 +407,7 @@ void updateoutputlevel(Fl_Value_Slider* o, void* v)
 	fout << "// Please check out the Documentation for the config file before editing it yourself: https://github.com/supsm/MCPPPP/blob/master/CONFIG.md" << std::endl;
 	fout << mcpppp::config.dump(1, '\t') << std::endl;
 	fout.close();
-	checkpoint();
+	checkpoint_only();
 }
 
 // callback for closing main window
@@ -415,6 +431,6 @@ void windowclosed(Fl_Double_Window* o, void* v)
 	{
 		o->hide();
 	}
-	checkpoint();
+	checkpoint_only();
 }
 #endif
