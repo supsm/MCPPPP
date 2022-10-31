@@ -142,7 +142,7 @@ namespace fsb
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
-		source = name;
+		source = u8"./" + name;
 		bool reverse_speed = false;
 
 		nlohmann::json j =
