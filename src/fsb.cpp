@@ -131,9 +131,10 @@ namespace fsb
 
 	// convert optifine properties files into fsb properties json
 	// @param path  path of resourcepack
+	// @param optifine  true if in optifine directory, false if mcpatcher
 	// @param overworldsky  whether properties file is overworld sky (and not end)
 	// @param entry  directory entry of properties file
-	static void prop(const std::filesystem::path& path, const bool overworldsky, const std::filesystem::directory_entry& entry)
+	static void prop(const std::filesystem::path& path, const bool overworldsky, const bool optifine, const std::filesystem::directory_entry& entry)
 	{
 		int startfadein = -1, endfadein = -1, startfadeout = -1, endfadeout = -1;
 		const std::u8string name = entry.path().stem().generic_u8string();
@@ -352,76 +353,83 @@ namespace fsb
 		}
 
 
+		std::filesystem::path base = "assets/minecraft";
+		bool relative = false;
+		std::u8string sourcefolder = u8"minecraft/", sourcefile;
+
+		// set base path to properties directory
 		if (source.starts_with(u8"./"))
 		{
-			source.erase(source.begin(), source.begin() + 2);
-			const std::u8string origsource = source;
-			u8temp = entry.path().parent_path().generic_u8string();
-			if (u8temp.back() != '/')
+			source.erase(0, 2);
+			base = entry.path().parent_path();
+			sourcefolder.clear();
+			relative = true;
+		}
+		// set base path to optifine/mcpatcher directory
+		else if (source.starts_with(u8"~/"))
+		{
+			source.erase(0, 2);
+			std::u8string_view str = (optifine ? u8"optifine/" : u8"mcpatcher/");
+			sourcefolder += str;
+			base /= str;
+		}
+		// set base path to namespace
+		else if (source.find(u8':') != std::string::npos)
+		{
+			// extract namespace
+			std::u8string ns;
+			size_t pos = source.find(u8':');
+			ns = { source.begin(), source.begin() + pos };
+			source.erase(source.begin(), source.begin() + pos + 1);
+
+			if (ns.find(u8'/') != std::string::npos)
 			{
-				u8temp += '/';
+				throw std::runtime_error("FSB: Invalid namespace " + c8tomb(ns));
 			}
-			u8temp += source;
-			source = u8"fabricskyboxes:sky/" + source;
-			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(u8temp + u8".png"));
-			if (image.exists())
+
+			base = u8"assets/" + ns;
+			sourcefolder = ns + u8'/';
+		}
+
+		sourcefile = source;
+		if (!relative)
+		{
+			size_t pos = source.rfind('/');
+			if (pos != std::string::npos)
 			{
-				png(path, overworldsky, u8"assets/fabricskyboxes/sky", image, origsource);
+				sourcefolder += { source.begin(), source.begin() + pos + 1 };
+				// source without sourcefolder
+				sourcefile = std::u8string(source.begin() + pos + 1, source.end());
 			}
-			else
-			{
-				output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(u8temp));
-				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / (origsource + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				buffer.clear();
-				buffer.shrink_to_fit();
-				checkpoint();
-			}
+		}
+
+		const std::filesystem::path image_noext = path / base / source;
+		const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
+		if (image.exists())
+		{
+			png(path, overworldsky, u8"assets/fabricskyboxes/sky/" + sourcefolder, image, image_noext.filename().u8string());
 		}
 		else
 		{
-			std::u8string sourcefolder = source, sourcefile;
-			while (sourcefolder.back() != '/')
+			std::filesystem::path fsb_save_dir = path / "assets/fabricskyboxes/sky";
+			if (!relative)
 			{
-				sourcefolder.erase(sourcefolder.end() - 1);
-				if (sourcefolder.empty())
-				{
-					throw std::out_of_range("FSB: source does not contain a /");
-				}
+				fsb_save_dir /= sourcefolder;
 			}
-			sourcefile = std::u8string(source.begin() + static_cast<std::string::difference_type>(sourcefolder.size()), source.end());
-			if (sourcefolder.front() != '/')
-			{
-				sourcefolder.insert(sourcefolder.begin(), '/');
-			}
-			const std::filesystem::path image_noext = path / source;
-			const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
-			if (image.exists())
-			{
-				png(path, overworldsky, u8"assets/fabricskyboxes/sky" + sourcefolder, image, image_noext.filename().u8string());
-			}
-			else
-			{
-
-				output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(sourcefolder + sourcefile));
-				lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				lodepng::save_file(buffer, c8tomb((path / u8"assets/fabricskyboxes/sky" / sourcefolder / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-				buffer.clear();
-				buffer.shrink_to_fit();
-				checkpoint();
-			}
-			source = u8"fabricskyboxes:sky" + sourcefolder + sourcefile;
+			output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(sourcefolder + sourcefile));
+			std::filesystem::create_directories(fsb_save_dir);
+			lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+			buffer.clear();
+			buffer.shrink_to_fit();
+			checkpoint();
 		}
+		source = u8"fabricskyboxes:sky/" + sourcefolder + sourcefile;
 
 		j["textures"]["top"] = c8tomb(source) + "_top" + (overworldsky ? "" : "_end") + ".png";
 		j["textures"]["bottom"] = c8tomb(source) + "_bottom" + (overworldsky ? "" : "_end") + ".png";
@@ -500,7 +508,7 @@ namespace fsb
 				if (entry.path().extension() == ".properties")
 				{
 					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
-					prop(path, true, entry);
+					prop(path, true, info.optifine, entry);
 				}
 			}
 		}
@@ -513,7 +521,7 @@ namespace fsb
 				if (entry.path().extension() == ".properties")
 				{
 					output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
-					prop(path, false, entry);
+					prop(path, false, info.optifine, entry);
 				}
 			}
 		}
