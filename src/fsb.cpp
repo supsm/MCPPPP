@@ -353,7 +353,7 @@ namespace fsb
 		}
 
 
-		std::filesystem::path base = "assets/minecraft";
+		std::filesystem::path base = path / "assets/minecraft";
 		bool relative = false;
 		std::u8string sourcefolder = u8"minecraft/", sourcefile;
 
@@ -387,7 +387,7 @@ namespace fsb
 				throw std::runtime_error("FSB: Invalid namespace " + c8tomb(ns));
 			}
 
-			base = u8"assets/" + ns;
+			base = path / (u8"assets/" + ns);
 			sourcefolder = ns + u8'/';
 		}
 
@@ -403,7 +403,7 @@ namespace fsb
 			}
 		}
 
-		const std::filesystem::path image_noext = path / base / source;
+		const std::filesystem::path image_noext = base / source;
 		const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 		if (image.exists())
 		{
