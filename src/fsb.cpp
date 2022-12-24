@@ -48,7 +48,8 @@ namespace fsb
 			return;
 		}
 		unsigned int w = 0, h = 0;
-		std::vector<uint8_t> buffer, image, image1, image2, image3; // before h/2: bottom (rotate 90 counterclockwise), top, south; h/2 to h: west, north, east
+		std::vector<uint8_t> buffer, image, image1, image2, image3, top; // before h/2: bottom (rotate 90 counterclockwise), top (rotate 90 clockwise), south; h/2 to h: west, north, east
+		// rotation: w*h - w + 1, w*h - 2*w + 1, ..., w*h - h*w + 1, w*h - w + 2, w*h - 2*w + 2, ..., w*h - w + w, w*h - 2*w + w, ...
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
@@ -80,6 +81,17 @@ namespace fsb
 		}
 		checkpoint();
 
+		top.reserve(image.size() / 6);
+		for (long long i = 0; i < outw; i += 4)
+		{
+			for (long long j = 0; j < outh; j++)
+			{
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 1)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 2)));
+				top.push_back(image2.at(static_cast<size_t>(outw * outh - (j + 1) * outw + i + 3)));
+			}
+		}
 		buffer.clear();
 		std::filesystem::create_directories((path / output_path / filename).parent_path());
 		checkpoint();
@@ -92,7 +104,7 @@ namespace fsb
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image2, outh, outw / 4, state));
+		checkError(lodepng::encode(buffer, top, outh, outw / 4, state));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
 		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
