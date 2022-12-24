@@ -25,20 +25,26 @@ jobs:
     #- name: configure cmake with clang-cl
     #  if: ${{ runner.os == 'Windows' }}
     #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -T ClangCL
-    - name: configure cmake with clang
-      if: ${{ runner.os != 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
-      env:
-        CC: clang
-        CXX: clang++
+    #- name: configure cmake with clang
+    #  if: ${{ runner.os != 'Windows' }}
+    #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
+    #  env:
+    #    CC: clang
+    #    CXX: clang++
 
     # temporary until clang support vvv
     - name: configure cmake
       if: ${{ runner.os == 'Windows' }}
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
+    - name: configure cmake
+      if: ${{ runner.os != 'Windows' }}
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
+      env:
+        CC: gcc-12
+        CXX: g++-12
 
     - name: build cmake
-      run: cmake --build build --config Release --parallel 64
+      run: cmake --build build --config Release
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
@@ -186,15 +192,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     
-    - run: sudo apt update && sudo apt install -y gcc-10-aarch64-linux-gnu g++-10-aarch64-linux-gnu
+    - run: sudo apt update && sudo apt install -y gcc-12-aarch64-linux-gnu g++-12-aarch64-linux-gnu
     - name: configure cmake
       run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=FALSE -DMCPPPP_JNI=FALSE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
       env:
-        CC: aarch64-linux-gnu-gcc-10
-        CXX: aarch64-linux-gnu-g++-10
+        CC: aarch64-linux-gnu-gcc-12
+        CXX: aarch64-linux-gnu-g++-12
 
     - name: build cmake
-      run: cmake --build build --parallel 64
+      run: cmake --build build
       
     - name: copy files
       run: mkdir artifacts && cp build/bin/* artifacts/
