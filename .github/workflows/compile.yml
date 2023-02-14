@@ -21,24 +21,11 @@ jobs:
       with:
         java-version: 16
 
-    # use clang when it supports stuff
-    #- name: configure cmake with clang-cl
-    #  if: ${{ runner.os == 'Windows' }}
-    #  run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -T ClangCL
-    - name: configure cmake with clang
-      if: ${{ runner.os != 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
-      env:
-        CC: clang
-        CXX: clang++
-
-    # temporary until clang support vvv
     - name: configure cmake
-      if: ${{ runner.os == 'Windows' }}
-      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE
+      run: cmake -B build -DMCPPPP_CLI=TRUE -DMCPPPP_GUI=TRUE -DMCPPPP_JNI=TRUE -DMCPPPP_BUILD_FLTK=TRUE -DMCPPPP_STATIC_LINK=TRUE -DCMAKE_BUILD_TYPE=Release
 
     - name: build cmake
-      run: cmake --build build --config Release
+      run: cmake --build build --config Release --parallel 16
 
     - name: copy files (windows)
       if: ${{ runner.os == 'Windows' }}
