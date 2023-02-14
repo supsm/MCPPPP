@@ -14,7 +14,7 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
     runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: setup jdk
       uses: actions/setup-java@v1
@@ -171,7 +171,7 @@ jobs:
   build-linux-arm:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     
     - run: sudo apt update && sudo apt install -y gcc-12-aarch64-linux-gnu g++-12-aarch64-linux-gnu
     - name: configure cmake
@@ -198,7 +198,7 @@ jobs:
   build-emscripten:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: setup emsdk (emscripten)
       uses: mymindstorm/setup-emsdk@v11
 
@@ -237,7 +237,7 @@ jobs:
   copy-gradle-properties:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
 
     - name: copy gradle properties
       uses: supsm/copy_file_to_another_repo@master
