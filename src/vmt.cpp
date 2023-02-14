@@ -749,6 +749,7 @@ namespace vmt
 
 		bool reconverting = false;
 
+		checkpoint();
 		if (mcpppp::findfolder(path, u8"assets/vmt/", zip))
 		{
 			if (mcpppp::autoreconvert)
@@ -797,7 +798,6 @@ namespace vmt
 		{
 			return { checkresults::noneconvertible, false, false, zip };
 		}
-		checkpoint();
 	}
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)

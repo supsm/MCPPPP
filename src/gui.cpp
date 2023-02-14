@@ -342,12 +342,11 @@ namespace mcpppp
 		}
 		for (const auto& path : paths)
 		{
-			std::unique_ptr<Fl_Radio_Button> o = std::make_unique<Fl_Radio_Button>(10, 15 + 15 * i, std::max(maxsize, 250), 15);
+			Fl_Radio_Button* o = new Fl_Radio_Button(10, 15 + 15 * i, std::max(maxsize, 250), 15);
 			o->align(FL_ALIGN_LEFT | FL_ALIGN_INSIDE);
 			o->copy_label(c8tomb((u8"    " + path.generic_u8string()).c_str()));
 			o->callback(reinterpret_cast<Fl_Callback*>(selectpath));
-			ui->paths->add(o.get());
-			o.release();
+			ui->paths->add(o);
 
 			i++;
 		}

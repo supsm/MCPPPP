@@ -692,9 +692,11 @@ namespace cim
 
 	mcpppp::checkinfo check(const std::filesystem::path& path, const bool zip) noexcept
 	{
-		checkpoint();
 		using mcpppp::checkresults;
+
 		bool reconverting = false;
+
+		checkpoint();
 		if (mcpppp::findfolder(path, u8"assets/minecraft/overrides/", zip))
 		{
 			if (mcpppp::autoreconvert)
@@ -732,7 +734,6 @@ namespace cim
 		{
 			return { checkresults::noneconvertible, false, false, zip };
 		}
-		checkpoint();
 	}
 
 	void convert(const std::filesystem::path& path, const std::u8string& filename, const mcpppp::checkinfo& info)

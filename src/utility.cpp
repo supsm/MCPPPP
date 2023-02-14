@@ -52,7 +52,16 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
-		return fmt::format("[{}:{}:{}]", hour, min, sec);
+		
+		try
+		{
+			return fmt::format("[{}:{}:{}]", hour, min, sec);
+		}
+		catch (const std::exception& e)
+		{
+			output<level_t::error>("Format error: {}", e.what());
+			return {};
+		}
 	}
 
 	void findreplace(std::string& source, const std::string_view& find, const std::string_view& replace)

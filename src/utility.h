@@ -105,10 +105,10 @@ namespace mcpppp
 	public:
 		bool selected; // whether path is selected for conversion, always true for cli
 		bool force_reconvert; // force reconvert resource pack (i.e. if checkresult is reconverting, always convert)
-		std::filesystem::directory_entry path_entry; // directory entry of resourcepack
+		const std::filesystem::directory_entry path_entry; // directory entry of resourcepack
 
 #ifdef GUI
-		std::unordered_map<conversions, checkresults> conv_statuses;
+		const std::unordered_map<conversions, checkresults> conv_statuses;
 
 		std::unique_ptr<Fl_Check_Button> checkbox_widget;
 		std::unique_ptr<Fl_Box> label_widget;
@@ -189,7 +189,7 @@ namespace mcpppp
 
 	public:
 		template<typename T> requires has_type<std::reference_wrapper<T>, decltype(var)>
-		T& get() const noexcept
+		T& get() const
 		{
 			return std::get<std::reference_wrapper<T>>(var).get();
 		}
@@ -402,7 +402,7 @@ namespace mcpppp
 	inline char* dupstr(const std::string_view& s)
 	{
 		// add one for null character
-		char* c = new char[s.size() + 1]{};
+		char* c = new char[s.size() + 1] {};
 		std::copy_n(s.begin(), s.size(), c);
 		return c;
 	}
@@ -429,11 +429,11 @@ namespace mcpppp
 			typename
 #endif
 			T>
-			consteval format_location(T fmt
+		consteval format_location(T fmt
 #ifdef __cpp_lib_source_location
-				, std::source_location location = std::source_location::current()
+			, std::source_location location = std::source_location::current()
 #endif
-			) noexcept : fmt(fmt)
+		) noexcept : fmt(fmt)
 #ifdef __cpp_lib_source_location
 			, location(location)
 #endif
@@ -702,16 +702,20 @@ namespace mcpppp
 				std::cout << (dotimestamp ? timestamp() + ' ' : "");
 			}
 		}
+		try
 		{
 			outstream out(level >= outputlevel, dolog && level >= loglevel, level == level_t::error, level);
 			out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
-		}
 #ifdef __cpp_lib_source_location
-		{
 			outstream debug_out(level_t::debug >= outputlevel, dolog && level_t::debug >= loglevel, false, level_t::debug);
 			debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
-		}
 #endif
+		}
+		catch (const std::exception& e)
+		{
+			outstream out(true, true, true, level_t::error);
+			out << "Format error during output";
+		}
 
 		if (level == level_t::error)
 		{
