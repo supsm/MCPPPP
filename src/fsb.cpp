@@ -52,8 +52,11 @@ namespace fsb
 		lodepng::State state;
 		state.info_raw.colortype = LCT_RGBA;
 		state.info_raw.bitdepth = 8;
+
+		// don't let decode modify original state (later used for encoding)
+		auto state_copy = state;
 		checkError(lodepng::load_file(buffer, c8tomb(entry.path().generic_u8string())));
-		checkError(lodepng::decode(image, w, h, state, buffer));
+		checkError(lodepng::decode(image, w, h, state_copy, buffer));
 		if (w % 3 != 0 || h % 2 != 0)
 		{
 			output<level_t::info>("(warn) FSB: Wrong dimensions: {}\nwill be cropped to proper dimensions", c8tomb(entry.path().generic_u8string()));
@@ -89,13 +92,17 @@ namespace fsb
 		state.info_png.color.bitdepth = 8;
 		state.encoder.auto_convert = false;
 
-		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
+		// make a copy of state because lodepng::encode modifies state and it breaks things
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image2, outh, outw / 4, state));
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image2, outh, outw / 4, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		image1.clear();
 		image2.clear();
@@ -118,13 +125,16 @@ namespace fsb
 		checkpoint();
 
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state));
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image2, outw / 4, outh, state));
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image2, outw / 4, outh, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		buffer.clear();
-		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state));
+		state_copy = state;
+		checkError(lodepng::encode(buffer, image3, outw / 4, outh, state_copy));
 		checkError(lodepng::save_file(buffer, c8tomb((path / output_path / (filename + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string())));
 		checkpoint();
 	}
