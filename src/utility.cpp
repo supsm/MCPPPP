@@ -52,7 +52,7 @@ namespace mcpppp
 		{
 			sec.insert(sec.begin(), '0');
 		}
-		
+
 		try
 		{
 			return fmt::format("[{}:{}:{}]", hour, min, sec);
@@ -1322,14 +1322,14 @@ namespace mcpppp
 							output<level_t::error>("Invalid pack: {}", s);
 							return true;
 						}
-						return false;
+			return false;
 					}), resourcepacks.end());
 
 			std::transform(resourcepacks.begin(), resourcepacks.end(), std::back_inserter(mcpppp::entries),
 				[force_reconvert = (parser["--force_reconvert"] == true)](const std::string& s)->resourcepack_entry
-			{
-				return { true, force_reconvert, std::filesystem::directory_entry(s) };
-			});
+				{
+					return { true, force_reconvert, std::filesystem::directory_entry(s) };
+				});
 		}
 		catch (const std::logic_error& e)
 		{

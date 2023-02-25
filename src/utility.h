@@ -704,11 +704,15 @@ namespace mcpppp
 		}
 		try
 		{
-			outstream out(level >= outputlevel, dolog && level >= loglevel, level == level_t::error, level);
-			out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
+			{
+				outstream out(level >= outputlevel, dolog && level >= loglevel, level == level_t::error, level);
+				out << fmt::format(fmt::runtime(fmt.fmt), args...); // i don't know why `fmt.fmt` isn't compile-time enough
+			}
 #ifdef __cpp_lib_source_location
-			outstream debug_out(level_t::debug >= outputlevel, dolog && level_t::debug >= loglevel, false, level_t::debug);
-			debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
+			{
+				outstream debug_out(level_t::debug >= outputlevel, dolog && level_t::debug >= loglevel, false, level_t::debug);
+				debug_out << fmt::format(location_format, fmt.location.file_name(), fmt.location.function_name(), fmt.location.line(), fmt.location.column());
+			}
 #endif
 		}
 		catch (const std::exception& e)
