@@ -371,7 +371,11 @@ namespace mcpppp
 		// remove underscore '_' character from string
 		// @param str  string to remove underscores from (passed by value)
 		// @return `str` with underscores removed
-		std::string ununderscore(std::string str);
+		inline std::string ununderscore(std::string str)
+		{
+			str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
+			return str;
+		}
 
 		// convert optifine regex-like format to java regex
 		// @param of  string of optifine format
@@ -393,6 +397,29 @@ namespace mcpppp
 		// @param s  string to parse
 		// @return pair of height values, or { INT_MIN, INT_MIN } on failure
 		std::pair<int, int> parse_range(const std::string_view& s);
+
+		// matches characters that are invalid location paths
+		const inline std::regex bad_regex("[^a-z0-9/._-]", std::regex_constants::optimize | std::regex_constants::ECMAScript);
+
+		// fixes character paths so they are valid minecraft resource locations
+		// @param s  string to fix (passed by reference)
+		// @return none, output is stored in `s`
+		inline void fixpathchars(std::string& s)
+		{
+			mcpppp::findreplace(s, " ", "_");
+			s = mcpppp::lowercase(s);
+			s = std::regex_replace(s, bad_regex, "-");
+		}
+
+		// fixes character paths so they are valid minecraft resource locations
+		// @param s  string to fix (passed by reference)
+		// @return none, output is stored in `s`
+		inline void fixpathchars(std::u8string& s)
+		{
+			mcpppp::findreplace(s, u8" ", u8"_");
+			s = mcpppp::lowercase(s);
+			s = mbtoc8(std::regex_replace(reinterpret_cast<const char*>(s.c_str()), bad_regex, "-"));
+		}
 	}
 
 	// lol

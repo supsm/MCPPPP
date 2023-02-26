@@ -29,12 +29,16 @@ namespace fsb
 	// convert optifine image format (1 image for all 6 sides) into fsb image format (1 image per side)
 	// @param path  path of resourcepack
 	// @param overworldsky  whether image is of overworld sky (and not end)
-	// @param output  location to output to (relative to `path`)
+	// @param output_path  location to output to (relative to `path`)
 	// @param entry  directory entry of image file to convert
 	// @param filename  name of image file (no extension)
-	static void png(const std::filesystem::path& path, const bool overworldsky, const std::u8string& output_path, const std::filesystem::directory_entry& entry, const std::u8string& filename)
+	static void png(const std::filesystem::path& path, const bool overworldsky, std::u8string output_path, const std::filesystem::directory_entry& entry, std::u8string filename)
 	{
 		output<level_t::detail>("FSB: Converting {}", c8tomb(entry.path().generic_u8string()));
+
+		mcpppp::conv::fixpathchars(output_path);
+		mcpppp::conv::fixpathchars(filename);
+
 		// skip if already converted
 		// TODO: might cause some issues with reconverting
 		if (std::filesystem::exists(path / output_path / (filename + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")) &&
@@ -92,6 +96,8 @@ namespace fsb
 		state.info_png.color.bitdepth = 8;
 		state.encoder.auto_convert = false;
 
+		// TODO: use mcpppp::conv::fixpathchars
+
 		// make a copy of state because lodepng::encode modifies state and it breaks things
 		state_copy = state;
 		checkError(lodepng::encode(buffer, image1, outw / 4, outh, state_copy));
@@ -141,8 +147,8 @@ namespace fsb
 
 	// convert optifine properties files into fsb properties json
 	// @param path  path of resourcepack
-	// @param optifine  true if in optifine directory, false if mcpatcher
 	// @param overworldsky  whether properties file is overworld sky (and not end)
+	// @param optifine  true if in optifine directory, false if mcpatcher
 	// @param entry  directory entry of properties file
 	static void prop(const std::filesystem::path& path, const bool overworldsky, const bool optifine, const std::filesystem::directory_entry& entry)
 	{
@@ -421,6 +427,8 @@ namespace fsb
 		}
 		else
 		{
+			// image doesn't exist, replace with 1 pixel transparent texture
+			// to at least get rid of purple checkerboard
 			std::filesystem::path fsb_save_dir = path / "assets/fabricskyboxes/sky";
 			if (!relative)
 			{
@@ -439,6 +447,8 @@ namespace fsb
 			buffer.shrink_to_fit();
 			checkpoint();
 		}
+		mcpppp::conv::fixpathchars(sourcefolder);
+		mcpppp::conv::fixpathchars(sourcefile);
 		source = u8"fabricskyboxes:sky/" + sourcefolder + sourcefile;
 
 		j["textures"]["top"] = c8tomb(source) + "_top" + (overworldsky ? "" : "_end") + ".png";

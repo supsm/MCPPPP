@@ -90,13 +90,6 @@ namespace mcpppp
 
 	namespace conv
 	{
-		std::string ununderscore(std::string str)
-		{
-			str.erase(std::remove(str.begin(), str.end(), '_'), str.end());
-			checkpoint();
-			return str;
-		}
-
 		std::string oftoregex(std::string of)
 		{
 			findreplace(of, ".", "\\.");
