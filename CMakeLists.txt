@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.15)
 project(MCPPPP
 	DESCRIPTION "A resource pack converter from Optifine/MCPatcher formats to other formats"
 	LANGUAGES CXX
-	VERSION 0.7.3
+	VERSION 0.7.6
 	HOMEPAGE_URL "http://github.com/supsm/MCPPPP"
 )
 set(CMAKE_CXX_STANDARD 20)
