@@ -17,12 +17,33 @@ namespace fsb
 {
 	// check and handle lodepng error
 	// @param i  error code
-	static void checkError(const unsigned int i)
+	static inline unsigned int checkError(const unsigned int i)
 	{
 		if (i != 0)
 		{
 			output<level_t::error>("FSB: png error: {}", lodepng_error_text(i));
 		}
+		checkpoint();
+		return i;
+	}
+
+	static inline void texture_not_found(const std::filesystem::path& path, const bool overworldsky, const std::filesystem::path& save_dir, const std::u8string& sourcefile)
+	{
+		std::vector<uint8_t> buffer;
+		lodepng::State state;
+		state.info_png.color.colortype = LCT_RGBA;
+		state.info_png.color.bitdepth = 8;
+		state.encoder.auto_convert = false;
+
+		mcpppp::output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(sourcefile));
+		std::filesystem::create_directories(save_dir);
+		lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
+		lodepng::save_file(buffer, c8tomb((save_dir / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
 		checkpoint();
 	}
 
@@ -58,9 +79,16 @@ namespace fsb
 		state.info_raw.bitdepth = 8;
 
 		// don't let decode modify original state (later used for encoding)
+		// TODO: if unable to load/decode, create 1x1 transparent image
 		auto state_copy = state;
 		checkError(lodepng::load_file(buffer, c8tomb(entry.path().generic_u8string())));
-		checkError(lodepng::decode(image, w, h, state_copy, buffer));
+		unsigned int err = checkError(lodepng::decode(image, w, h, state_copy, buffer));
+		if (err)
+		{
+			output<level_t::error>("FSB: corrupted png file, skipping: {}", c8tomb(entry.path().generic_u8string()));
+			texture_not_found(path, overworldsky, path / output_path, filename);
+			return;
+		}
 		if (w % 3 != 0 || h % 2 != 0)
 		{
 			output<level_t::info>("(warn) FSB: Wrong dimensions: {}\nwill be cropped to proper dimensions", c8tomb(entry.path().generic_u8string()));
@@ -423,7 +451,7 @@ namespace fsb
 		const std::filesystem::directory_entry image = std::filesystem::directory_entry(std::filesystem::path(image_noext).replace_extension(".png"));
 		if (image.exists())
 		{
-			png(path, overworldsky, u8"assets/fabricskyboxes/sky/" + sourcefolder, image, image_noext.filename().u8string());
+			png(path, overworldsky, u8"assets/fabricskyboxes/sky/" + sourcefolder, image, sourcefile);
 		}
 		else
 		{
@@ -434,18 +462,7 @@ namespace fsb
 			{
 				fsb_save_dir /= sourcefolder;
 			}
-			output<level_t::info>("(warn) FSB: File not found: {}.png", c8tomb(sourcefolder + sourcefile));
-			std::filesystem::create_directories(fsb_save_dir);
-			lodepng::encode(buffer, { 0, 0, 0, 1 }, 1, 1, state);
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_top" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_bottom" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_north" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_south" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_west" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			lodepng::save_file(buffer, c8tomb((fsb_save_dir / (sourcefile + u8"_east" + (overworldsky ? u8"" : u8"_end") + u8".png")).generic_u8string()));
-			buffer.clear();
-			buffer.shrink_to_fit();
-			checkpoint();
+			texture_not_found(path, overworldsky, fsb_save_dir, sourcefile);
 		}
 		mcpppp::conv::fixpathchars(sourcefolder);
 		mcpppp::conv::fixpathchars(sourcefile);
