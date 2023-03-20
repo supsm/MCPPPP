@@ -2,7 +2,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/supsm/mcpppp/badge)](https://www.codefactor.io/repository/github/supsm/mcpppp)
 [![Codacy](https://app.codacy.com/project/badge/Grade/78de1baf045f4931ab13ccd7664c8d74)](https://www.codacy.com/gh/supsm/MCPPPP/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=supsm/MCPPPP&amp;utm_campaign=Badge_Grade)
 [![Coverity](https://img.shields.io/coverity/scan/mcpppp.svg)](https://scan.coverity.com/projects/mcpppp)
-[![GitHub Build Status](https://img.shields.io/github/workflow/status/supsm/mcpppp/Compile)](https://github.com/supsm/MCPPPP/actions/workflows/compile.yml)  
+[![GitHub Build Status](https://img.shields.io/github/actions/workflow/status/supsm/mcpppp/compile.yml?branch=master)](https://github.com/supsm/MCPPPP/actions/workflows/compile.yml)  
 [![Latest Release](https://img.shields.io/github/v/release/supsm/mcpppp)](https://github.com/supsm/mcpppp/releases)
 [![GitHub Downloads](https://img.shields.io/github/downloads/supsm/mcpppp/total?label=Github%20downloads)](https://github.com/supsm/mcpppp/releases)
 [![Modrinth Downloads](https://img.shields.io/modrinth/dt/V7z6aY71?label=Modrinth%20downloads)](https://modrinth.com/mod/mcpppp)
@@ -17,22 +17,21 @@ A resource pack converter from Optifine format to newer and alternative formats.
 [Curseforge](https://www.curseforge.com/minecraft/mc-mods/mcpppp)  
 
 #### Formats
-Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes), [Varied Mob Textures](https://www.curseforge.com/minecraft/mc-mods/varied-mob-textures), and [Chime](https://www.curseforge.com/minecraft/mc-mods/chime-fabric). Fabricskyboxes conversion is the most complete, Varied Mob Textures is probably ok, and Chime isn't very complete.  
-[Centime](https://github.com/SekoiaTree/Centime) will be supported eventually if I have enough time.  
+Currently, the converter supports [Fabricskyboxes](https://modrinth.com/mod/fabricskyboxes) and [Chime](https://www.curseforge.com/minecraft/mc-mods/chime-fabric). Fabricskyboxes conversion is the most complete, Chime may require manual correction, and [Reselect](https://github.com/Digifox03/reselect) will be supported if the author continues development.  
 
 #### Important Note
 Some websites have been stealing this project (you'll know what I mean if you search "MCPPPP"). If you are not on github, please refer to the [official page](https://github.com/supsm/MCPPPP) instead. Most other websites are outdated, and some might contain unwanted programs. If there is another official website where I distribute binaries (e.g. modrinth), it will be linked on the github.  
 
 ## TLDR
 **Windows**: download `MCPPPP-windows.exe` from releases and double click on it.  
-**Mac**: download `MCPPPP-mac.dmg` from releases and extract it (I think you just double click). `MCPPPP-mac.app` should be extracted, click on it to run.  
+**Mac**: download `MCPPPP-mac.zip` from releases and extract it (double click from finder). `MCPPPP-mac` should be extracted, click on it to run. Unfortunately this requires macOS >12.  
 **Linux**: download `MCPPPP-linux-cli` (no gui) or `MCPPPP-linux` (has gui). Make it executable and run it.  
 
 ## Install/Use
 Newly compiled binaries for linux, windows, and mac can be found as build artifacts. Note that they may not be stable and may not work properly. I will add releases when I feel it is stable enough.  
 To access build artifacts, head to the [compile](https://github.com/supsm/MCPPPP/actions/workflows/compile.yml) page, click on the top result, then scroll down to artifacts. Download the artifact corresponding to your system, then unzip it.  
-`MCPPPP-windows.exe`, `MCPPPP-mac.tar.gz`, and `MCPPPP-linux` will contain a gui.
-`MCPPPP-windows-cli`, `MCPPPP-mac-cli.tar.gz`, and `MCPPPP-linux-cli` do not contain a gui. There is additional information below (Section **CLI**)  
+`MCPPPP-windows.exe`, `MCPPPP-mac.zip`, and `MCPPPP-linux` will contain a gui.
+`MCPPPP-windows-cli`, `MCPPPP-mac-cli.zip`, and `MCPPPP-linux-cli` do not contain a gui. There is additional information below (Section **CLI**)  
   
 If a folder already contains the output directories (such as `assets/fabricskyboxes`), it will be skipped. If you want to re-convert this pack, delete the directory. MCPPPP will try to be as least invasive as possible, and will only modify these folders (as well as `pack.mcmeta`, which there will be a backup of).  
 More detailed instructions below  
@@ -61,7 +60,7 @@ In the GUI version of MCPPPP, you can edit `mcpppp.properties` inside the gui. I
 This version can also accept command line arguments, but doing so will remove the gui entirely and function like the CLI version.  
 
 ## Build
-Prerequisites: Git, Cmake, compiler with c++20  
+Prerequisites: Git, Cmake, compiler with C++20  
 1. Clone the repository with `git clone https://github.com/supsm/MCPPPP --depth=1` and navigate to the MCPPPP folder  
 To build MCPPPP from source, you should use cmake. There are 3 options for mcpppp, which are `MCPPPP_CLI`, `MCPPPP_GUI`, and `MCPPPP_JNI` (the rest are for fltk and should be ignored). `MCPPPP_JNI` defaults to false, the other two default to true.  
 In cmake-gui, simply check or uncheck these checkboxes.  
