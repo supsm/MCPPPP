@@ -11,6 +11,11 @@
 [![Discord](https://img.shields.io/discord/824116179534348288?logo=discord)](https://discord.gg/waXJDswsaR)  
 A resource pack converter from Optifine format to newer and alternative formats. This project uses C++ and FLTK as the language and base framework. This might seem odd in the Minecraft community, but allows using 25MB of RAM, where other tools use excessive amounts of resources for no reason (LambdAurora's now discontinued MCPP used 50 MB idle). Note that RAM usage varies depending on what is being converted, FSB and zipped resource packs usually will use more. As a native application, it should also perform conversions faster.  
 
+# Unmaintained
+This may or may not still work, but the pack versions will be outdated (can be updated in src/constants.h) and future formats will likely change as well.  
+You can probably use it as a starting point to perform manual conversion.  
+Sorry if you still relied on this, but it seems interest has waned and my personal motivation has as well. You may reach me through discord (supsm) or through the my server (linked below). Thanks for everything.  
+
 ### Links  
 [Discord](https://discord.gg/waXJDswsaR)  
 [Modrinth](https://modrinth.com/mod/mcpppp)  
